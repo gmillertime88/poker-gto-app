@@ -319,7 +319,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 14,
@@ -347,7 +347,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 13,
@@ -585,7 +585,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 13,
@@ -613,7 +613,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 13,
@@ -641,7 +641,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 13,
@@ -669,7 +669,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 12,
@@ -851,7 +851,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 12,
@@ -879,7 +879,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 12,
@@ -907,7 +907,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 12,
@@ -935,7 +935,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 12,
@@ -963,7 +963,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 11,
@@ -1117,7 +1117,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 11,
@@ -1145,7 +1145,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 11,
@@ -1173,7 +1173,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 11,
@@ -1201,7 +1201,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 11,
@@ -1215,7 +1215,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 11,
@@ -1229,7 +1229,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 10,
@@ -1327,7 +1327,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 10,
@@ -1355,7 +1355,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 10,
@@ -1383,7 +1383,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 10,
@@ -1397,7 +1397,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 10,
@@ -1411,7 +1411,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 10,
@@ -1425,7 +1425,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 10,
@@ -1439,7 +1439,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 10,
@@ -1453,7 +1453,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 10,
@@ -1467,7 +1467,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 9,
@@ -1537,7 +1537,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 9,
@@ -1565,7 +1565,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 9,
@@ -1593,7 +1593,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 9,
@@ -1607,7 +1607,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 9,
@@ -1621,7 +1621,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 9,
@@ -1635,7 +1635,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 9,
@@ -1649,7 +1649,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 9,
@@ -1663,7 +1663,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 9,
@@ -1677,7 +1677,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 8,
@@ -1719,7 +1719,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 8,
@@ -1747,7 +1747,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 8,
@@ -1761,7 +1761,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 8,
@@ -1775,7 +1775,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 8,
@@ -1789,7 +1789,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 8,
@@ -1803,7 +1803,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 8,
@@ -1817,7 +1817,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 8,
@@ -1831,7 +1831,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 8,
@@ -1845,7 +1845,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 8,
@@ -1859,7 +1859,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 7,
@@ -1901,7 +1901,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 7,
@@ -1915,7 +1915,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 7,
@@ -1929,7 +1929,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 7,
@@ -1943,7 +1943,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 7,
@@ -1957,7 +1957,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 7,
@@ -1971,7 +1971,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 7,
@@ -1985,7 +1985,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 7,
@@ -1999,7 +1999,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 7,
@@ -2013,7 +2013,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 6,
@@ -2041,7 +2041,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 6,
@@ -2055,7 +2055,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 6,
@@ -2069,7 +2069,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 6,
@@ -2083,7 +2083,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 6,
@@ -2097,7 +2097,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 6,
@@ -2111,7 +2111,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 6,
@@ -2125,7 +2125,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 6,
@@ -2139,7 +2139,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 5,
@@ -2167,7 +2167,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 5,
@@ -2181,7 +2181,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 5,
@@ -2195,7 +2195,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 5,
@@ -2209,7 +2209,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 5,
@@ -2223,7 +2223,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 5,
@@ -2237,7 +2237,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 4,
@@ -2265,7 +2265,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 4,
@@ -2279,7 +2279,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 4,
@@ -2293,7 +2293,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 4,
@@ -2307,7 +2307,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 3,
@@ -2335,7 +2335,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 3,
@@ -2349,7 +2349,7 @@
     "CO": "Fold",
     "D": "Fold",
     "SB": "Fold",
-    "BB": "Fold"
+    "BB": "Check"
   },
   {
     "card1": 2,
