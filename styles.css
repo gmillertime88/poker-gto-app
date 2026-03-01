@@ -1,5 +1,5 @@
 :root {
-  --bg: #0f172a;
+  --bg: #072b71;
   --panel: #111827;
   --panel-soft: #1f2937;
   --text: #e5e7eb;
@@ -94,8 +94,9 @@ h1 {
 }
 
 .select-btn.active {
-  border-color: var(--accent);
-  background: var(--accent-soft);
+  border-color: #a4d18a;
+  background: #a4d18a;
+  color: #0f172a;
 }
 
 .select-btn:disabled {
@@ -159,6 +160,10 @@ h1 {
 .pending {
   background: rgba(156, 163, 175, 0.2);
   color: var(--text);
+}
+
+#action-value.pending {
+  font-size: 0.85rem;
 }
 
 .raise {
