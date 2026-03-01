@@ -1,5 +1,5 @@
 :root {
-  --bg: #072b71;
+  --bg: #0f172a;
   --panel: #111827;
   --panel-soft: #1f2937;
   --text: #e5e7eb;
@@ -31,7 +31,7 @@ body {
 }
 
 .card {
-  background: linear-gradient(180deg, rgba(17, 24, 39, 0.92), rgba(17, 24, 39, 0.98));
+  background: #072b71;
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 20px;
