@@ -1,4 +1,12 @@
-const POSITIONS = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
+const PLAYER_COUNTS = [5, 6, 7, 8, 9];
+
+const POSITIONS_BY_PLAYERS = {
+  5: ["D", "SB", "BB", "UTG", "CO"],
+  6: ["D", "SB", "BB", "UTG", "CO", "MP1"],
+  7: ["D", "SB", "BB", "UTG", "CO", "MP1", "MP2"],
+  8: ["D", "SB", "BB", "UTG", "CO", "MP1", "MP2", "HJ"],
+  9: ["D", "SB", "BB", "UTG", "CO", "MP1", "MP2", "HJ", "MP3"],
+};
 const RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
 const SUITING = [
   { label: "Suited", value: true },
@@ -15,6 +23,14 @@ const OPEN_SIZE_BB = {
   D: 2.5,
   SB: 3.0,
   BB: 2.5,
+};
+
+const WIDEN_DELTA_BY_PLAYERS = {
+  5: 2.3,
+  6: 1.6,
+  7: 1.0,
+  8: 0.5,
+  9: 0,
 };
 
 const rankToNum = {
@@ -36,14 +52,16 @@ const rankToNum = {
 const numToRank = Object.fromEntries(Object.entries(rankToNum).map(([rank, value]) => [value, rank]));
 
 const state = {
+  players: 9,
   position: null,
   card1: null,
   card2: null,
   suited: null,
-  rangeMap: new Map(),
+  rangeMapsByPlayers: {},
 };
 
 const elements = {
+  playersGrid: document.getElementById("players-grid"),
   positionGrid: document.getElementById("position-grid"),
   card1Grid: document.getElementById("card1-grid"),
   card2Grid: document.getElementById("card2-grid"),
@@ -53,8 +71,96 @@ const elements = {
   sizeValue: document.getElementById("size-value"),
 };
 
+function getActivePositions() {
+  return POSITIONS_BY_PLAYERS[state.players] || POSITIONS_BY_PLAYERS[9];
+}
+
 function tableKey(card1, card2, suited) {
   return `${card1}-${card2}-${suited ? 1 : 0}`;
+}
+
+function handStrength(card1, card2, suited) {
+  if (card1 === card2) {
+    return card1 + 8;
+  }
+
+  let score = (card1 * 0.62) + (card2 * 0.38);
+  if (suited) {
+    score += 2.1;
+  }
+  if (card1 >= 11 && card2 >= 10) {
+    score += 1.4;
+  }
+  if (card1 - card2 === 1) {
+    score += 0.7;
+  }
+  if (card1 - card2 >= 5) {
+    score -= 0.8;
+  }
+
+  return score;
+}
+
+function buildPositionThresholds(baseRows) {
+  const thresholds = {};
+  const positions = ["UTG", "MP1", "MP2", "MP3", "HJ", "CO", "D", "SB", "BB"];
+
+  positions.forEach((position) => {
+    const raiseScores = baseRows
+      .filter((row) => row[position] === "Raise")
+      .map((row) => handStrength(row.card1, row.card2, row.suited));
+
+    thresholds[position] = raiseScores.length ? Math.min(...raiseScores) : Infinity;
+  });
+
+  return thresholds;
+}
+
+function deriveAction(baseAction, position, score, threshold, delta) {
+  if (position === "BB") {
+    if (baseAction === "Raise") {
+      return "Raise";
+    }
+    return score >= (threshold - (delta * 0.8)) ? "Raise" : "Check";
+  }
+
+  if (position === "SB") {
+    if (baseAction === "Raise") {
+      return "Raise";
+    }
+    if (score >= (threshold - delta)) {
+      return "Raise";
+    }
+    return baseAction === "Call" ? "Call" : "Fold";
+  }
+
+  if (baseAction === "Raise") {
+    return "Raise";
+  }
+
+  return score >= (threshold - delta) ? "Raise" : "Fold";
+}
+
+function buildRangeMapForPlayers(baseRows, players, thresholds) {
+  const rangeMap = new Map();
+  const delta = WIDEN_DELTA_BY_PLAYERS[players] ?? 0;
+
+  baseRows.forEach((baseRow) => {
+    const row = { ...baseRow };
+    const score = handStrength(baseRow.card1, baseRow.card2, baseRow.suited);
+
+    Object.keys(thresholds).forEach((position) => {
+      row[position] = deriveAction(baseRow[position], position, score, thresholds[position], delta);
+    });
+
+    rangeMap.set(tableKey(row.card1, row.card2, row.suited), row);
+  });
+
+  return rangeMap;
+}
+
+function getRangeMapForSelectedPlayers() {
+  return state.rangeMapsByPlayers[state.players] || state.rangeMapsByPlayers[9] || new Map();
 }
 
 function normalizeHand(rank1, rank2, suited) {
@@ -78,6 +184,14 @@ function normalizeHand(rank1, rank2, suited) {
 
 function setSelectionValue(group, value) {
   state[group] = value;
+
+  if (group === "players") {
+    const activePositions = getActivePositions();
+    if (!activePositions.includes(state.position)) {
+      state.position = null;
+    }
+  }
+
   renderSelections();
   updateResult();
 }
@@ -93,8 +207,20 @@ function renderButton(grid, label, isActive, onClick, disabled = false) {
 }
 
 function renderSelections() {
+  elements.playersGrid.innerHTML = "";
+  PLAYER_COUNTS.forEach((count) => {
+    renderButton(
+      elements.playersGrid,
+      String(count),
+      state.players === count,
+      () => setSelectionValue("players", count)
+    );
+  });
+
+  const activePositions = getActivePositions();
+
   elements.positionGrid.innerHTML = "";
-  POSITIONS.forEach((position) => {
+  activePositions.forEach((position) => {
     renderButton(
       elements.positionGrid,
       position,
@@ -159,7 +285,8 @@ function updateResult() {
   elements.handValue.textContent = `${normalized.handText} (${state.position})`;
 
   const key = tableKey(normalized.card1, normalized.card2, normalized.suited);
-  const row = state.rangeMap.get(key);
+  const rangeMap = getRangeMapForSelectedPlayers();
+  const row = rangeMap.get(key);
 
   if (!row) {
     setActionBadge("pending", "No action found");
@@ -178,9 +305,11 @@ async function loadRangeTable() {
     throw new Error("Unable to load ranges.json");
   }
 
-  const rows = await response.json();
-  rows.forEach((row) => {
-    state.rangeMap.set(tableKey(row.card1, row.card2, row.suited), row);
+  const baseRows = await response.json();
+  const thresholds = buildPositionThresholds(baseRows);
+
+  PLAYER_COUNTS.forEach((players) => {
+    state.rangeMapsByPlayers[players] = buildRangeMapForPlayers(baseRows, players, thresholds);
   });
 }
 
