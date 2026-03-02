@@ -69,6 +69,10 @@ h1 {
   grid-template-columns: repeat(5, minmax(56px, 1fr));
 }
 
+.temperature-grid {
+  grid-template-columns: repeat(3, minmax(110px, 1fr));
+}
+
 .card-grid {
   grid-template-columns: repeat(13, minmax(42px, 1fr));
   overflow-x: auto;

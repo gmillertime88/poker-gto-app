@@ -1,4 +1,9 @@
 const PLAYER_COUNTS = [5, 6, 7, 8, 9];
+const TABLE_TEMPERATURES = [
+  { key: "conservative", label: "Conservative" },
+  { key: "normal", label: "Normal" },
+  { key: "aggressive", label: "Aggressive" },
+];
 
 const POSITIONS_BY_PLAYERS = {
   5: ["D", "SB", "BB", "UTG", "CO"],
@@ -33,6 +38,18 @@ const WIDEN_DELTA_BY_PLAYERS = {
   9: 0,
 };
 
+const TEMPERATURE_RANGE_ADJUST = {
+  conservative: 0.8,
+  normal: 0,
+  aggressive: -0.8,
+};
+
+const TEMPERATURE_SIZE_ADJUST = {
+  conservative: -0.2,
+  normal: 0,
+  aggressive: 0.3,
+};
+
 const rankToNum = {
   "2": 2,
   "3": 3,
@@ -53,15 +70,19 @@ const numToRank = Object.fromEntries(Object.entries(rankToNum).map(([rank, value
 
 const state = {
   players: 9,
+  temperature: "normal",
   position: null,
   card1: null,
   card2: null,
   suited: null,
-  rangeMapsByPlayers: {},
+  rangeMapsByContext: new Map(),
+  baseRows: [],
+  thresholds: {},
 };
 
 const elements = {
   playersGrid: document.getElementById("players-grid"),
+  temperatureGrid: document.getElementById("temperature-grid"),
   positionGrid: document.getElementById("position-grid"),
   card1Grid: document.getElementById("card1-grid"),
   card2Grid: document.getElementById("card2-grid"),
@@ -143,7 +164,9 @@ function deriveAction(baseAction, position, score, threshold, delta) {
 
 function buildRangeMapForPlayers(baseRows, players, thresholds) {
   const rangeMap = new Map();
-  const delta = WIDEN_DELTA_BY_PLAYERS[players] ?? 0;
+  const playerDelta = WIDEN_DELTA_BY_PLAYERS[players] ?? 0;
+  const temperatureDelta = TEMPERATURE_RANGE_ADJUST[state.temperature] ?? 0;
+  const delta = playerDelta + temperatureDelta;
 
   baseRows.forEach((baseRow) => {
     const row = { ...baseRow };
@@ -160,7 +183,14 @@ function buildRangeMapForPlayers(baseRows, players, thresholds) {
 }
 
 function getRangeMapForSelectedPlayers() {
-  return state.rangeMapsByPlayers[state.players] || state.rangeMapsByPlayers[9] || new Map();
+  const contextKey = `${state.players}-${state.temperature}`;
+  if (state.rangeMapsByContext.has(contextKey)) {
+    return state.rangeMapsByContext.get(contextKey);
+  }
+
+  const map = buildRangeMapForPlayers(state.baseRows, state.players, state.thresholds);
+  state.rangeMapsByContext.set(contextKey, map);
+  return map;
 }
 
 function normalizeHand(rank1, rank2, suited) {
@@ -217,6 +247,16 @@ function renderSelections() {
     );
   });
 
+  elements.temperatureGrid.innerHTML = "";
+  TABLE_TEMPERATURES.forEach((temperature) => {
+    renderButton(
+      elements.temperatureGrid,
+      temperature.label,
+      state.temperature === temperature.key,
+      () => setSelectionValue("temperature", temperature.key)
+    );
+  });
+
   const activePositions = getActivePositions();
 
   elements.positionGrid.innerHTML = "";
@@ -240,6 +280,9 @@ function renderSelections() {
   });
 
   const isPair = state.card1 && state.card2 && state.card1 === state.card2;
+  if (isPair) {
+    state.suited = false;
+  }
 
   elements.suitedGrid.innerHTML = "";
   SUITING.forEach((option) => {
@@ -248,13 +291,9 @@ function renderSelections() {
       option.label,
       state.suited === option.value,
       () => setSelectionValue("suited", option.value),
-      isPair
+      isPair && option.value === true
     );
   });
-
-  if (isPair) {
-    state.suited = false;
-  }
 }
 
 function setActionBadge(action, message = action) {
@@ -269,8 +308,10 @@ function getSizeRecommendation(position, action) {
     return "-";
   }
 
-  const size = OPEN_SIZE_BB[position];
-  return size ? `${size} BB` : "2.5 BB";
+  const base = OPEN_SIZE_BB[position] ?? 2.5;
+  const adjust = TEMPERATURE_SIZE_ADJUST[state.temperature] ?? 0;
+  const size = Math.max(2.0, Math.round((base + adjust) * 10) / 10);
+  return `${size} BB`;
 }
 
 function updateResult() {
@@ -305,12 +346,9 @@ async function loadRangeTable() {
     throw new Error("Unable to load ranges.json");
   }
 
-  const baseRows = await response.json();
-  const thresholds = buildPositionThresholds(baseRows);
-
-  PLAYER_COUNTS.forEach((players) => {
-    state.rangeMapsByPlayers[players] = buildRangeMapForPlayers(baseRows, players, thresholds);
-  });
+  state.baseRows = await response.json();
+  state.thresholds = buildPositionThresholds(state.baseRows);
+  state.rangeMapsByContext.clear();
 }
 
 async function init() {
