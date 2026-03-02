@@ -8,14 +8,14 @@ const TABLE_TEMPERATURES = [
   { key: "aggressive", label: "Aggressive" },
 ];
 
-const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "CO", "HJ"];
+const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
 const POSITIONS_BY_PLAYERS = {
-  5: ["D", "SB", "BB", "UTG", "CO"],
-  6: ["D", "SB", "BB", "UTG", "CO", "MP1"],
-  7: ["D", "SB", "BB", "UTG", "CO", "MP1", "MP2"],
-  8: ["D", "SB", "BB", "UTG", "CO", "MP1", "MP2", "HJ"],
-  9: ["D", "SB", "BB", "UTG", "CO", "MP1", "MP2", "HJ", "MP3"],
+  5: ["D", "SB", "BB", "UTG", "HJ"],
+  6: ["D", "SB", "BB", "UTG", "HJ", "MP1"],
+  7: ["D", "SB", "BB", "UTG", "HJ", "MP1", "MP2"],
+  8: ["D", "SB", "BB", "UTG", "HJ", "MP1", "MP2", "CO"],
+  9: ["D", "SB", "BB", "UTG", "HJ", "MP1", "MP2", "CO", "MP3"],
 };
 const RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
 const SUITING = [
