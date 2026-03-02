@@ -1,3 +1,6 @@
+// ------------------------------
+// Static UI and game configuration
+// ------------------------------
 const PLAYER_COUNTS = [5, 6, 7, 8, 9];
 const TABLE_TEMPERATURES = [
   { key: "conservative", label: "Conservative" },
@@ -20,6 +23,7 @@ const SUITING = [
   { label: "Off-suit", value: false },
 ];
 
+// Baseline open-raise sizing recommendations by position (in big blinds).
 const OPEN_SIZE_BB = {
   UTG: 2.2,
   MP1: 2.2,
@@ -32,6 +36,7 @@ const OPEN_SIZE_BB = {
   BB: 2.5,
 };
 
+// Range widening delta by number of players at the table (fewer players => wider ranges).
 const WIDEN_DELTA_BY_PLAYERS = {
   5: 2.3,
   6: 1.6,
@@ -40,18 +45,21 @@ const WIDEN_DELTA_BY_PLAYERS = {
   9: 0,
 };
 
+// Positive values tighten ranges, negative values loosen ranges.
 const TEMPERATURE_RANGE_ADJUST = {
   conservative: 0.8,
   normal: 0,
   aggressive: -0.8,
 };
 
+// Positive values increase opening size, negative values decrease opening size.
 const TEMPERATURE_SIZE_ADJUST = {
   conservative: -0.2,
   normal: 0,
   aggressive: 0.3,
 };
 
+// Card rank conversion helpers used for hand normalization and scoring.
 const rankToNum = {
   "2": 2,
   "3": 3,
@@ -70,6 +78,9 @@ const rankToNum = {
 
 const numToRank = Object.fromEntries(Object.entries(rankToNum).map(([rank, value]) => [value, rank]));
 
+// ------------------------------
+// Mutable app state
+// ------------------------------
 const state = {
   players: 9,
   temperature: "normal",
@@ -82,6 +93,9 @@ const state = {
   thresholds: {},
 };
 
+// ------------------------------
+// Cached DOM references
+// ------------------------------
 const elements = {
   playersGrid: document.getElementById("players-grid"),
   temperatureGrid: document.getElementById("temperature-grid"),
@@ -94,15 +108,27 @@ const elements = {
   sizeValue: document.getElementById("size-value"),
 };
 
+/**
+ * Returns the seat positions that should be shown for the selected player count,
+ * ordered consistently for the UI.
+ */
 function getActivePositions() {
   const positions = POSITIONS_BY_PLAYERS[state.players] || POSITIONS_BY_PLAYERS[9];
   return POSITION_DISPLAY_ORDER.filter((position) => positions.includes(position));
 }
 
+/**
+ * Builds a canonical lookup key for a hand + suitedness so range rows can be
+ * cached and retrieved quickly from maps.
+ */
 function tableKey(card1, card2, suited) {
   return `${card1}-${card2}-${suited ? 1 : 0}`;
 }
 
+/**
+ * Produces a synthetic hand-strength score used to smoothly widen/tighten ranges
+ * from a baseline table. Higher score means stronger hand.
+ */
 function handStrength(card1, card2, suited) {
   if (card1 === card2) {
     return card1 + 8;
@@ -125,6 +151,10 @@ function handStrength(card1, card2, suited) {
   return score;
 }
 
+/**
+ * For each position, finds the weakest baseline hand that is still a Raise.
+ * This score acts as the threshold when adjusting ranges by context.
+ */
 function buildPositionThresholds(baseRows) {
   const thresholds = {};
   const positions = ["UTG", "MP1", "MP2", "MP3", "HJ", "CO", "D", "SB", "BB"];
@@ -140,6 +170,10 @@ function buildPositionThresholds(baseRows) {
   return thresholds;
 }
 
+/**
+ * Determines the final action for a specific position after applying widening/
+ * tightening deltas. Blind positions get custom handling for realistic behavior.
+ */
 function deriveAction(baseAction, position, score, threshold, delta) {
   if (position === "BB") {
     if (baseAction === "Raise") {
@@ -165,6 +199,10 @@ function deriveAction(baseAction, position, score, threshold, delta) {
   return score >= (threshold - delta) ? "Raise" : "Fold";
 }
 
+/**
+ * Creates a context-specific range map (players + table temperature) from the
+ * baseline rows by recomputing actions using score thresholds.
+ */
 function buildRangeMapForPlayers(baseRows, players, thresholds) {
   const rangeMap = new Map();
   const playerDelta = WIDEN_DELTA_BY_PLAYERS[players] ?? 0;
@@ -185,6 +223,10 @@ function buildRangeMapForPlayers(baseRows, players, thresholds) {
   return rangeMap;
 }
 
+/**
+ * Returns the current context range map from cache, building and caching it on
+ * first access to avoid repeated recomputation.
+ */
 function getRangeMapForSelectedPlayers() {
   const contextKey = `${state.players}-${state.temperature}`;
   if (state.rangeMapsByContext.has(contextKey)) {
@@ -196,6 +238,10 @@ function getRangeMapForSelectedPlayers() {
   return map;
 }
 
+/**
+ * Normalizes two selected card ranks into a canonical representation where
+ * card1 >= card2, and enforces that pairs are treated as unsuited.
+ */
 function normalizeHand(rank1, rank2, suited) {
   const num1 = rankToNum[rank1];
   const num2 = rankToNum[rank2];
@@ -215,6 +261,9 @@ function normalizeHand(rank1, rank2, suited) {
   };
 }
 
+/**
+ * Stores a user selection in state and triggers dependent UI/result updates.
+ */
 function setSelectionValue(group, value) {
   state[group] = value;
 
@@ -229,6 +278,9 @@ function setSelectionValue(group, value) {
   updateResult();
 }
 
+/**
+ * Renders a single reusable selection button into the target button grid.
+ */
 function renderButton(grid, label, isActive, onClick, disabled = false) {
   const button = document.createElement("button");
   button.type = "button";
@@ -239,6 +291,10 @@ function renderButton(grid, label, isActive, onClick, disabled = false) {
   grid.appendChild(button);
 }
 
+/**
+ * Re-renders all selectable controls based on current state.
+ * Also enforces suited-option rules for pocket pairs.
+ */
 function renderSelections() {
   elements.playersGrid.innerHTML = "";
   PLAYER_COUNTS.forEach((count) => {
@@ -299,12 +355,19 @@ function renderSelections() {
   });
 }
 
+/**
+ * Updates the action result badge with visual class + display text.
+ */
 function setActionBadge(action, message = action) {
   const className = (action || "pending").toLowerCase();
   elements.actionValue.className = `value badge ${className}`;
   elements.actionValue.textContent = message;
 }
 
+/**
+ * Returns a position-based open size recommendation for aggressive actions,
+ * adjusted by table temperature. Non-raise actions return "-".
+ */
 function getSizeRecommendation(position, action) {
   const normalized = String(action || "").toLowerCase();
   if (normalized !== "raise" && normalized !== "bet") {
@@ -317,6 +380,10 @@ function getSizeRecommendation(position, action) {
   return `${size} BB`;
 }
 
+/**
+ * Computes and displays the current recommendation from the selected inputs.
+ * Handles incomplete selections and missing table entries gracefully.
+ */
 function updateResult() {
   if (!state.position || !state.card1 || !state.card2 || (state.suited === null && state.card1 !== state.card2)) {
     elements.handValue.textContent = "-";
@@ -343,6 +410,9 @@ function updateResult() {
   elements.sizeValue.textContent = getSizeRecommendation(state.position, action);
 }
 
+/**
+ * Loads baseline range data from disk and prepares derived threshold metadata.
+ */
 async function loadRangeTable() {
   const response = await fetch("ranges.json");
   if (!response.ok) {
@@ -354,6 +424,10 @@ async function loadRangeTable() {
   state.rangeMapsByContext.clear();
 }
 
+/**
+ * Application bootstrap: loads data, paints controls, and renders the first
+ * recommendation. Falls back to a user-visible error state on failure.
+ */
 async function init() {
   try {
     await loadRangeTable();
@@ -367,4 +441,5 @@ async function init() {
   }
 }
 
+// Start the app.
 init();

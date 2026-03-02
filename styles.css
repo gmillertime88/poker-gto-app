@@ -1,3 +1,4 @@
+/* Design tokens used throughout the app for color consistency and theming. */
 :root {
   --bg: #072b71;
   --panel: #111827;
@@ -12,10 +13,12 @@
   --border: #374151;
 }
 
+/* Global box model normalization for predictable sizing. */
 * {
   box-sizing: border-box;
 }
 
+/* Page-level canvas: full-height layout, typography, and background gradient. */
 body {
   margin: 0;
   min-height: 100vh;
@@ -24,12 +27,14 @@ body {
   color: var(--text);
 }
 
+/* Outer app wrapper that centers content and controls max width. */
 .app-shell {
   width: min(960px, 100%);
   margin: 0 auto;
   padding: 16px;
 }
 
+/* Main panel that visually groups all controls and recommendation output. */
 .card {
   background: linear-gradient(180deg, rgba(17, 24, 39, 0.92), rgba(17, 24, 39, 0.98));
   border: 1px solid var(--border);
@@ -38,51 +43,61 @@ body {
   box-shadow: 0 18px 35px rgba(2, 6, 23, 0.35);
 }
 
+/* Primary heading style. */
 h1 {
   margin: 0;
   font-size: clamp(1.3rem, 2vw, 1.9rem);
 }
 
+/* Secondary intro text beneath heading. */
 .subtitle {
   margin-top: 8px;
   color: var(--muted);
   font-size: 0.95rem;
 }
 
+/* Vertical spacing between each form-like selection block. */
 .field-group {
   margin-top: 18px;
 }
 
+/* Section label styling for each selector group. */
 .field-group h2 {
   margin: 0 0 10px;
   font-size: 1rem;
   color: #cbd5e1;
 }
 
+/* Base responsive grid used by all selector button groups. */
 .button-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(62px, 1fr));
   gap: 8px;
 }
 
+/* Fixed 5-column layout for player count buttons. */
 .players-grid {
   grid-template-columns: repeat(5, minmax(56px, 1fr));
 }
 
+/* Fixed 3-column layout for table temperature options. */
 .temperature-grid {
   grid-template-columns: repeat(3, minmax(110px, 1fr));
 }
 
+/* Dense horizontal rank grid; supports overflow on smaller screens. */
 .card-grid {
   grid-template-columns: repeat(13, minmax(42px, 1fr));
   overflow-x: auto;
   padding-bottom: 4px;
 }
 
+/* Two-column suited/off-suit toggle layout. */
 .suiting-grid {
   grid-template-columns: repeat(2, minmax(120px, 1fr));
 }
 
+/* Shared button appearance for all selectable options. */
 .select-btn {
   border: 1px solid var(--border);
   background: var(--panel-soft);
@@ -96,22 +111,26 @@ h1 {
   min-height: 46px;
 }
 
+/* Hover affordance for interactive buttons. */
 .select-btn:hover {
   border-color: var(--accent);
   transform: translateY(-1px);
 }
 
+/* Active/selected button state. */
 .select-btn.active {
   border-color: #a4d18a;
   background: #a4d18a;
   color: #0f172a;
 }
 
+/* Disabled button state for invalid choices (e.g., suited pairs). */
 .select-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
+/* Container for computed hand/action/size outputs. */
 .result {
   margin-top: 20px;
   border: 1px solid var(--border);
@@ -120,6 +139,7 @@ h1 {
   background: rgba(31, 41, 55, 0.65);
 }
 
+/* Horizontal row layout for each result line item. */
 .result-row {
   display: flex;
   align-items: center;
@@ -127,18 +147,22 @@ h1 {
   gap: 12px;
 }
 
+/* Vertical spacing between consecutive result rows. */
 .result-row + .result-row {
   margin-top: 8px;
 }
 
+/* Muted label text used in result rows. */
 .label {
   color: var(--muted);
 }
 
+/* Emphasized value text used in result rows. */
 .value {
   font-weight: 700;
 }
 
+/* Pill-style badge base for action status display. */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -149,6 +173,7 @@ h1 {
   letter-spacing: 0.01em;
 }
 
+/* Large action badge for the primary recommendation output. */
 #action-value {
   font-size: 1.7rem;
   min-width: 180px;
@@ -158,6 +183,7 @@ h1 {
   max-width: 100%;
 }
 
+/* Mobile layout refinement for action row stacking. */
 @media (max-width: 640px) {
   .action-row {
     flex-direction: column;
@@ -172,31 +198,37 @@ h1 {
   }
 }
 
+/* Default/incomplete state color treatment. */
 .pending {
   background: rgba(156, 163, 175, 0.2);
   color: var(--text);
 }
 
+/* Smaller text when showing placeholder pending message. */
 #action-value.pending {
   font-size: 0.85rem;
 }
 
+/* Action state colors: aggressive recommendation. */
 .raise {
   background: rgba(34, 197, 94, 0.2);
   color: #86efac;
 }
 
+/* Action state colors: passive/defensive recommendations. */
 .call,
 .check {
   background: rgba(245, 158, 11, 0.2);
   color: #fde68a;
 }
 
+/* Action state colors: fold recommendation. */
 .fold {
   background: rgba(239, 68, 68, 0.2);
   color: #fca5a5;
 }
 
+/* Mobile typography and spacing adjustments for compact screens. */
 @media (max-width: 640px) {
   .card {
     border-radius: 14px;
