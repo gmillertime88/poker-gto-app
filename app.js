@@ -5,6 +5,8 @@ const TABLE_TEMPERATURES = [
   { key: "aggressive", label: "Aggressive" },
 ];
 
+const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "CO", "HJ"];
+
 const POSITIONS_BY_PLAYERS = {
   5: ["D", "SB", "BB", "UTG", "CO"],
   6: ["D", "SB", "BB", "UTG", "CO", "MP1"],
@@ -93,7 +95,8 @@ const elements = {
 };
 
 function getActivePositions() {
-  return POSITIONS_BY_PLAYERS[state.players] || POSITIONS_BY_PLAYERS[9];
+  const positions = POSITIONS_BY_PLAYERS[state.players] || POSITIONS_BY_PLAYERS[9];
+  return POSITION_DISPLAY_ORDER.filter((position) => positions.includes(position));
 }
 
 function tableKey(card1, card2, suited) {
