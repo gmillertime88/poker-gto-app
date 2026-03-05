@@ -11,11 +11,11 @@ const TABLE_TEMPERATURES = [
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
 const POSITIONS_BY_PLAYERS = {
-  5: ["D", "SB", "BB", "UTG", "HJ"],
-  6: ["D", "SB", "BB", "UTG", "HJ", "MP1"],
-  7: ["D", "SB", "BB", "UTG", "HJ", "MP1", "MP2"],
-  8: ["D", "SB", "BB", "UTG", "HJ", "MP1", "MP2", "CO"],
-  9: ["D", "SB", "BB", "UTG", "HJ", "MP1", "MP2", "CO", "MP3"],
+  5: ["D", "SB", "BB", "UTG", "CO"],
+  6: ["D", "SB", "BB", "UTG", "MP1", "CO"],
+  7: ["D", "SB", "BB", "UTG", "MP1", "MP2", "CO"],
+  8: ["D", "SB", "BB", "UTG", "MP1", "MP2", "HJ", "CO"],
+  9: ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"],
 };
 const RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
 const SUITING = [
@@ -113,8 +113,24 @@ const elements = {
  * ordered consistently for the UI.
  */
 function getActivePositions() {
-  const positions = POSITIONS_BY_PLAYERS[state.players] || POSITIONS_BY_PLAYERS[9];
-  return POSITION_DISPLAY_ORDER.filter((position) => positions.includes(position));
+  const players = Number(state.players) || 9;
+  const positions = POSITIONS_BY_PLAYERS[players] || POSITIONS_BY_PLAYERS[9];
+
+  return POSITION_DISPLAY_ORDER.filter((position) => {
+    if (!positions.includes(position)) {
+      return false;
+    }
+
+    if (players <= 7 && position === "HJ") {
+      return false;
+    }
+
+    if (players <= 8 && position === "MP3") {
+      return false;
+    }
+
+    return true;
+  });
 }
 
 /**
@@ -265,7 +281,7 @@ function normalizeHand(rank1, rank2, suited) {
  * Stores a user selection in state and triggers dependent UI/result updates.
  */
 function setSelectionValue(group, value) {
-  state[group] = value;
+  state[group] = group === "players" ? Number(value) : value;
 
   if (group === "players") {
     const activePositions = getActivePositions();
