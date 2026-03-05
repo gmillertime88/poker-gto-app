@@ -408,6 +408,22 @@ function getSizeRecommendation(position, action) {
   return `${size} BB`;
 }
 
+function getLocalRecommendation(position, normalizedHand) {
+  const key = tableKey(normalizedHand.card1, normalizedHand.card2, normalizedHand.suited);
+  const rangeMap = getRangeMapForSelectedPlayers();
+  const row = rangeMap.get(key);
+
+  if (!row) {
+    return null;
+  }
+
+  const action = row[position] || "Fold";
+  return {
+    action,
+    sizeText: getSizeRecommendation(position, action),
+  };
+}
+
 /**
  * Computes and displays the current recommendation from the selected inputs.
  * Handles incomplete selections and missing table entries gracefully.
@@ -423,19 +439,15 @@ function updateResult() {
   const normalized = normalizeHand(state.card1, state.card2, state.suited === true);
   elements.handValue.textContent = `${normalized.handText} (${state.position})`;
 
-  const key = tableKey(normalized.card1, normalized.card2, normalized.suited);
-  const rangeMap = getRangeMapForSelectedPlayers();
-  const row = rangeMap.get(key);
-
-  if (!row) {
+  const localRecommendation = getLocalRecommendation(state.position, normalized);
+  if (!localRecommendation) {
     setActionBadge("pending", "No action found");
     elements.sizeValue.textContent = "-";
     return;
   }
 
-  const action = row[state.position] || "Fold";
-  setActionBadge(action, action);
-  elements.sizeValue.textContent = getSizeRecommendation(state.position, action);
+  setActionBadge(localRecommendation.action, localRecommendation.action);
+  elements.sizeValue.textContent = localRecommendation.sizeText;
 }
 
 /**
