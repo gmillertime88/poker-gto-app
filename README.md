@@ -26,3 +26,15 @@ Then open:
 4. Save and wait for Pages to publish.
 
 Your app will run fully as a static site.
+
+## Auto build bump + deploy
+
+Use this to auto-increment `BUILD_VERSION`, refresh `BUILD_TIMESTAMP`, then push.
+
+One-time alias setup:
+
+`echo 'alias deploygto='"'"'cd "/Users/greg/Library/CloudStorage/Dropbox/Personal/Python/GTO" && python3 tools/bump_build.py && git add -A && git diff --cached --quiet && echo "No changes to deploy." || (git commit -m "Update app" && git push origin main)'"'" >> ~/.zshrc && source ~/.zshrc`
+
+Daily usage:
+
+`deploygto`
