@@ -139,6 +139,18 @@ h1 {
   background: rgba(31, 41, 55, 0.65);
 }
 
+.build-tag-wrap {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.build-tag {
+  color: var(--muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+}
+
 /* Horizontal row layout for each result line item. */
 .result-row {
   display: flex;

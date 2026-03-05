@@ -8,6 +8,9 @@ const TABLE_TEMPERATURES = [
   { key: "aggressive", label: "Aggressive" },
 ];
 
+const BUILD_VERSION = "1.3.05.14.33";
+const BUILD_TIMESTAMP = "2026-03-06 14:33";
+
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
 const POSITIONS_BY_PLAYERS = {
@@ -106,7 +109,16 @@ const elements = {
   handValue: document.getElementById("hand-value"),
   actionValue: document.getElementById("action-value"),
   sizeValue: document.getElementById("size-value"),
+  buildTag: document.getElementById("build-tag"),
 };
+
+function renderBuildTag() {
+  if (!elements.buildTag) {
+    return;
+  }
+
+  elements.buildTag.textContent = `v${BUILD_VERSION} • ${BUILD_TIMESTAMP}`;
+}
 
 /**
  * Returns the seat positions that should be shown for the selected player count,
@@ -446,10 +458,12 @@ async function loadRangeTable() {
  */
 async function init() {
   try {
+    renderBuildTag();
     await loadRangeTable();
     renderSelections();
     updateResult();
   } catch (error) {
+    renderBuildTag();
     elements.handValue.textContent = "Error";
     setActionBadge("pending", "Failed to load range data");
     elements.sizeValue.textContent = "-";
