@@ -1,4 +1,4 @@
-const ODDS_PLAYER_COUNTS = [2, 3, 4, 5, 6, 7, 8, 9];
+const ODDS_PLAYER_COUNTS = [2, 3, 4];
 const ODDS_STAGES = [
   { key: "preflop", label: "Pre-Flop", boardCount: 0, streetIndex: 0 },
   { key: "flop", label: "Flop", boardCount: 3, streetIndex: 1 },

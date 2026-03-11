@@ -388,6 +388,8 @@ h1 {
   display: grid;
   gap: 10px;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  max-width: 780px;
+  margin: 0 auto;
 }
 
 .board-slot,
@@ -422,6 +424,9 @@ h1 {
 .player-rows {
   display: grid;
   gap: 10px;
+  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  max-width: 780px;
+  margin: 0 auto;
 }
 
 .player-title {
@@ -607,5 +612,14 @@ h1 {
   .stage-grid,
   .player-cards {
     grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .player-rows {
+    grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+
+  .board-grid {
+    max-width: 100%;
   }
 }
