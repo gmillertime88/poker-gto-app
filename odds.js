@@ -1,17 +1,17 @@
 const ODDS_PLAYER_COUNTS = [2, 3, 4, 5, 6, 7, 8, 9];
 const ODDS_STAGES = [
-  { key: "preflop", label: "Pre-flop", boardCount: 0, streetIndex: 0 },
-  { key: "flop", label: "Post-flop", boardCount: 3, streetIndex: 1 },
-  { key: "turn", label: "Post-turn", boardCount: 4, streetIndex: 2 },
-  { key: "river", label: "Post-river", boardCount: 5, streetIndex: 3 },
+  { key: "preflop", label: "Pre-Flop", boardCount: 0, streetIndex: 0 },
+  { key: "flop", label: "Flop", boardCount: 3, streetIndex: 1 },
+  { key: "turn", label: "Turn", boardCount: 4, streetIndex: 2 },
+  { key: "river", label: "River", boardCount: 5, streetIndex: 3 },
 ];
 const STREET_KEYS = ["preflop", "flop", "turn", "river"];
-const RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"];
+const RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
 const SUITS = [
-  { key: "S", label: "Spades" },
-  { key: "H", label: "Hearts" },
-  { key: "D", label: "Diamonds" },
-  { key: "C", label: "Clubs" },
+  { key: "S", symbol: "♠", label: "Spades", colorClass: "suit-black" },
+  { key: "H", symbol: "♥", label: "Hearts", colorClass: "suit-red" },
+  { key: "D", symbol: "♦", label: "Diamonds", colorClass: "suit-red" },
+  { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
 const oddsState = {
@@ -59,6 +59,12 @@ function setStatus(message, statusClass = "pending") {
   oddsElements.status.textContent = message;
 }
 
+function setStatusRich(contentBuilder, statusClass = "pending") {
+  oddsElements.status.className = `value badge ${statusClass}`;
+  oddsElements.status.textContent = "";
+  contentBuilder(oddsElements.status);
+}
+
 function stageByKey(stageKey) {
   return ODDS_STAGES.find((stage) => stage.key === stageKey) || ODDS_STAGES[0];
 }
@@ -101,7 +107,7 @@ function buildSuitSelect(selectedSuit, onChange) {
   SUITS.forEach((suit) => {
     const option = document.createElement("option");
     option.value = suit.key;
-    option.textContent = suit.key;
+    option.textContent = `${suit.symbol} ${suit.label}`;
     if (selectedSuit === suit.key) {
       option.selected = true;
     }
@@ -109,17 +115,75 @@ function buildSuitSelect(selectedSuit, onChange) {
   });
 
   select.addEventListener("change", (event) => {
-    onChange(event.target.value || null);
+    const suitKey = event.target.value || null;
+    updateSuitSelectColor(select, suitKey);
+    onChange(suitKey);
   });
+
+  updateSuitSelectColor(select, selectedSuit || null);
 
   return select;
 }
 
-function cardLabel(rank, suit) {
-  if (!rank || !suit) {
-    return "-";
+function suitMetaByKey(suitKey) {
+  return SUITS.find((suit) => suit.key === suitKey) || null;
+}
+
+function updateSuitSelectColor(select, suitKey) {
+  const suitMeta = suitMetaByKey(suitKey);
+  if (!suitMeta) {
+    select.style.color = "";
+    return;
   }
-  return `${rank}${suit}`;
+
+  select.style.color = suitMeta.colorClass === "suit-red" ? "#fca5a5" : "#e5e7eb";
+}
+
+function appendCardMarkup(container, rank, suit) {
+  if (!rank || !suit) {
+    const empty = document.createElement("span");
+    empty.textContent = "-";
+    container.appendChild(empty);
+    return;
+  }
+
+  const suitMeta = suitMetaByKey(suit);
+  const rankNode = document.createElement("span");
+  rankNode.textContent = rank;
+
+  const suitNode = document.createElement("span");
+  suitNode.textContent = suitMeta ? suitMeta.symbol : suit;
+  suitNode.className = `card-suit ${suitMeta ? suitMeta.colorClass : ""}`;
+
+  container.appendChild(rankNode);
+  container.appendChild(suitNode);
+}
+
+function rankNumToText(rankNum) {
+  return "--23456789TJQKA"[rankNum] || "?";
+}
+
+function cardIntToDisplayParts(cardInt) {
+  const { rank, suit } = cardFromInt(cardInt);
+  const suitMeta = SUITS[suit] || null;
+  return {
+    rankText: rankNumToText(rank),
+    suitKey: suitMeta ? suitMeta.key : null,
+  };
+}
+
+function createCardToken(rank, suit) {
+  const token = document.createElement("span");
+  token.className = "card-token";
+  appendCardMarkup(token, rank, suit);
+  return token;
+}
+
+function createDuplicateCardError(card) {
+  const error = new Error("Duplicate card detected.");
+  error.code = "DUPLICATE_CARD";
+  error.card = card;
+  return error;
 }
 
 function setPlayersAtStart(count) {
@@ -277,7 +341,25 @@ function renderPlayerRows() {
 
     const summary = document.createElement("div");
     summary.className = "player-summary";
-    summary.textContent = `Cards: ${cardLabel(player.cards[0]?.rank, player.cards[0]?.suit)} ${cardLabel(player.cards[1]?.rank, player.cards[1]?.suit)}`;
+
+    const summaryLabel = document.createElement("span");
+    summaryLabel.textContent = "Cards: ";
+
+    const cardOne = document.createElement("span");
+    cardOne.className = "player-card-display";
+    appendCardMarkup(cardOne, player.cards[0]?.rank, player.cards[0]?.suit);
+
+    const spacer = document.createElement("span");
+    spacer.textContent = " ";
+
+    const cardTwo = document.createElement("span");
+    cardTwo.className = "player-card-display";
+    appendCardMarkup(cardTwo, player.cards[1]?.rank, player.cards[1]?.suit);
+
+    summary.appendChild(summaryLabel);
+    summary.appendChild(cardOne);
+    summary.appendChild(spacer);
+    summary.appendChild(cardTwo);
 
     row.appendChild(title);
     row.appendChild(cardsWrap);
@@ -298,7 +380,7 @@ function renderAll() {
 }
 
 function cardToInt(card) {
-  const rank = RANKS.indexOf(card.rank) + 2;
+  const rank = "23456789TJQKA".indexOf(card.rank) + 2;
   const suit = SUITS.findIndex((s) => s.key === card.suit);
   return (suit * 13) + (rank - 2);
 }
@@ -467,7 +549,7 @@ function validateAndBuildScenario() {
       const label = `${card.rank}${card.suit}`;
 
       if (cardOwners.has(cardInt)) {
-        throw new Error(`Duplicate card detected: ${label}.`);
+        throw createDuplicateCardError({ rank: card.rank, suit: card.suit, label });
       }
 
       cardOwners.set(cardInt, `Player ${player.seat}`);
@@ -492,7 +574,7 @@ function validateAndBuildScenario() {
     const cardInt = cardToInt(boardCard);
     const label = `${boardCard.rank}${boardCard.suit}`;
     if (cardOwners.has(cardInt)) {
-      throw new Error(`Duplicate card detected: ${label}.`);
+      throw createDuplicateCardError({ rank: boardCard.rank, suit: boardCard.suit, label });
     }
 
     cardOwners.set(cardInt, "Board");
@@ -591,11 +673,33 @@ function renderOddsResults(scenario, totals) {
   oddsElements.boardsEvaluated.textContent = totals.boards.toLocaleString();
   oddsElements.results.innerHTML = "";
 
+  const boardWrap = document.createElement("div");
+  boardWrap.className = "board-display";
+
+  const boardLabel = document.createElement("span");
+  boardLabel.className = "board-display-label";
+  boardLabel.textContent = "Current Board:";
+  boardWrap.appendChild(boardLabel);
+
+  if (scenario.knownBoardCards.length === 0) {
+    const emptyBoard = document.createElement("span");
+    emptyBoard.className = "board-display-empty";
+    emptyBoard.textContent = "-";
+    boardWrap.appendChild(emptyBoard);
+  } else {
+    scenario.knownBoardCards.forEach((cardInt) => {
+      const { rankText, suitKey } = cardIntToDisplayParts(cardInt);
+      boardWrap.appendChild(createCardToken(rankText, suitKey));
+    });
+  }
+
+  oddsElements.results.appendChild(boardWrap);
+
   const table = document.createElement("table");
   table.className = "odds-table";
 
   const thead = document.createElement("thead");
-  thead.innerHTML = "<tr><th>Player</th><th>Win %</th><th>Tie %</th><th>Equity %</th></tr>";
+  thead.innerHTML = "<tr><th>Player</th><th>Hand</th><th>Win %</th><th>Tie %</th><th>Equity %</th></tr>";
 
   const tbody = document.createElement("tbody");
 
@@ -606,7 +710,30 @@ function renderOddsResults(scenario, totals) {
     const tiePct = ((totals.ties[idx] / totals.boards) * 100).toFixed(2);
     const equityPct = ((totals.equity[idx] / totals.boards) * 100).toFixed(2);
 
-    row.innerHTML = `<td>Player ${player.seat}</td><td>${winPct}</td><td>${tiePct}</td><td>${equityPct}</td>`;
+    const playerCell = document.createElement("td");
+    playerCell.textContent = `Player ${player.seat}`;
+
+    const handCell = document.createElement("td");
+    handCell.className = "results-hand-cell";
+    player.hole.forEach((cardInt) => {
+      const { rankText, suitKey } = cardIntToDisplayParts(cardInt);
+      handCell.appendChild(createCardToken(rankText, suitKey));
+    });
+
+    const winCell = document.createElement("td");
+    winCell.textContent = winPct;
+
+    const tieCell = document.createElement("td");
+    tieCell.textContent = tiePct;
+
+    const equityCell = document.createElement("td");
+    equityCell.textContent = equityPct;
+
+    row.appendChild(playerCell);
+    row.appendChild(handCell);
+    row.appendChild(winCell);
+    row.appendChild(tieCell);
+    row.appendChild(equityCell);
     tbody.appendChild(row);
   });
 
@@ -630,7 +757,23 @@ async function handleCalculateOdds() {
     renderOddsResults(scenario, totals);
     setStatus("Calculation complete", "raise");
   } catch (error) {
-    setStatus(error.message || "Unable to calculate odds", "fold");
+    if (error && error.code === "DUPLICATE_CARD" && error.card) {
+      setStatusRich((container) => {
+        const textNode = document.createElement("span");
+        textNode.textContent = "Duplicate card detected: ";
+        const token = createCardToken(error.card.rank, error.card.suit);
+        token.classList.add("status-inline-token");
+        const endNode = document.createElement("span");
+        endNode.textContent = ".";
+
+        container.appendChild(textNode);
+        container.appendChild(token);
+        container.appendChild(endNode);
+      }, "fold");
+    } else {
+      setStatus(error.message || "Unable to calculate odds", "fold");
+    }
+
     oddsElements.results.innerHTML = "";
     oddsElements.boardsEvaluated.textContent = "-";
   } finally {

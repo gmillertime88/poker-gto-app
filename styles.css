@@ -355,8 +355,64 @@ h1 {
   color: var(--muted);
 }
 
+.player-card-display {
+  color: var(--text);
+}
+
+.card-suit {
+  margin-left: 1px;
+}
+
+.suit-red {
+  color: #f87171;
+}
+
+.suit-black {
+  color: #e2e8f0;
+}
+
 .odds-results {
   margin-top: 12px;
+}
+
+.board-display {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.board-display-label {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.board-display-empty {
+  color: #cbd5e1;
+}
+
+.card-token {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 2px 6px;
+  border: 1px solid #475569;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  color: #f8fafc;
+  background: rgba(15, 23, 42, 0.75);
+}
+
+.status-inline-token {
+  margin: 0 4px;
+}
+
+.results-hand-cell {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
 .odds-table {
