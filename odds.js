@@ -695,6 +695,73 @@ function enumerateCombinations(source, choose, onCombination) {
   walk(0, 0);
 }
 
+function evaluateWinnersOnBoard(activePlayers, boardCards) {
+  let bestRank = null;
+  const winners = [];
+
+  activePlayers.forEach((player, idx) => {
+    const rankVector = evaluateSevenCards([player.hole[0], player.hole[1], ...boardCards]);
+
+    if (!bestRank || compareRankVectors(rankVector, bestRank) > 0) {
+      bestRank = rankVector;
+      winners.length = 0;
+      winners.push(idx);
+      return;
+    }
+
+    if (compareRankVectors(rankVector, bestRank) === 0) {
+      winners.push(idx);
+    }
+  });
+
+  return { winners };
+}
+
+function calculateTurnOuts(scenario) {
+  if (scenario.knownBoardCards.length !== 4) {
+    return [];
+  }
+
+  const turnResult = evaluateWinnersOnBoard(scenario.activePlayers, scenario.knownBoardCards);
+  const leaders = new Set(turnResult.winners);
+  const behindIndices = scenario.activePlayers
+    .map((_, idx) => idx)
+    .filter((idx) => !leaders.has(idx));
+
+  if (!behindIndices.length) {
+    return [];
+  }
+
+  const outsByPlayer = new Map();
+  behindIndices.forEach((idx) => {
+    outsByPlayer.set(idx, { winOuts: [], tieOuts: [] });
+  });
+
+  scenario.remainingDeck.forEach((riverCard) => {
+    const board = [...scenario.knownBoardCards, riverCard];
+    const result = evaluateWinnersOnBoard(scenario.activePlayers, board);
+
+    behindIndices.forEach((idx) => {
+      if (!result.winners.includes(idx)) {
+        return;
+      }
+
+      const bucket = outsByPlayer.get(idx);
+      if (result.winners.length === 1) {
+        bucket.winOuts.push(riverCard);
+      } else {
+        bucket.tieOuts.push(riverCard);
+      }
+    });
+  });
+
+  return behindIndices.map((idx) => ({
+    seat: scenario.activePlayers[idx].seat,
+    winOuts: outsByPlayer.get(idx).winOuts,
+    tieOuts: outsByPlayer.get(idx).tieOuts,
+  }));
+}
+
 function calculateExactOdds(scenario) {
   const unknownBoardCount = 5 - scenario.knownBoardCards.length;
   const totals = {
@@ -814,6 +881,54 @@ function renderOddsResults(scenario, totals) {
   table.appendChild(thead);
   table.appendChild(tbody);
   oddsElements.results.appendChild(table);
+
+  if (scenario.knownBoardCards.length === 4) {
+    const turnOuts = calculateTurnOuts(scenario);
+    if (turnOuts.length > 0) {
+      const outsWrap = document.createElement("div");
+      outsWrap.className = "outs-wrap";
+
+      const outsTitle = document.createElement("h3");
+      outsTitle.className = "outs-title";
+      outsTitle.textContent = "Turn Outs (Players Currently Behind)";
+      outsWrap.appendChild(outsTitle);
+
+      turnOuts.forEach((playerOuts) => {
+        const row = document.createElement("div");
+        row.className = "outs-row";
+
+        const label = document.createElement("div");
+        label.className = "outs-player-label";
+        label.textContent = `Player ${playerOuts.seat}`;
+
+        const counts = document.createElement("div");
+        counts.className = "outs-counts";
+        counts.textContent = `Win Outs: ${playerOuts.winOuts.length} | Tie Outs: ${playerOuts.tieOuts.length}`;
+
+        const cards = document.createElement("div");
+        cards.className = "outs-cards";
+
+        const combined = [
+          ...playerOuts.winOuts.map((cardInt) => ({ cardInt, type: "win" })),
+          ...playerOuts.tieOuts.map((cardInt) => ({ cardInt, type: "tie" })),
+        ];
+
+        combined.forEach((entry) => {
+          const { rankText, suitKey } = cardIntToDisplayParts(entry.cardInt);
+          const token = createCardToken(rankText, suitKey);
+          token.classList.add(entry.type === "win" ? "out-win" : "out-tie");
+          cards.appendChild(token);
+        });
+
+        row.appendChild(label);
+        row.appendChild(counts);
+        row.appendChild(cards);
+        outsWrap.appendChild(row);
+      });
+
+      oddsElements.results.appendChild(outsWrap);
+    }
+  }
 }
 
 async function handleCalculateOdds() {

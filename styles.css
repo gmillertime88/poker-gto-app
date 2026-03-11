@@ -421,6 +421,48 @@ h1 {
   flex-wrap: wrap;
 }
 
+.outs-wrap {
+  margin-top: 14px;
+  border-top: 1px solid #334155;
+  padding-top: 10px;
+}
+
+.outs-title {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+  color: #cbd5e1;
+}
+
+.outs-row + .outs-row {
+  margin-top: 10px;
+}
+
+.outs-player-label {
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.outs-counts {
+  margin-top: 3px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.outs-cards {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.out-win {
+  border-color: rgba(34, 197, 94, 0.7);
+}
+
+.out-tie {
+  border-color: rgba(245, 158, 11, 0.7);
+}
+
 .odds-table {
   width: 100%;
   border-collapse: collapse;
