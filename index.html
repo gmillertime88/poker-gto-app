@@ -1,81 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Core document metadata for UTF-8 and responsive scaling. -->
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GTO Tournament Action Calculator</title>
-
-    <!-- Application stylesheet containing layout, controls, and result badge styling. -->
+    <title>Miller Time GTO Menu</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <!-- Main app shell constrains overall width and centers content. -->
     <main class="app-shell">
-      <!-- Primary card container for all controls and recommendation output. -->
       <section class="card">
         <h1>Miller Time GTO</h1>
-        <p class="subtitle">Select your position and hand to get the recommended first-in action.</p>
+        <p class="subtitle">Choose a calculator.</p>
 
-        <!-- Input group: number of players currently at the table. -->
-        <div class="field-group">
-          <h2>Players</h2>
-          <div id="players-grid" class="button-grid players-grid"></div>
-        </div>
-
-        <!-- Input group: table dynamics used to tighten or loosen recommendations. -->
-        <div class="field-group">
-          <h2>Table Temperature</h2>
-          <div id="temperature-grid" class="button-grid temperature-grid"></div>
-        </div>
-
-        <!-- Input group: hero seat position used to select the relevant action column. -->
-        <div class="field-group">
-          <h2>Position</h2>
-          <div id="position-grid" class="button-grid"></div>
-        </div>
-
-        <!-- Input group: first card rank selector. -->
-        <div class="field-group">
-          <h2>Card 1</h2>
-          <div id="card1-grid" class="button-grid card-grid"></div>
-        </div>
-
-        <!-- Input group: second card rank selector. -->
-        <div class="field-group">
-          <h2>Card 2</h2>
-          <div id="card2-grid" class="button-grid card-grid"></div>
-        </div>
-
-        <!-- Input group: suited/off-suit selector (disabled for pocket pairs by JS). -->
-        <div class="field-group">
-          <h2>Suiting</h2>
-          <div id="suited-grid" class="button-grid suiting-grid"></div>
-        </div>
-
-        <!-- Live result panel updated by JavaScript as selections change. -->
-        <section class="result" id="result-box" aria-live="polite">
-          <div class="result-row">
-            <span class="label">Hand</span>
-            <span id="hand-value" class="value">-</span>
-          </div>
-          <div class="result-row action-row">
-            <span class="label">Action</span>
-            <span id="action-value" class="value badge pending">Select all parameters</span>
-          </div>
-          <div class="result-row">
-            <span class="label">Size</span>
-            <span id="size-value" class="value">-</span>
-          </div>
-        </section>
-
-        <div class="build-tag-wrap">
-          <span id="build-tag" class="build-tag">Build -</span>
+        <div class="menu-grid">
+          <a class="menu-button" href="ranges.html">
+            <span class="menu-button-title">Ranges</span>
+            <span class="menu-button-subtitle">Preflop first-in action recommendations</span>
+          </a>
+          <a class="menu-button" href="odds.html">
+            <span class="menu-button-title">Odds</span>
+            <span class="menu-button-subtitle">Exact win probabilities by street</span>
+          </a>
         </div>
       </section>
     </main>
-
-    <!-- App logic: renders controls, computes actions, and updates recommendations. -->
-    <script src="app.js"></script>
   </body>
 </html>

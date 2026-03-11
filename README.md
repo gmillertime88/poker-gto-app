@@ -1,10 +1,38 @@
 ## Miller Time GTO (Static)
 
-This is a static preflop first-in recommendation app.
+This is a static poker toolkit with two calculators:
+
+- `Ranges`: preflop first-in recommendation app.
+- `Odds`: exact win probability calculator by street.
 
 - No backend required.
 - No API keys required.
-- Recommendations are calculated locally in `app.js` using `ranges.json`.
+- Range recommendations are calculated locally in `app.js` using `ranges.json`.
+- Odds are calculated locally in `odds.js` by exact board enumeration.
+
+## App pages
+
+- `index.html`: main menu page
+- `ranges.html`: range recommendation calculator
+- `odds.html`: odds calculator
+
+Both calculators include navigation back to the main menu.
+
+## Odds calculator inputs
+
+On the Odds page, you can set:
+
+- Number of players at the start of the hand
+- Two hole cards (rank + suit) for each player
+- Stage: Pre-flop, Post-flop, Post-turn, Post-river
+- Which players are still in hand on each street
+- Community cards required for the selected stage
+
+The calculator reports:
+
+- `Win %` (outright wins)
+- `Tie %` (split-pot outcomes)
+- `Equity %` (win + tie share)
 
 ## Run locally (optional)
 

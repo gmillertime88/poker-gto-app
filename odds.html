@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Miller Time GTO Odds</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="card">
+        <div class="top-nav">
+          <a class="nav-link" href="index.html">Back to Main Menu</a>
+          <a class="nav-link" href="ranges.html">Go to Ranges</a>
+        </div>
+
+        <h1>Miller Time GTO - Odds</h1>
+        <p class="subtitle">Enter all players' hole cards, select the stage, and calculate exact win probabilities.</p>
+
+        <div class="field-group">
+          <h2>Players At Start</h2>
+          <div id="odds-players-grid" class="button-grid players-grid"></div>
+        </div>
+
+        <div class="field-group">
+          <h2>Stage</h2>
+          <div id="odds-stage-grid" class="button-grid stage-grid"></div>
+        </div>
+
+        <div class="field-group">
+          <h2>Community Cards</h2>
+          <div id="board-grid" class="board-grid"></div>
+        </div>
+
+        <div class="field-group">
+          <h2>Player Hands And Street Status</h2>
+          <div id="player-rows" class="player-rows"></div>
+        </div>
+
+        <div class="field-group action-controls">
+          <button id="calculate-odds-btn" class="select-btn primary-action" type="button">Calculate Odds</button>
+        </div>
+
+        <section class="result" aria-live="polite">
+          <div class="result-row action-row">
+            <span class="label">Status</span>
+            <span id="odds-status" class="value badge pending">Enter hands and click Calculate Odds</span>
+          </div>
+          <div class="result-row">
+            <span class="label">Boards Evaluated</span>
+            <span id="boards-evaluated" class="value">-</span>
+          </div>
+          <div id="odds-results" class="odds-results"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="odds.js"></script>
+  </body>
+</html>

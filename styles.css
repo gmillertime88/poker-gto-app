@@ -13,28 +13,24 @@
   --border: #374151;
 }
 
-/* Global box model normalization for predictable sizing. */
 * {
   box-sizing: border-box;
 }
 
-/* Page-level canvas: full-height layout, typography, and background gradient. */
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-family: "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
   background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 48%);
   color: var(--text);
 }
 
-/* Outer app wrapper that centers content and controls max width. */
 .app-shell {
   width: min(960px, 100%);
   margin: 0 auto;
   padding: 16px;
 }
 
-/* Main panel that visually groups all controls and recommendation output. */
 .card {
   background: linear-gradient(180deg, rgba(17, 24, 39, 0.92), rgba(17, 24, 39, 0.98));
   border: 1px solid var(--border);
@@ -43,61 +39,117 @@ body {
   box-shadow: 0 18px 35px rgba(2, 6, 23, 0.35);
 }
 
-/* Primary heading style. */
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  color: #c7d2fe;
+  text-decoration: none;
+  font-size: 0.9rem;
+  border: 1px solid #475569;
+  background: rgba(15, 23, 42, 0.55);
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: 120ms ease;
+}
+
+.nav-link:hover {
+  border-color: var(--accent);
+  color: #ecfeff;
+}
+
 h1 {
   margin: 0;
   font-size: clamp(1.3rem, 2vw, 1.9rem);
 }
 
-/* Secondary intro text beneath heading. */
 .subtitle {
   margin-top: 8px;
   color: var(--muted);
   font-size: 0.95rem;
 }
 
-/* Vertical spacing between each form-like selection block. */
 .field-group {
   margin-top: 18px;
 }
 
-/* Section label styling for each selector group. */
 .field-group h2 {
   margin: 0 0 10px;
   font-size: 1rem;
   color: #cbd5e1;
 }
 
-/* Base responsive grid used by all selector button groups. */
+.menu-grid {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+}
+
+.menu-button {
+  display: block;
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid var(--border);
+  background: linear-gradient(160deg, rgba(20, 32, 58, 0.9), rgba(13, 49, 72, 0.9));
+  border-radius: 14px;
+  padding: 18px;
+  transition: 140ms ease;
+}
+
+.menu-button:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(8, 47, 73, 0.45);
+}
+
+.menu-button-title {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.menu-button-subtitle {
+  display: block;
+  margin-top: 6px;
+  color: #bfdbfe;
+  font-size: 0.9rem;
+}
+
 .button-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(62px, 1fr));
   gap: 8px;
 }
 
-/* Fixed 5-column layout for player count buttons. */
 .players-grid {
   grid-template-columns: repeat(5, minmax(56px, 1fr));
 }
 
-/* Fixed 3-column layout for table temperature options. */
 .temperature-grid {
   grid-template-columns: repeat(3, minmax(110px, 1fr));
 }
 
-/* Dense horizontal rank grid; supports overflow on smaller screens. */
+.stage-grid {
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+}
+
 .card-grid {
   grid-template-columns: repeat(13, minmax(42px, 1fr));
   overflow-x: auto;
   padding-bottom: 4px;
 }
 
-/* Two-column suited/off-suit toggle layout. */
 .suiting-grid {
   grid-template-columns: repeat(2, minmax(120px, 1fr));
 }
 
-/* Shared button appearance for all selectable options. */
 .select-btn {
   border: 1px solid var(--border);
   background: var(--panel-soft);
@@ -111,26 +163,31 @@ h1 {
   min-height: 46px;
 }
 
-/* Hover affordance for interactive buttons. */
 .select-btn:hover {
   border-color: var(--accent);
   transform: translateY(-1px);
 }
 
-/* Active/selected button state. */
 .select-btn.active {
   border-color: #a4d18a;
   background: #a4d18a;
   color: #0f172a;
 }
 
-/* Disabled button state for invalid choices (e.g., suited pairs). */
 .select-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
-/* Container for computed hand/action/size outputs. */
+.action-controls {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.primary-action {
+  min-width: 200px;
+}
+
 .result {
   margin-top: 20px;
   border: 1px solid var(--border);
@@ -151,7 +208,6 @@ h1 {
   letter-spacing: 0.01em;
 }
 
-/* Horizontal row layout for each result line item. */
 .result-row {
   display: flex;
   align-items: center;
@@ -159,22 +215,18 @@ h1 {
   gap: 12px;
 }
 
-/* Vertical spacing between consecutive result rows. */
 .result-row + .result-row {
   margin-top: 8px;
 }
 
-/* Muted label text used in result rows. */
 .label {
   color: var(--muted);
 }
 
-/* Emphasized value text used in result rows. */
 .value {
   font-weight: 700;
 }
 
-/* Pill-style badge base for action status display. */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -185,7 +237,6 @@ h1 {
   letter-spacing: 0.01em;
 }
 
-/* Large action badge for the primary recommendation output. */
 #action-value {
   font-size: 1.7rem;
   min-width: 180px;
@@ -195,53 +246,154 @@ h1 {
   max-width: 100%;
 }
 
-/* Mobile layout refinement for action row stacking. */
-@media (max-width: 640px) {
-  .action-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  #action-value {
-    min-width: 0;
-    width: 100%;
-    min-height: 60px;
-    justify-content: center;
-  }
-}
-
-/* Default/incomplete state color treatment. */
 .pending {
   background: rgba(156, 163, 175, 0.2);
   color: var(--text);
 }
 
-/* Smaller text when showing placeholder pending message. */
+.info {
+  background: rgba(56, 189, 248, 0.2);
+  color: #bae6fd;
+}
+
 #action-value.pending {
   font-size: 0.85rem;
 }
 
-/* Action state colors: aggressive recommendation. */
 .raise {
   background: rgba(34, 197, 94, 0.2);
   color: #86efac;
 }
 
-/* Action state colors: passive/defensive recommendations. */
 .call,
 .check {
   background: rgba(245, 158, 11, 0.2);
   color: #fde68a;
 }
 
-/* Action state colors: fold recommendation. */
 .fold {
   background: rgba(239, 68, 68, 0.2);
   color: #fca5a5;
 }
 
-/* Mobile typography and spacing adjustments for compact screens. */
+.board-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.board-slot,
+.player-row {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.55);
+  padding: 10px;
+}
+
+.board-slot.disabled {
+  opacity: 0.5;
+}
+
+.board-slot-label {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}
+
+.card-select {
+  width: 100%;
+  margin-bottom: 6px;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  background: #0f172a;
+  color: var(--text);
+  padding: 8px;
+}
+
+.player-rows {
+  display: grid;
+  gap: 10px;
+}
+
+.player-title {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.player-cards {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(120px, 1fr));
+}
+
+.card-slot {
+  border: 1px dashed #475569;
+  border-radius: 10px;
+  padding: 8px;
+}
+
+.street-status-grid {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(4, minmax(70px, 1fr));
+}
+
+.street-status-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #e2e8f0;
+}
+
+.player-summary {
+  margin-top: 8px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.odds-results {
+  margin-top: 12px;
+}
+
+.odds-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.odds-table th,
+.odds-table td {
+  border-bottom: 1px solid #334155;
+  padding: 8px;
+  text-align: left;
+}
+
+.odds-table th {
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
 @media (max-width: 640px) {
+  .menu-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .action-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #action-value,
+  #odds-status {
+    min-width: 0;
+    width: 100%;
+    min-height: 60px;
+    justify-content: center;
+  }
+
   .card {
     border-radius: 14px;
     padding: 14px;
@@ -255,5 +407,11 @@ h1 {
 
   .card-grid {
     grid-template-columns: repeat(13, minmax(38px, 1fr));
+  }
+
+  .stage-grid,
+  .street-status-grid,
+  .player-cards {
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
   }
 }

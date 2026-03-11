@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Miller Time GTO Ranges</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="card">
+        <div class="top-nav">
+          <a class="nav-link" href="index.html">Back to Main Menu</a>
+          <a class="nav-link" href="odds.html">Go to Odds</a>
+        </div>
+
+        <h1>Miller Time GTO - Ranges</h1>
+        <p class="subtitle">Select your position and hand to get the recommended first-in action.</p>
+
+        <div class="field-group">
+          <h2>Players</h2>
+          <div id="players-grid" class="button-grid players-grid"></div>
+        </div>
+
+        <div class="field-group">
+          <h2>Table Temperature</h2>
+          <div id="temperature-grid" class="button-grid temperature-grid"></div>
+        </div>
+
+        <div class="field-group">
+          <h2>Position</h2>
+          <div id="position-grid" class="button-grid"></div>
+        </div>
+
+        <div class="field-group">
+          <h2>Card 1</h2>
+          <div id="card1-grid" class="button-grid card-grid"></div>
+        </div>
+
+        <div class="field-group">
+          <h2>Card 2</h2>
+          <div id="card2-grid" class="button-grid card-grid"></div>
+        </div>
+
+        <div class="field-group">
+          <h2>Suiting</h2>
+          <div id="suited-grid" class="button-grid suiting-grid"></div>
+        </div>
+
+        <section class="result" id="result-box" aria-live="polite">
+          <div class="result-row">
+            <span class="label">Hand</span>
+            <span id="hand-value" class="value">-</span>
+          </div>
+          <div class="result-row action-row">
+            <span class="label">Action</span>
+            <span id="action-value" class="value badge pending">Select all parameters</span>
+          </div>
+          <div class="result-row">
+            <span class="label">Size</span>
+            <span id="size-value" class="value">-</span>
+          </div>
+        </section>
+
+        <div class="build-tag-wrap">
+          <span id="build-tag" class="build-tag">Build -</span>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
