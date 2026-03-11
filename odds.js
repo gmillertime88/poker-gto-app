@@ -65,9 +65,49 @@ function stageByBoardCount(boardCount) {
   return ODDS_STAGES.find((stage) => stage.boardCount === boardCount) || ODDS_STAGES[0];
 }
 
-function buildRankSelect(selectedRank, onChange) {
+function makeCardKey(rank, suit) {
+  return `${rank}-${suit}`;
+}
+
+function collectUsedCards(excludeOwnerKey = null) {
+  const used = new Set();
+
+  oddsState.players.forEach((player, playerIndex) => {
+    player.cards.forEach((card, cardIndex) => {
+      const ownerKey = `p-${playerIndex}-c-${cardIndex}`;
+      if (ownerKey === excludeOwnerKey) {
+        return;
+      }
+
+      if (card?.rank && card?.suit) {
+        used.add(makeCardKey(card.rank, card.suit));
+      }
+    });
+  });
+
+  oddsState.board.forEach((card, boardIndex) => {
+    const ownerKey = `b-${boardIndex}`;
+    if (ownerKey === excludeOwnerKey) {
+      return;
+    }
+
+    if (card?.rank && card?.suit) {
+      used.add(makeCardKey(card.rank, card.suit));
+    }
+  });
+
+  return used;
+}
+
+function refreshCardSelectionUI() {
+  renderBoardGrid();
+  renderPlayerRows();
+}
+
+function buildRankSelect(selectedRank, selectedSuit, ownerKey, onChange) {
   const select = document.createElement("select");
   select.className = "card-select";
+  const usedCards = collectUsedCards(ownerKey);
 
   const placeholder = document.createElement("option");
   placeholder.value = "";
@@ -78,6 +118,10 @@ function buildRankSelect(selectedRank, onChange) {
     const option = document.createElement("option");
     option.value = rank;
     option.textContent = rank;
+    if (selectedSuit) {
+      const cardKey = makeCardKey(rank, selectedSuit);
+      option.disabled = usedCards.has(cardKey) && rank !== selectedRank;
+    }
     if (selectedRank === rank) {
       option.selected = true;
     }
@@ -91,9 +135,10 @@ function buildRankSelect(selectedRank, onChange) {
   return select;
 }
 
-function buildSuitSelect(selectedSuit, onChange) {
+function buildSuitSelect(selectedRank, selectedSuit, ownerKey, onChange) {
   const select = document.createElement("select");
   select.className = "card-select";
+  const usedCards = collectUsedCards(ownerKey);
 
   const placeholder = document.createElement("option");
   placeholder.value = "";
@@ -104,6 +149,11 @@ function buildSuitSelect(selectedSuit, onChange) {
     const option = document.createElement("option");
     option.value = suit.key;
     option.textContent = `${suit.symbol} ${suit.label}`;
+    option.style.color = suit.colorClass === "suit-red" ? "#f87171" : "#e2e8f0";
+    if (selectedRank) {
+      const cardKey = makeCardKey(selectedRank, suit.key);
+      option.disabled = usedCards.has(cardKey) && suit.key !== selectedSuit;
+    }
     if (selectedSuit === suit.key) {
       option.selected = true;
     }
@@ -217,15 +267,28 @@ function renderBoardGrid() {
     label.className = "board-slot-label";
     label.textContent = i < 3 ? `Flop ${i + 1}` : i === 3 ? "Turn" : "River";
 
-    const rankSelect = buildRankSelect(oddsState.board[i]?.rank || null, (rank) => {
-      const current = oddsState.board[i] || {};
-      oddsState.board[i] = rank && current.suit ? { rank, suit: current.suit } : rank ? { rank, suit: null } : null;
-    });
+    const ownerKey = `b-${i}`;
+    const rankSelect = buildRankSelect(
+      oddsState.board[i]?.rank || null,
+      oddsState.board[i]?.suit || null,
+      ownerKey,
+      (rank) => {
+        const current = oddsState.board[i] || {};
+        oddsState.board[i] = rank && current.suit ? { rank, suit: current.suit } : rank ? { rank, suit: null } : null;
+        refreshCardSelectionUI();
+      }
+    );
 
-    const suitSelect = buildSuitSelect(oddsState.board[i]?.suit || null, (suit) => {
-      const current = oddsState.board[i] || {};
-      oddsState.board[i] = suit && current.rank ? { rank: current.rank, suit } : suit ? { rank: null, suit } : null;
-    });
+    const suitSelect = buildSuitSelect(
+      oddsState.board[i]?.rank || null,
+      oddsState.board[i]?.suit || null,
+      ownerKey,
+      (suit) => {
+        const current = oddsState.board[i] || {};
+        oddsState.board[i] = suit && current.rank ? { rank: current.rank, suit } : suit ? { rank: null, suit } : null;
+        refreshCardSelectionUI();
+      }
+    );
 
     wrapper.appendChild(label);
     wrapper.appendChild(rankSelect);
@@ -252,15 +315,28 @@ function renderPlayerRows() {
       const cardShell = document.createElement("div");
       cardShell.className = "card-slot";
 
-      const rankSelect = buildRankSelect(player.cards[cardIndex]?.rank || null, (rank) => {
-        const current = player.cards[cardIndex] || {};
-        player.cards[cardIndex] = rank && current.suit ? { rank, suit: current.suit } : rank ? { rank, suit: null } : null;
-      });
+      const ownerKey = `p-${playerIndex}-c-${cardIndex}`;
+      const rankSelect = buildRankSelect(
+        player.cards[cardIndex]?.rank || null,
+        player.cards[cardIndex]?.suit || null,
+        ownerKey,
+        (rank) => {
+          const current = player.cards[cardIndex] || {};
+          player.cards[cardIndex] = rank && current.suit ? { rank, suit: current.suit } : rank ? { rank, suit: null } : null;
+          refreshCardSelectionUI();
+        }
+      );
 
-      const suitSelect = buildSuitSelect(player.cards[cardIndex]?.suit || null, (suit) => {
-        const current = player.cards[cardIndex] || {};
-        player.cards[cardIndex] = suit && current.rank ? { rank: current.rank, suit } : suit ? { rank: null, suit } : null;
-      });
+      const suitSelect = buildSuitSelect(
+        player.cards[cardIndex]?.rank || null,
+        player.cards[cardIndex]?.suit || null,
+        ownerKey,
+        (suit) => {
+          const current = player.cards[cardIndex] || {};
+          player.cards[cardIndex] = suit && current.rank ? { rank: current.rank, suit } : suit ? { rank: null, suit } : null;
+          refreshCardSelectionUI();
+        }
+      );
 
       cardShell.appendChild(rankSelect);
       cardShell.appendChild(suitSelect);
