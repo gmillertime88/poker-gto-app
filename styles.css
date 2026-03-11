@@ -1,16 +1,51 @@
 /* Design tokens used throughout the app for color consistency and theming. */
 :root {
   --bg: #072b71;
+  --bg-start: #1e293b;
   --panel: #111827;
   --panel-soft: #1f2937;
+  --card-bg: linear-gradient(180deg, rgba(17, 24, 39, 0.92), rgba(17, 24, 39, 0.98));
+  --surface-soft: rgba(15, 23, 42, 0.55);
+  --token-bg: rgba(15, 23, 42, 0.75);
   --text: #e5e7eb;
   --muted: #9ca3af;
+  --heading: #cbd5e1;
   --accent: #22d3ee;
   --accent-soft: rgba(34, 211, 238, 0.22);
   --success: #22c55e;
   --warning: #f59e0b;
   --danger: #ef4444;
   --border: #374151;
+  --nav-link-text: #c7d2fe;
+  --nav-link-bg: rgba(15, 23, 42, 0.55);
+  --menu-subtitle: #bfdbfe;
+  --table-border: #334155;
+  --card-select-bg: #0f172a;
+  --card-select-border: #475569;
+  --suit-black: #e2e8f0;
+  --suit-red: #f87171;
+}
+
+[data-theme="light"] {
+  --bg: #e0f2fe;
+  --bg-start: #f8fafc;
+  --panel: #ffffff;
+  --panel-soft: #eef2ff;
+  --card-bg: linear-gradient(180deg, #ffffff, #f8fafc);
+  --surface-soft: rgba(241, 245, 249, 0.9);
+  --token-bg: rgba(226, 232, 240, 0.9);
+  --text: #0f172a;
+  --muted: #475569;
+  --heading: #1e293b;
+  --border: #cbd5e1;
+  --nav-link-text: #1d4ed8;
+  --nav-link-bg: rgba(219, 234, 254, 0.85);
+  --menu-subtitle: #1e3a8a;
+  --table-border: #cbd5e1;
+  --card-select-bg: #ffffff;
+  --card-select-border: #94a3b8;
+  --suit-black: #0f172a;
+  --suit-red: #dc2626;
 }
 
 * {
@@ -21,7 +56,7 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: "Avenir Next", "Segoe UI", "Trebuchet MS", sans-serif;
-  background: radial-gradient(circle at top, #1e293b 0%, var(--bg) 48%);
+  background: radial-gradient(circle at top, var(--bg-start) 0%, var(--bg) 48%);
   color: var(--text);
 }
 
@@ -32,7 +67,7 @@ body {
 }
 
 .card {
-  background: linear-gradient(180deg, rgba(17, 24, 39, 0.92), rgba(17, 24, 39, 0.98));
+  background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 20px;
   padding: 20px;
@@ -49,11 +84,11 @@ body {
 }
 
 .nav-link {
-  color: #c7d2fe;
+  color: var(--nav-link-text);
   text-decoration: none;
   font-size: 0.9rem;
   border: 1px solid #475569;
-  background: rgba(15, 23, 42, 0.55);
+  background: var(--nav-link-bg);
   padding: 8px 12px;
   border-radius: 10px;
   transition: 120ms ease;
@@ -61,7 +96,28 @@ body {
 
 .nav-link:hover {
   border-color: var(--accent);
-  color: #ecfeff;
+  color: var(--text);
+}
+
+.theme-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.theme-label {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.theme-select {
+  border: 1px solid var(--card-select-border);
+  border-radius: 8px;
+  background: var(--card-select-bg);
+  color: var(--text);
+  font-size: 0.82rem;
+  padding: 6px 8px;
 }
 
 h1 {
@@ -82,7 +138,7 @@ h1 {
 .field-group h2 {
   margin: 0 0 10px;
   font-size: 1rem;
-  color: #cbd5e1;
+  color: var(--heading);
 }
 
 .menu-grid {
@@ -118,7 +174,7 @@ h1 {
 .menu-button-subtitle {
   display: block;
   margin-top: 6px;
-  color: #bfdbfe;
+  color: var(--menu-subtitle);
   font-size: 0.9rem;
 }
 
@@ -193,7 +249,7 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px;
-  background: rgba(31, 41, 55, 0.65);
+  background: color-mix(in oklab, var(--panel-soft) 70%, transparent);
 }
 
 .build-tag-wrap {
@@ -286,7 +342,7 @@ h1 {
 .player-row {
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: rgba(15, 23, 42, 0.55);
+  background: var(--surface-soft);
   padding: 10px;
 }
 
@@ -297,16 +353,16 @@ h1 {
 .board-slot-label {
   display: inline-block;
   margin-bottom: 8px;
-  color: #cbd5e1;
+  color: var(--heading);
   font-size: 0.85rem;
 }
 
 .card-select {
   width: 100%;
   margin-bottom: 6px;
-  border: 1px solid #475569;
+  border: 1px solid var(--card-select-border);
   border-radius: 8px;
-  background: #0f172a;
+  background: var(--card-select-bg);
   color: var(--text);
   padding: 8px;
 }
@@ -329,7 +385,7 @@ h1 {
 }
 
 .card-slot {
-  border: 1px dashed #475569;
+  border: 1px dashed var(--card-select-border);
   border-radius: 10px;
   padding: 8px;
 }
@@ -343,7 +399,7 @@ h1 {
 }
 
 .player-status-label {
-  color: #cbd5e1;
+  color: var(--heading);
   font-size: 0.82rem;
 }
 
@@ -352,7 +408,7 @@ h1 {
   align-items: center;
   gap: 6px;
   font-size: 0.82rem;
-  color: #e2e8f0;
+  color: var(--text);
 }
 
 .player-summary {
@@ -370,11 +426,11 @@ h1 {
 }
 
 .suit-red {
-  color: #f87171;
+  color: var(--suit-red);
 }
 
 .suit-black {
-  color: #e2e8f0;
+  color: var(--suit-black);
 }
 
 .odds-results {
@@ -395,7 +451,7 @@ h1 {
 }
 
 .board-display-empty {
-  color: #cbd5e1;
+  color: var(--heading);
 }
 
 .card-token {
@@ -404,11 +460,11 @@ h1 {
   justify-content: center;
   gap: 1px;
   padding: 2px 6px;
-  border: 1px solid #475569;
+  border: 1px solid var(--card-select-border);
   border-radius: 999px;
   font-size: 0.82rem;
-  color: #f8fafc;
-  background: rgba(15, 23, 42, 0.75);
+  color: var(--text);
+  background: var(--token-bg);
 }
 
 .status-inline-token {
@@ -453,13 +509,13 @@ h1 {
 
 .odds-table th,
 .odds-table td {
-  border-bottom: 1px solid #334155;
+  border-bottom: 1px solid var(--table-border);
   padding: 8px;
   text-align: left;
 }
 
 .odds-table th {
-  color: #cbd5e1;
+  color: var(--heading);
   font-weight: 700;
 }
 

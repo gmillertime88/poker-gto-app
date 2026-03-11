@@ -5,10 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MillerTime Poker</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="theme.js" defer></script>
   </head>
   <body>
     <main class="app-shell">
       <section class="card">
+        <div class="top-nav">
+          <div class="theme-control">
+            <label class="theme-label" for="theme-select-menu">Theme</label>
+            <select id="theme-select-menu" class="theme-select" data-theme-select>
+              <option value="dark">Dark Mode</option>
+              <option value="light">Light Mode</option>
+            </select>
+          </div>
+        </div>
+
         <h1>MillerTime Poker</h1>
         <p class="subtitle">Choose a calculator.</p>
 
