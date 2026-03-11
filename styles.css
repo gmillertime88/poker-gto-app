@@ -87,6 +87,47 @@ body {
   flex-wrap: wrap;
 }
 
+.home-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.home-logo-link {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  transition: 120ms ease;
+}
+
+.home-logo-link:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.home-logo-icon {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+}
+
+.page-title {
+  margin: 0;
+  font-size: clamp(1.2rem, 2vw, 1.8rem);
+  line-height: 1.15;
+}
+
+.mode-nav-row {
+  margin-top: -2px;
+  margin-bottom: 8px;
+}
+
 .nav-link {
   color: var(--nav-link-text);
   text-decoration: none;
@@ -373,6 +414,13 @@ h1 {
   color: #86efac;
 }
 
+/* Keep Odds completion state readable in light theme. */
+#odds-status.raise {
+  font-size: 1.02rem;
+  color: #166534;
+  background: rgba(34, 197, 94, 0.28);
+}
+
 .call,
 .check {
   background: rgba(245, 158, 11, 0.2);
@@ -577,6 +625,22 @@ h1 {
 }
 
 @media (max-width: 640px) {
+  .top-nav {
+    align-items: flex-start;
+  }
+
+  .home-brand {
+    width: 100%;
+  }
+
+  .page-title {
+    font-size: 1.18rem;
+  }
+
+  .mode-nav-row .nav-link {
+    display: inline-flex;
+  }
+
   .menu-grid {
     grid-template-columns: 1fr;
   }
