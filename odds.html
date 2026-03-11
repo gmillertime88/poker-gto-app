@@ -14,11 +14,12 @@
           <a class="nav-link" href="index.html">Back to Main Menu</a>
           <a class="nav-link" href="ranges.html">Go to Ranges</a>
           <div class="theme-control">
-            <label class="theme-label" for="theme-select-odds">Theme</label>
-            <select id="theme-select-odds" class="theme-select" data-theme-select>
-              <option value="dark">Dark Mode</option>
-              <option value="light">Light Mode</option>
-            </select>
+            <span class="theme-label">Dark</span>
+            <label class="theme-switch" for="theme-toggle-odds" aria-label="Toggle light mode">
+              <input id="theme-toggle-odds" type="checkbox" data-theme-toggle />
+              <span class="theme-slider"></span>
+            </label>
+            <span class="theme-label">Light</span>
           </div>
         </div>
 

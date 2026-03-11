@@ -12,11 +12,12 @@
       <section class="card">
         <div class="top-nav">
           <div class="theme-control">
-            <label class="theme-label" for="theme-select-menu">Theme</label>
-            <select id="theme-select-menu" class="theme-select" data-theme-select>
-              <option value="dark">Dark Mode</option>
-              <option value="light">Light Mode</option>
-            </select>
+            <span class="theme-label">Dark</span>
+            <label class="theme-switch" for="theme-toggle-menu" aria-label="Toggle light mode">
+              <input id="theme-toggle-menu" type="checkbox" data-theme-toggle />
+              <span class="theme-slider"></span>
+            </label>
+            <span class="theme-label">Light</span>
           </div>
         </div>
 
