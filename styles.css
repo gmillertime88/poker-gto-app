@@ -96,8 +96,8 @@ body {
 
 .home-logo-link {
   display: inline-flex;
-  width: 42px;
-  height: 42px;
+  width: 63px;
+  height: 63px;
   align-items: center;
   justify-content: center;
   border-radius: 10px;
@@ -112,8 +112,8 @@ body {
 }
 
 .home-logo-icon {
-  width: 34px;
-  height: 34px;
+  width: 51px;
+  height: 51px;
   object-fit: contain;
 }
 
@@ -124,6 +124,8 @@ body {
 }
 
 .mode-nav-row {
+  display: flex;
+  justify-content: flex-end;
   margin-top: -2px;
   margin-bottom: 8px;
 }
