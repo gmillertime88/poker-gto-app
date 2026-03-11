@@ -15,14 +15,12 @@ const SUITS = [
 
 const oddsState = {
   playersAtStart: 5,
-  stage: "preflop",
   players: [],
   board: [null, null, null, null, null],
 };
 
 const oddsElements = {
   playersGrid: document.getElementById("odds-players-grid"),
-  stageGrid: document.getElementById("odds-stage-grid"),
   boardGrid: document.getElementById("board-grid"),
   playerRows: document.getElementById("player-rows"),
   calculateButton: document.getElementById("calculate-odds-btn"),
@@ -61,6 +59,10 @@ function setStatusRich(contentBuilder, statusClass = "pending") {
 
 function stageByKey(stageKey) {
   return ODDS_STAGES.find((stage) => stage.key === stageKey) || ODDS_STAGES[0];
+}
+
+function stageByBoardCount(boardCount) {
+  return ODDS_STAGES.find((stage) => stage.boardCount === boardCount) || ODDS_STAGES[0];
 }
 
 function buildRankSelect(selectedRank, onChange) {
@@ -186,12 +188,6 @@ function setPlayersAtStart(count) {
   renderAll();
 }
 
-function setStage(stageKey) {
-  oddsState.stage = stageKey;
-  renderBoardGrid();
-  renderPlayerRows();
-}
-
 function updatePlayerStatus(playerIndex, status) {
   const player = oddsState.players[playerIndex];
   player.status = status;
@@ -210,31 +206,12 @@ function renderPlayersGrid() {
   });
 }
 
-function renderStageGrid() {
-  oddsElements.stageGrid.innerHTML = "";
-  ODDS_STAGES.forEach((stage) => {
-    renderSelectButton(
-      oddsElements.stageGrid,
-      stage.label,
-      oddsState.stage === stage.key,
-      () => setStage(stage.key)
-    );
-  });
-}
-
 function renderBoardGrid() {
-  const selectedStage = stageByKey(oddsState.stage);
-  const activeCards = selectedStage.boardCount;
-
   oddsElements.boardGrid.innerHTML = "";
 
   for (let i = 0; i < 5; i += 1) {
-    if (i >= activeCards) {
-      oddsState.board[i] = null;
-    }
-
     const wrapper = document.createElement("div");
-    wrapper.className = `board-slot${i < activeCards ? "" : " disabled"}`;
+    wrapper.className = "board-slot";
 
     const label = document.createElement("span");
     label.className = "board-slot-label";
@@ -249,9 +226,6 @@ function renderBoardGrid() {
       const current = oddsState.board[i] || {};
       oddsState.board[i] = suit && current.rank ? { rank: current.rank, suit } : suit ? { rank: null, suit } : null;
     });
-
-    rankSelect.disabled = i >= activeCards;
-    suitSelect.disabled = i >= activeCards;
 
     wrapper.appendChild(label);
     wrapper.appendChild(rankSelect);
@@ -362,7 +336,6 @@ function renderPlayerRows() {
 
 function renderAll() {
   renderPlayersGrid();
-  renderStageGrid();
   renderBoardGrid();
   renderPlayerRows();
   oddsElements.boardsEvaluated.textContent = "-";
@@ -518,7 +491,45 @@ function compareRankVectors(a, b) {
 }
 
 function validateAndBuildScenario() {
-  const stage = stageByKey(oddsState.stage);
+  const boardState = oddsState.board.map((card) => {
+    if (!card) {
+      return "empty";
+    }
+
+    if (card.rank && card.suit) {
+      return "complete";
+    }
+
+    return "partial";
+  });
+
+  const firstPartialIndex = boardState.findIndex((entry) => entry === "partial");
+  if (firstPartialIndex >= 0) {
+    throw new Error(`Board card ${firstPartialIndex + 1} is incomplete.`);
+  }
+
+  const complete = boardState.map((entry) => entry === "complete");
+  const flopComplete = complete[0] && complete[1] && complete[2];
+  const anyFlopCard = complete[0] || complete[1] || complete[2];
+
+  if (anyFlopCard && !flopComplete) {
+    throw new Error("Complete all three flop cards before calculating post-flop odds.");
+  }
+
+  if (!flopComplete && (complete[3] || complete[4])) {
+    throw new Error("Enter all flop cards before turn or river.");
+  }
+
+  if (!complete[3] && complete[4]) {
+    throw new Error("Enter the turn card before the river card.");
+  }
+
+  let boardCount = 0;
+  if (flopComplete) {
+    boardCount = complete[3] ? (complete[4] ? 5 : 4) : 3;
+  }
+
+  const stage = stageByBoardCount(boardCount);
   const knownBoardCards = [];
   const cardOwners = new Map();
 
@@ -555,11 +566,8 @@ function validateAndBuildScenario() {
     throw new Error("At least two players must be marked in hand at the selected stage.");
   }
 
-  for (let i = 0; i < stage.boardCount; i += 1) {
+  for (let i = 0; i < boardCount; i += 1) {
     const boardCard = oddsState.board[i];
-    if (!boardCard?.rank || !boardCard?.suit) {
-      throw new Error(`Board card ${i + 1} must be fully selected for ${stage.label}.`);
-    }
 
     const cardInt = cardToInt(boardCard);
     const label = `${boardCard.rank}${boardCard.suit}`;
