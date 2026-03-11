@@ -44,8 +44,25 @@ function initThemeSelector() {
   });
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initThemeSelector);
-} else {
+function initHamburgerMenus() {
+  const menus = document.querySelectorAll(".hamburger-menu");
+  menus.forEach((menu) => {
+    const links = menu.querySelectorAll("a");
+    links.forEach((link) => {
+      link.addEventListener("click", () => {
+        menu.open = false;
+      });
+    });
+  });
+}
+
+function initAppChrome() {
   initThemeSelector();
+  initHamburgerMenus();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initAppChrome);
+} else {
+  initAppChrome();
 }
