@@ -15,20 +15,27 @@
             <a class="home-logo-link" href="index.html" aria-label="Go to Main Menu">
               <img class="home-logo-icon" src="assets/millertime-poker-logo.png" alt="MillerTime Poker" />
             </a>
-            <h1 class="page-title">MillerTime Poker GTO-Ranges</h1>
           </div>
-          <div class="theme-control">
-            <span class="theme-label">Dark</span>
-            <label class="theme-switch" for="theme-toggle-ranges" aria-label="Toggle light mode">
-              <input id="theme-toggle-ranges" type="checkbox" data-theme-toggle />
-              <span class="theme-slider"></span>
-            </label>
-            <span class="theme-label">Light</span>
-          </div>
-        </div>
-
-        <div class="mode-nav-row">
-          <a class="nav-link" href="odds.html">Go to Odds</a>
+          <h1 class="page-title">MillerTime Poker GTO-Ranges</h1>
+          <details class="hamburger-menu">
+            <summary class="hamburger-trigger" aria-label="Open menu">
+              <span></span>
+              <span></span>
+              <span></span>
+            </summary>
+            <div class="hamburger-panel">
+              <div class="theme-control menu-theme-control">
+                <span class="theme-label">Dark</span>
+                <label class="theme-switch" for="theme-toggle-ranges" aria-label="Toggle light mode">
+                  <input id="theme-toggle-ranges" type="checkbox" data-theme-toggle />
+                  <span class="theme-slider"></span>
+                </label>
+                <span class="theme-label">Light</span>
+              </div>
+              <a class="nav-link menu-nav-link" href="ranges.html" aria-current="page">Go to Ranges</a>
+              <a class="nav-link menu-nav-link" href="odds.html">Go to Odds</a>
+            </div>
+          </details>
         </div>
 
         <p class="subtitle">Select your position and hand to get the recommended first-in action.</p>

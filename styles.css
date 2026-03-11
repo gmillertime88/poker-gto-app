@@ -79,19 +79,17 @@ body {
 }
 
 .top-nav {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 10px;
   margin-bottom: 14px;
-  flex-wrap: wrap;
 }
 
 .home-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  min-width: 0;
+  justify-self: start;
 }
 
 .home-logo-link {
@@ -121,13 +119,68 @@ body {
   margin: 0;
   font-size: clamp(1.2rem, 2vw, 1.8rem);
   line-height: 1.15;
+  text-align: center;
+  justify-self: center;
 }
 
-.mode-nav-row {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: -2px;
-  margin-bottom: 8px;
+.hamburger-menu {
+  position: relative;
+  justify-self: end;
+}
+
+.hamburger-trigger {
+  list-style: none;
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.hamburger-trigger::-webkit-details-marker {
+  display: none;
+}
+
+.hamburger-trigger span {
+  width: 18px;
+  height: 2px;
+  border-radius: 99px;
+  background: var(--text);
+}
+
+.hamburger-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 220px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  box-shadow: 0 16px 28px rgba(2, 6, 23, 0.35);
+  z-index: 20;
+}
+
+.menu-theme-control {
+  width: 100%;
+  justify-content: flex-start;
+  margin: 0 0 10px;
+}
+
+.menu-nav-link {
+  display: block;
+  margin-top: 6px;
+}
+
+.menu-nav-link[aria-current="page"] {
+  opacity: 0.75;
+  pointer-events: none;
 }
 
 .nav-link {
@@ -628,19 +681,12 @@ h1 {
 
 @media (max-width: 640px) {
   .top-nav {
-    align-items: flex-start;
-  }
-
-  .home-brand {
-    width: 100%;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
   }
 
   .page-title {
-    font-size: 1.18rem;
-  }
-
-  .mode-nav-row .nav-link {
-    display: inline-flex;
+    font-size: 1.02rem;
   }
 
   .menu-grid {
