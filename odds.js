@@ -5,7 +5,6 @@ const ODDS_STAGES = [
   { key: "turn", label: "Turn", boardCount: 4, streetIndex: 2 },
   { key: "river", label: "River", boardCount: 5, streetIndex: 3 },
 ];
-const STREET_KEYS = ["preflop", "flop", "turn", "river"];
 const RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"];
 const SUITS = [
   { key: "S", symbol: "♠", label: "Spades", colorClass: "suit-black" },
@@ -36,12 +35,7 @@ function initializePlayers() {
   oddsState.players = Array.from({ length: oddsState.playersAtStart }, (_, i) => ({
     seat: i + 1,
     cards: [null, null],
-    inHand: {
-      preflop: true,
-      flop: true,
-      turn: true,
-      river: true,
-    },
+    status: "in",
   }));
 }
 
@@ -198,21 +192,9 @@ function setStage(stageKey) {
   renderPlayerRows();
 }
 
-function updatePlayerStreetState(playerIndex, streetIndex, checked) {
+function updatePlayerStatus(playerIndex, status) {
   const player = oddsState.players[playerIndex];
-  const street = STREET_KEYS[streetIndex];
-  player.inHand[street] = checked;
-
-  if (checked) {
-    for (let i = 0; i < streetIndex; i += 1) {
-      player.inHand[STREET_KEYS[i]] = true;
-    }
-  } else {
-    for (let i = streetIndex + 1; i < STREET_KEYS.length; i += 1) {
-      player.inHand[STREET_KEYS[i]] = false;
-    }
-  }
-
+  player.status = status;
   renderPlayerRows();
 }
 
@@ -311,33 +293,42 @@ function renderPlayerRows() {
       cardsWrap.appendChild(cardShell);
     }
 
-    const streetWrap = document.createElement("div");
-    streetWrap.className = "street-status-grid";
+    const statusWrap = document.createElement("div");
+    statusWrap.className = "player-status-row";
 
-    STREET_KEYS.forEach((street, streetIndex) => {
-      const label = document.createElement("label");
-      label.className = "street-status-item";
+    const statusLabel = document.createElement("span");
+    statusLabel.className = "player-status-label";
+    statusLabel.textContent = "Player Status:";
 
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.checked = !!player.inHand[street];
-      checkbox.addEventListener("change", (event) => {
-        updatePlayerStreetState(playerIndex, streetIndex, event.target.checked);
-      });
+    const inLabel = document.createElement("label");
+    inLabel.className = "player-status-option";
+    const inRadio = document.createElement("input");
+    inRadio.type = "radio";
+    inRadio.name = `player-status-${player.seat}`;
+    inRadio.value = "in";
+    inRadio.checked = player.status === "in";
+    inRadio.addEventListener("change", () => updatePlayerStatus(playerIndex, "in"));
+    const inText = document.createElement("span");
+    inText.textContent = "In";
+    inLabel.appendChild(inRadio);
+    inLabel.appendChild(inText);
 
-      const streetName = document.createElement("span");
-      streetName.textContent = street === "preflop"
-        ? "Pre"
-        : street === "flop"
-          ? "Flop"
-          : street === "turn"
-            ? "Turn"
-            : "River";
+    const outLabel = document.createElement("label");
+    outLabel.className = "player-status-option";
+    const outRadio = document.createElement("input");
+    outRadio.type = "radio";
+    outRadio.name = `player-status-${player.seat}`;
+    outRadio.value = "out";
+    outRadio.checked = player.status === "out";
+    outRadio.addEventListener("change", () => updatePlayerStatus(playerIndex, "out"));
+    const outText = document.createElement("span");
+    outText.textContent = "Out";
+    outLabel.appendChild(outRadio);
+    outLabel.appendChild(outText);
 
-      label.appendChild(checkbox);
-      label.appendChild(streetName);
-      streetWrap.appendChild(label);
-    });
+    statusWrap.appendChild(statusLabel);
+    statusWrap.appendChild(inLabel);
+    statusWrap.appendChild(outLabel);
 
     const summary = document.createElement("div");
     summary.className = "player-summary";
@@ -363,7 +354,7 @@ function renderPlayerRows() {
 
     row.appendChild(title);
     row.appendChild(cardsWrap);
-    row.appendChild(streetWrap);
+    row.appendChild(statusWrap);
     row.appendChild(summary);
     oddsElements.playerRows.appendChild(row);
   });
@@ -528,7 +519,6 @@ function compareRankVectors(a, b) {
 
 function validateAndBuildScenario() {
   const stage = stageByKey(oddsState.stage);
-  const activeStreet = STREET_KEYS[stage.streetIndex];
   const knownBoardCards = [];
   const cardOwners = new Map();
 
@@ -556,7 +546,7 @@ function validateAndBuildScenario() {
       return cardInt;
     });
 
-    if (player.inHand[activeStreet]) {
+    if (player.status === "in") {
       activePlayers.push({ seat: player.seat, hole: ints });
     }
   }

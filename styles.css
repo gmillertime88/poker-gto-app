@@ -334,14 +334,20 @@ h1 {
   padding: 8px;
 }
 
-.street-status-grid {
+.player-status-row {
   margin-top: 8px;
-  display: grid;
-  gap: 8px;
-  grid-template-columns: repeat(4, minmax(70px, 1fr));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.street-status-item {
+.player-status-label {
+  color: #cbd5e1;
+  font-size: 0.82rem;
+}
+
+.player-status-option {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -466,7 +472,6 @@ h1 {
   }
 
   .stage-grid,
-  .street-status-grid,
   .player-cards {
     grid-template-columns: repeat(2, minmax(120px, 1fr));
   }
