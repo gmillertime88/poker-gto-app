@@ -289,25 +289,29 @@ h1 {
   color: var(--heading);
 }
 
-.field-group-head {
+.players-start-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
-  margin-bottom: 10px;
 }
 
-.field-group-head h2 {
-  margin: 0;
+.odds-players-grid {
+  width: 196px;
+  grid-template-columns: repeat(3, 60px);
+  gap: 8px;
 }
 
 .small-reset-btn {
   border: 1px solid var(--border);
-  background: var(--surface-soft);
+  background: var(--panel-soft);
   color: var(--text);
-  border-radius: 8px;
-  padding: 4px 10px;
+  border-radius: 12px;
+  width: 49px;
+  min-width: 49px;
+  height: 46px;
+  padding: 0;
   font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
 }
 
