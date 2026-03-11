@@ -14,7 +14,7 @@ const SUITS = [
 ];
 
 const oddsState = {
-  playersAtStart: 5,
+  playersAtStart: 2,
   players: [],
   board: [null, null, null, null, null],
 };
