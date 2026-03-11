@@ -170,6 +170,19 @@ h1 {
   font-size: 0.95rem;
 }
 
+.splash-wrap {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+.splash-logo {
+  width: min(420px, 92%);
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 10px 22px rgba(2, 6, 23, 0.25));
+}
+
 .field-group {
   margin-top: 18px;
 }
