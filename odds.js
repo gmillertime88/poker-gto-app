@@ -21,6 +21,7 @@ const oddsState = {
 
 const oddsElements = {
   playersGrid: document.getElementById("odds-players-grid"),
+  resetButton: document.getElementById("reset-odds-btn"),
   boardGrid: document.getElementById("board-grid"),
   playerRows: document.getElementById("player-rows"),
   calculateButton: document.getElementById("calculate-odds-btn"),
@@ -233,6 +234,13 @@ function createDuplicateCardError(card) {
 
 function setPlayersAtStart(count) {
   oddsState.playersAtStart = count;
+  initializePlayers();
+  renderAll();
+}
+
+function resetOddsToDefaults() {
+  oddsState.playersAtStart = ODDS_PLAYER_COUNTS[0];
+  oddsState.board = [null, null, null, null, null];
   initializePlayers();
   renderAll();
 }
@@ -919,6 +927,7 @@ function initOddsPage() {
   initializePlayers();
   renderAll();
   oddsElements.calculateButton.addEventListener("click", handleCalculateOdds);
+  oddsElements.resetButton.addEventListener("click", resetOddsToDefaults);
 }
 
 initOddsPage();

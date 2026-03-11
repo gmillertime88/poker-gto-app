@@ -289,6 +289,32 @@ h1 {
   color: var(--heading);
 }
 
+.field-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.field-group-head h2 {
+  margin: 0;
+}
+
+.small-reset-btn {
+  border: 1px solid var(--border);
+  background: var(--surface-soft);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.small-reset-btn:hover {
+  border-color: var(--accent);
+}
+
 .menu-grid {
   margin-top: 18px;
   display: grid;
