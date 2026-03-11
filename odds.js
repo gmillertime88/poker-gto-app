@@ -840,9 +840,14 @@ function renderOddsResults(scenario, totals) {
   table.className = "odds-table";
 
   const thead = document.createElement("thead");
-  thead.innerHTML = "<tr><th>Player</th><th>Hand</th><th>Win %</th><th>Tie %</th><th>Equity %</th></tr>";
+  const showOutsColumn = scenario.knownBoardCards.length === 4;
+  thead.innerHTML = showOutsColumn
+    ? "<tr><th>Player</th><th>Hand</th><th>Win %</th><th>Tie %</th><th>Equity %</th><th>Outs</th></tr>"
+    : "<tr><th>Player</th><th>Hand</th><th>Win %</th><th>Tie %</th><th>Equity %</th></tr>";
 
   const tbody = document.createElement("tbody");
+  const turnOuts = showOutsColumn ? calculateTurnOuts(scenario) : [];
+  const outsBySeat = new Map(turnOuts.map((entry) => [entry.seat, entry]));
 
   scenario.activePlayers.forEach((player, idx) => {
     const row = document.createElement("tr");
@@ -875,35 +880,19 @@ function renderOddsResults(scenario, totals) {
     row.appendChild(winCell);
     row.appendChild(tieCell);
     row.appendChild(equityCell);
-    tbody.appendChild(row);
-  });
 
-  table.appendChild(thead);
-  table.appendChild(tbody);
-  oddsElements.results.appendChild(table);
+    if (showOutsColumn) {
+      const outsCell = document.createElement("td");
+      outsCell.className = "outs-cell";
 
-  if (scenario.knownBoardCards.length === 4) {
-    const turnOuts = calculateTurnOuts(scenario);
-    if (turnOuts.length > 0) {
-      const outsWrap = document.createElement("div");
-      outsWrap.className = "outs-wrap";
-
-      const outsTitle = document.createElement("h3");
-      outsTitle.className = "outs-title";
-      outsTitle.textContent = "Turn Outs (Players Currently Behind)";
-      outsWrap.appendChild(outsTitle);
-
-      turnOuts.forEach((playerOuts) => {
-        const row = document.createElement("div");
-        row.className = "outs-row";
-
-        const label = document.createElement("div");
-        label.className = "outs-player-label";
-        label.textContent = `Player ${playerOuts.seat}`;
-
+      const playerOuts = outsBySeat.get(player.seat);
+      if (!playerOuts || (playerOuts.winOuts.length === 0 && playerOuts.tieOuts.length === 0)) {
+        outsCell.textContent = "-";
+      } else {
         const counts = document.createElement("div");
         counts.className = "outs-counts";
-        counts.textContent = `Win Outs: ${playerOuts.winOuts.length} | Tie Outs: ${playerOuts.tieOuts.length}`;
+        counts.textContent = `W:${playerOuts.winOuts.length} T:${playerOuts.tieOuts.length}`;
+        outsCell.appendChild(counts);
 
         const cards = document.createElement("div");
         cards.className = "outs-cards";
@@ -920,15 +909,18 @@ function renderOddsResults(scenario, totals) {
           cards.appendChild(token);
         });
 
-        row.appendChild(label);
-        row.appendChild(counts);
-        row.appendChild(cards);
-        outsWrap.appendChild(row);
-      });
+        outsCell.appendChild(cards);
+      }
 
-      oddsElements.results.appendChild(outsWrap);
+      row.appendChild(outsCell);
     }
-  }
+
+    tbody.appendChild(row);
+  });
+
+  table.appendChild(thead);
+  table.appendChild(tbody);
+  oddsElements.results.appendChild(table);
 }
 
 async function handleCalculateOdds() {
