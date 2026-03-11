@@ -33,7 +33,6 @@ function initializePlayers() {
   oddsState.players = Array.from({ length: oddsState.playersAtStart }, (_, i) => ({
     seat: i + 1,
     cards: [null, null],
-    status: "in",
   }));
 }
 
@@ -238,12 +237,6 @@ function setPlayersAtStart(count) {
   renderAll();
 }
 
-function updatePlayerStatus(playerIndex, status) {
-  const player = oddsState.players[playerIndex];
-  player.status = status;
-  renderPlayerRows();
-}
-
 function renderPlayersGrid() {
   oddsElements.playersGrid.innerHTML = "";
   ODDS_PLAYER_COUNTS.forEach((count) => {
@@ -343,43 +336,6 @@ function renderPlayerRows() {
       cardsWrap.appendChild(cardShell);
     }
 
-    const statusWrap = document.createElement("div");
-    statusWrap.className = "player-status-row";
-
-    const statusLabel = document.createElement("span");
-    statusLabel.className = "player-status-label";
-    statusLabel.textContent = "Player Status:";
-
-    const inLabel = document.createElement("label");
-    inLabel.className = "player-status-option";
-    const inRadio = document.createElement("input");
-    inRadio.type = "radio";
-    inRadio.name = `player-status-${player.seat}`;
-    inRadio.value = "in";
-    inRadio.checked = player.status === "in";
-    inRadio.addEventListener("change", () => updatePlayerStatus(playerIndex, "in"));
-    const inText = document.createElement("span");
-    inText.textContent = "In";
-    inLabel.appendChild(inRadio);
-    inLabel.appendChild(inText);
-
-    const outLabel = document.createElement("label");
-    outLabel.className = "player-status-option";
-    const outRadio = document.createElement("input");
-    outRadio.type = "radio";
-    outRadio.name = `player-status-${player.seat}`;
-    outRadio.value = "out";
-    outRadio.checked = player.status === "out";
-    outRadio.addEventListener("change", () => updatePlayerStatus(playerIndex, "out"));
-    const outText = document.createElement("span");
-    outText.textContent = "Out";
-    outLabel.appendChild(outRadio);
-    outLabel.appendChild(outText);
-
-    statusWrap.appendChild(statusLabel);
-    statusWrap.appendChild(inLabel);
-    statusWrap.appendChild(outLabel);
-
     const summary = document.createElement("div");
     summary.className = "player-summary";
 
@@ -404,7 +360,6 @@ function renderPlayerRows() {
 
     row.appendChild(title);
     row.appendChild(cardsWrap);
-    row.appendChild(statusWrap);
     row.appendChild(summary);
     oddsElements.playerRows.appendChild(row);
   });
@@ -633,13 +588,11 @@ function validateAndBuildScenario() {
       return cardInt;
     });
 
-    if (player.status === "in") {
-      activePlayers.push({ seat: player.seat, hole: ints });
-    }
+    activePlayers.push({ seat: player.seat, hole: ints });
   }
 
   if (activePlayers.length < 2) {
-    throw new Error("At least two players must be marked in hand at the selected stage.");
+    throw new Error("At least two players are required.");
   }
 
   for (let i = 0; i < boardCount; i += 1) {

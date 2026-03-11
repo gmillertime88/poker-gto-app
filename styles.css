@@ -550,27 +550,6 @@ h1 {
   padding: 8px;
 }
 
-.player-status-row {
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.player-status-label {
-  color: var(--heading);
-  font-size: 0.82rem;
-}
-
-.player-status-option {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  color: var(--text);
-}
-
 .player-summary {
   margin-top: 8px;
   font-size: 0.82rem;
