@@ -26,6 +26,13 @@
   --card-select-border: #475569;
   --suit-black: #e2e8f0;
   --suit-red: #f87171;
+  --status-pending-bg: rgba(156, 163, 175, 0.2);
+  --status-pending-text: var(--text);
+  --status-info-bg: rgba(56, 189, 248, 0.2);
+  --status-info-text: #bae6fd;
+  --btn-disabled-bg: color-mix(in oklab, var(--panel-soft) 88%, black);
+  --btn-disabled-border: color-mix(in oklab, var(--border) 85%, black);
+  --btn-disabled-text: color-mix(in oklab, var(--text) 74%, black);
 }
 
 [data-theme="light"] {
@@ -50,6 +57,13 @@
   --card-select-border: #94a3b8;
   --suit-black: #0f172a;
   --suit-red: #dc2626;
+  --status-pending-bg: rgba(148, 163, 184, 0.22);
+  --status-pending-text: #0f172a;
+  --status-info-bg: rgba(14, 116, 144, 0.24);
+  --status-info-text: #0c4a6e;
+  --btn-disabled-bg: #dbe4ef;
+  --btn-disabled-border: #a9b8cb;
+  --btn-disabled-text: #1f2937;
 }
 
 * {
@@ -409,8 +423,11 @@ h1 {
 }
 
 .select-btn:disabled {
-  opacity: 0.55;
+  opacity: 1;
   cursor: not-allowed;
+  background: var(--btn-disabled-bg);
+  border-color: var(--btn-disabled-border);
+  color: var(--btn-disabled-text);
 }
 
 .action-controls {
@@ -481,13 +498,13 @@ h1 {
 }
 
 .pending {
-  background: rgba(156, 163, 175, 0.2);
-  color: var(--text);
+  background: var(--status-pending-bg);
+  color: var(--status-pending-text);
 }
 
 .info {
-  background: rgba(56, 189, 248, 0.2);
-  color: #bae6fd;
+  background: var(--status-info-bg);
+  color: var(--status-info-text);
 }
 
 #action-value.pending {
@@ -673,12 +690,12 @@ h1 {
 
 .odds-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .odds-table th,
 .odds-table td {
-  border-bottom: 1px solid var(--table-border);
   padding: 8px;
   text-align: left;
 }
@@ -686,6 +703,11 @@ h1 {
 .odds-table th {
   color: var(--heading);
   font-weight: 700;
+  border-bottom: 1px solid var(--table-border);
+}
+
+.odds-table tbody tr {
+  box-shadow: inset 0 -1px 0 var(--table-border);
 }
 
 @media (max-width: 640px) {
@@ -742,5 +764,26 @@ h1 {
 
   .board-grid {
     max-width: 100%;
+  }
+
+  .odds-results {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .odds-table {
+    min-width: 600px;
+  }
+
+  .odds-table th,
+  .odds-table td {
+    padding: 7px 6px;
+    white-space: nowrap;
+    vertical-align: top;
+  }
+
+  .outs-cell {
+    min-width: 236px;
+    white-space: normal;
   }
 }
