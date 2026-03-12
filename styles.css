@@ -715,7 +715,7 @@ h1 {
 }
 
 .outs-cell {
-  min-width: 280px;
+  min-width: 0;
 }
 
 .outs-cards {
@@ -750,25 +750,6 @@ h1 {
   text-align: left;
 }
 
-.odds-table th:nth-child(2),
-.odds-table td:nth-child(2),
-.odds-table th:nth-child(3),
-.odds-table td:nth-child(3),
-.odds-table th:nth-child(4),
-.odds-table td:nth-child(4) {
-  width: 52px;
-  max-width: 52px;
-  padding-left: 2px;
-  padding-right: 2px;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.odds-table th:last-child,
-.odds-table td:last-child {
-  padding-left: 6px;
-}
-
 .odds-table th {
   color: var(--heading);
   font-weight: 700;
@@ -777,6 +758,27 @@ h1 {
 
 .odds-table tbody tr {
   box-shadow: inset 0 -1px 0 var(--table-border);
+}
+
+.odds-table tbody tr.player-main-row {
+  box-shadow: none;
+}
+
+.player-outs-row td {
+  padding-top: 4px;
+  padding-bottom: 10px;
+}
+
+.outs-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.outs-none {
+  margin-top: 4px;
+  color: var(--muted);
 }
 
 @media (max-width: 640px) {
@@ -849,23 +851,6 @@ h1 {
     padding: 7px 6px;
     white-space: normal;
     vertical-align: top;
-  }
-
-  .odds-table th:nth-child(2),
-  .odds-table td:nth-child(2),
-  .odds-table th:nth-child(3),
-  .odds-table td:nth-child(3),
-  .odds-table th:nth-child(4),
-  .odds-table td:nth-child(4) {
-    width: 46px;
-    max-width: 46px;
-    padding-left: 1px;
-    padding-right: 1px;
-  }
-
-  .odds-table th:last-child,
-  .odds-table td:last-child {
-    padding-left: 4px;
   }
 
   .outs-cell {

@@ -842,7 +842,7 @@ function renderOddsResults(scenario, totals) {
   const thead = document.createElement("thead");
   const showOutsColumn = scenario.knownBoardCards.length === 4;
   thead.innerHTML = showOutsColumn
-    ? "<tr><th>Player</th><th>Win %</th><th>Tie %</th><th>Equity %</th><th>Outs</th></tr>"
+    ? "<tr><th>Player</th><th>Win %</th><th>Tie %</th><th>Equity %</th></tr>"
     : "<tr><th>Player</th><th>Win %</th><th>Tie %</th><th>Equity %</th></tr>";
 
   const tbody = document.createElement("tbody");
@@ -851,6 +851,9 @@ function renderOddsResults(scenario, totals) {
 
   scenario.activePlayers.forEach((player, idx) => {
     const row = document.createElement("tr");
+    if (showOutsColumn) {
+      row.className = "player-main-row";
+    }
 
     const winPct = ((totals.wins[idx] / totals.boards) * 100).toFixed(2);
     const tiePct = ((totals.ties[idx] / totals.boards) * 100).toFixed(2);
@@ -885,14 +888,27 @@ function renderOddsResults(scenario, totals) {
     row.appendChild(winCell);
     row.appendChild(tieCell);
     row.appendChild(equityCell);
+    tbody.appendChild(row);
 
     if (showOutsColumn) {
+      const outsRow = document.createElement("tr");
+      outsRow.className = "player-outs-row";
+
       const outsCell = document.createElement("td");
       outsCell.className = "outs-cell";
+      outsCell.colSpan = 4;
+
+      const outsLabel = document.createElement("div");
+      outsLabel.className = "outs-label";
+      outsLabel.textContent = "Outs";
+      outsCell.appendChild(outsLabel);
 
       const playerOuts = outsBySeat.get(player.seat);
       if (!playerOuts || (playerOuts.winOuts.length === 0 && playerOuts.tieOuts.length === 0)) {
-        outsCell.textContent = "-";
+        const none = document.createElement("div");
+        none.className = "outs-none";
+        none.textContent = "-";
+        outsCell.appendChild(none);
       } else {
         const counts = document.createElement("div");
         counts.className = "outs-counts";
@@ -917,10 +933,9 @@ function renderOddsResults(scenario, totals) {
         outsCell.appendChild(cards);
       }
 
-      row.appendChild(outsCell);
+      outsRow.appendChild(outsCell);
+      tbody.appendChild(outsRow);
     }
-
-    tbody.appendChild(row);
   });
 
   table.appendChild(thead);
