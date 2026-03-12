@@ -699,6 +699,18 @@ h1 {
   flex-wrap: wrap;
 }
 
+.winner-hand-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in oklab, var(--success) 55%, var(--border));
+  background: color-mix(in oklab, var(--success) 18%, transparent);
+  color: color-mix(in oklab, var(--success) 70%, var(--text));
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 .results-player-cell {
   min-width: 130px;
 }

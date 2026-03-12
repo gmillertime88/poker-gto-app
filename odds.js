@@ -13,6 +13,9 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
+const BUILD_VERSION = "1.3.05.14.63";
+const BUILD_TIMESTAMP = "2026-03-12 10:35";
+
 const oddsState = {
   playersAtStart: 2,
   players: [],
@@ -28,7 +31,16 @@ const oddsElements = {
   status: document.getElementById("odds-status"),
   boardsEvaluated: document.getElementById("boards-evaluated"),
   results: document.getElementById("odds-results"),
+  buildTag: document.getElementById("build-tag"),
 };
+
+function renderBuildTag() {
+  if (!oddsElements.buildTag) {
+    return;
+  }
+
+  oddsElements.buildTag.textContent = `v${BUILD_VERSION} • ${BUILD_TIMESTAMP}`;
+}
 
 function initializePlayers() {
   oddsState.players = Array.from({ length: oddsState.playersAtStart }, (_, i) => ({
@@ -568,6 +580,22 @@ function compareRankVectors(a, b) {
   return 0;
 }
 
+function handCategoryLabel(rankVector) {
+  const labels = [
+    "High Card",
+    "Pair",
+    "Two Pair",
+    "Three of a Kind",
+    "Straight",
+    "Flush",
+    "Full House",
+    "Four of a Kind",
+    "Straight Flush",
+  ];
+
+  return labels[rankVector[0]] || "Hand";
+}
+
 function validateAndBuildScenario() {
   const boardState = oddsState.board.map((card) => {
     if (!card) {
@@ -848,6 +876,32 @@ function renderOddsResults(scenario, totals) {
   const tbody = document.createElement("tbody");
   const turnOuts = showOutsColumn ? calculateTurnOuts(scenario) : [];
   const outsBySeat = new Map(turnOuts.map((entry) => [entry.seat, entry]));
+  const winnerHandBySeat = new Map();
+
+  if (scenario.knownBoardCards.length === 5) {
+    let bestRank = null;
+    const winners = [];
+
+    scenario.activePlayers.forEach((player, idx) => {
+      const rankVector = evaluateSevenCards([player.hole[0], player.hole[1], ...scenario.knownBoardCards]);
+
+      if (!bestRank || compareRankVectors(rankVector, bestRank) > 0) {
+        bestRank = rankVector;
+        winners.length = 0;
+        winners.push(idx);
+        return;
+      }
+
+      if (compareRankVectors(rankVector, bestRank) === 0) {
+        winners.push(idx);
+      }
+    });
+
+    const winnerLabel = handCategoryLabel(bestRank || [0]);
+    winners.forEach((winnerIndex) => {
+      winnerHandBySeat.set(scenario.activePlayers[winnerIndex].seat, winnerLabel);
+    });
+  }
 
   scenario.activePlayers.forEach((player, idx) => {
     const row = document.createElement("tr");
@@ -873,6 +927,14 @@ function renderOddsResults(scenario, totals) {
       const { rankText, suitKey } = cardIntToDisplayParts(cardInt);
       handCell.appendChild(createCardToken(rankText, suitKey));
     });
+
+    const winnerHandLabel = winnerHandBySeat.get(player.seat);
+    if (winnerHandLabel) {
+      const handType = document.createElement("span");
+      handType.className = "winner-hand-label";
+      handType.textContent = winnerHandLabel;
+      handCell.appendChild(handType);
+    }
     playerCell.appendChild(handCell);
 
     const winCell = document.createElement("td");
@@ -983,6 +1045,7 @@ async function handleCalculateOdds() {
 }
 
 function initOddsPage() {
+  renderBuildTag();
   initializePlayers();
   renderAll();
   oddsElements.calculateButton.addEventListener("click", handleCalculateOdds);
