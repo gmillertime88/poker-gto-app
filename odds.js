@@ -13,8 +13,8 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "1.3.05.14.63";
-const BUILD_TIMESTAMP = "2026-03-12 10:35";
+const BUILD_VERSION = "1.2";
+const BUILD_TIMESTAMP = "2026-03-12 10:53";
 
 const oddsState = {
   playersAtStart: 2,
@@ -581,6 +581,10 @@ function compareRankVectors(a, b) {
 }
 
 function handCategoryLabel(rankVector) {
+  if (rankVector[0] === 8 && rankVector[1] === 14) {
+    return "Royal Flush";
+  }
+
   const labels = [
     "High Card",
     "Pair",

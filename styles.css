@@ -702,13 +702,16 @@ h1 {
 .winner-hand-label {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   padding: 2px 8px;
+  min-width: 112px;
   border-radius: 999px;
   border: 1px solid color-mix(in oklab, var(--success) 55%, var(--border));
   background: color-mix(in oklab, var(--success) 18%, transparent);
   color: color-mix(in oklab, var(--success) 70%, var(--text));
   font-size: 0.78rem;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .results-player-cell {
