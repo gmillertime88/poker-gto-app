@@ -8,8 +8,8 @@ const TABLE_TEMPERATURES = [
   { key: "aggressive", label: "Aggressive" },
 ];
 
-const BUILD_VERSION = "1.9";
-const BUILD_TIMESTAMP = "2026-03-12 16:01";
+const BUILD_VERSION = "2.0";
+const BUILD_TIMESTAMP = "2026-03-12 16:15";
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
@@ -388,7 +388,7 @@ function renderSelections() {
  */
 function setActionBadge(action, message = action) {
   const className = (action || "pending").toLowerCase();
-  elements.actionValue.className = `value badge ${className}`;
+  elements.actionValue.className = `value ${className}`;
   elements.actionValue.textContent = message;
 }
 
@@ -431,7 +431,7 @@ function getLocalRecommendation(position, normalizedHand) {
 function updateResult() {
   if (!state.position || !state.card1 || !state.card2 || (state.suited === null && state.card1 !== state.card2)) {
     elements.handValue.textContent = "-";
-    setActionBadge("pending", "Input all Parameters");
+    setActionBadge("pending", "-");
     elements.sizeValue.textContent = "-";
     return;
   }
