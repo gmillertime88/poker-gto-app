@@ -720,9 +720,10 @@ h1 {
 
 .outs-cards {
   margin-top: 4px;
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+  column-gap: 6px;
+  row-gap: 6px;
 }
 
 .out-win {
@@ -812,23 +813,23 @@ h1 {
   }
 
   .odds-results {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: visible;
   }
 
   .odds-table {
-    min-width: 560px;
+    min-width: 0;
+    table-layout: fixed;
   }
 
   .odds-table th,
   .odds-table td {
     padding: 7px 6px;
-    white-space: nowrap;
+    white-space: normal;
     vertical-align: top;
   }
 
   .outs-cell {
-    min-width: 280px;
+    min-width: 0;
     white-space: normal;
   }
 }
