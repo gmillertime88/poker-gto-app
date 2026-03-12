@@ -45,7 +45,6 @@
           <div class="players-start-row">
             <div id="odds-players-grid" class="button-grid players-grid odds-players-grid"></div>
             <button id="reset-odds-btn" class="small-reset-btn" type="button">Reset</button>
-            <button id="calculate-odds-btn" class="select-btn primary-action top-calculate-btn" type="button">Calculate Odds</button>
           </div>
         </div>
 
@@ -57,16 +56,15 @@
         <div class="field-group">
           <h2>Community Cards</h2>
           <div id="board-grid" class="board-grid"></div>
+          <button id="calculate-odds-btn" class="calculate-odds-panel" type="button">Calculate Odds</button>
         </div>
 
         <section class="result" aria-live="polite">
-          <div class="result-row action-row">
-            <span class="label">Status:</span>
-            <span id="odds-status" class="value odds-status-value pending">-</span>
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Status: <span id="odds-status" class="value odds-status-value pending">-</span></span>
           </div>
-          <div class="result-row">
-            <span class="label">Possible Combinations:</span>
-            <span id="boards-evaluated" class="value">-</span>
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Possible Combinations: <span id="boards-evaluated" class="value">-</span></span>
           </div>
           <div id="odds-results" class="odds-results"></div>
         </section>

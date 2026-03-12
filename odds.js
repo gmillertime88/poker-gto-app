@@ -13,8 +13,8 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "1.8";
-const BUILD_TIMESTAMP = "2026-03-12 15:46";
+const BUILD_VERSION = "1.9";
+const BUILD_TIMESTAMP = "2026-03-12 16:01";
 
 const oddsState = {
   playersAtStart: 2,
@@ -396,6 +396,9 @@ function renderBoardGrid() {
     wrapper.appendChild(suitPicker);
     oddsElements.boardGrid.appendChild(wrapper);
   }
+
+  oddsElements.calculateButton.classList.add("board-slot", "calculate-odds-panel");
+  oddsElements.boardGrid.appendChild(oddsElements.calculateButton);
 }
 
 function renderPlayerRows() {
@@ -1071,7 +1074,7 @@ async function handleCalculateOdds() {
     const totals = calculateExactOdds(scenario);
 
     renderOddsResults(scenario, totals);
-    setStatus("Calculation complete", "raise");
+    setStatus("Calculation Complete", "raise");
   } catch (error) {
     if (error && error.code === "DUPLICATE_CARD" && error.card) {
       setStatusRich((container) => {
