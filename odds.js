@@ -13,14 +13,15 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "1.5";
-const BUILD_TIMESTAMP = "2026-03-12 14:47";
+const BUILD_VERSION = "1.6";
+const BUILD_TIMESTAMP = "2026-03-12 14:53";
 
 const oddsState = {
   playersAtStart: 2,
   players: [],
   board: [null, null, null, null, null],
   rankScrollByOwner: {},
+  rankEnsureVisibleByOwner: {},
 };
 
 const oddsElements = {
@@ -48,6 +49,9 @@ function initializePlayers() {
     seat: i + 1,
     cards: [null, null],
   }));
+
+  oddsState.rankScrollByOwner = {};
+  oddsState.rankEnsureVisibleByOwner = {};
 
   oddsState.rankScrollByOwner = {};
 }
@@ -119,35 +123,27 @@ function refreshCardSelectionUI() {
   renderPlayerRows();
 }
 
-function restoreRankScrollerView(scroller, ownerKey, selectedRank) {
+function restoreRankScrollerView(scroller, ownerKey) {
   requestAnimationFrame(() => {
     const savedScrollLeft = oddsState.rankScrollByOwner[ownerKey] || 0;
     if (savedScrollLeft > 0) {
       scroller.scrollLeft = savedScrollLeft;
     }
 
-    if (!selectedRank) {
+    const pendingRank = oddsState.rankEnsureVisibleByOwner[ownerKey] || null;
+    if (!pendingRank) {
       return;
     }
 
-    const activeButton = scroller.querySelector(`.card-rank-btn[data-rank="${selectedRank}"]`);
+    const activeButton = scroller.querySelector(`.card-rank-btn[data-rank="${pendingRank}"]`);
     if (!activeButton) {
+      delete oddsState.rankEnsureVisibleByOwner[ownerKey];
       return;
     }
 
-    const buttonLeft = activeButton.offsetLeft;
-    const buttonRight = buttonLeft + activeButton.offsetWidth;
-    const viewLeft = scroller.scrollLeft;
-    const viewRight = viewLeft + scroller.clientWidth;
-
-    if (buttonLeft < viewLeft || buttonRight > viewRight) {
-      const centeredLeft =
-        buttonLeft - (scroller.clientWidth - activeButton.offsetWidth) / 2;
-      const maxScrollLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
-      scroller.scrollLeft = Math.min(maxScrollLeft, Math.max(0, centeredLeft));
-    }
-
+    activeButton.scrollIntoView({ behavior: "auto", block: "nearest", inline: "center" });
     oddsState.rankScrollByOwner[ownerKey] = scroller.scrollLeft;
+    delete oddsState.rankEnsureVisibleByOwner[ownerKey];
   });
 }
 
@@ -184,16 +180,11 @@ function buildRankSelect(selectedRank, selectedSuit, ownerKey, onChange) {
       }
 
       const selectingNewRank = selectedRank !== rank;
+      oddsState.rankScrollByOwner[ownerKey] = scroller.scrollLeft;
       if (selectingNewRank) {
-        const desiredScrollLeft =
-          button.offsetLeft - (scroller.clientWidth - button.offsetWidth) / 2;
-        const maxScrollLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
-        oddsState.rankScrollByOwner[ownerKey] = Math.min(
-          maxScrollLeft,
-          Math.max(0, desiredScrollLeft)
-        );
+        oddsState.rankEnsureVisibleByOwner[ownerKey] = rank;
       } else {
-        oddsState.rankScrollByOwner[ownerKey] = scroller.scrollLeft;
+        delete oddsState.rankEnsureVisibleByOwner[ownerKey];
       }
 
       onChange(selectingNewRank ? rank : null);
@@ -202,7 +193,7 @@ function buildRankSelect(selectedRank, selectedSuit, ownerKey, onChange) {
     scroller.appendChild(button);
   });
 
-  restoreRankScrollerView(scroller, ownerKey, selectedRank);
+  restoreRankScrollerView(scroller, ownerKey);
 
   return scroller;
 }
