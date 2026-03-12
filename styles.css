@@ -362,11 +362,13 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--surface-soft);
-  color: var(--text);
+  color: var(--danger);
   padding: 10px;
   min-height: 118px;
   font-size: 1rem;
   font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
   cursor: pointer;
   transition: 120ms ease;
   display: flex;
