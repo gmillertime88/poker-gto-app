@@ -54,6 +54,18 @@ function initHamburgerMenus() {
       });
     });
   });
+
+  document.addEventListener("click", (event) => {
+    menus.forEach((menu) => {
+      if (!menu.open) {
+        return;
+      }
+
+      if (!menu.contains(event.target)) {
+        menu.open = false;
+      }
+    });
+  });
 }
 
 function initAppChrome() {

@@ -13,8 +13,8 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "1.7";
-const BUILD_TIMESTAMP = "2026-03-12 15:23";
+const BUILD_VERSION = "1.8";
+const BUILD_TIMESTAMP = "2026-03-12 15:46";
 
 const oddsState = {
   playersAtStart: 2,
@@ -64,12 +64,12 @@ function renderSelectButton(grid, label, isActive, onClick) {
 }
 
 function setStatus(message, statusClass = "pending") {
-  oddsElements.status.className = `value badge ${statusClass}`;
+  oddsElements.status.className = `value odds-status-value ${statusClass}`;
   oddsElements.status.textContent = message;
 }
 
 function setStatusRich(contentBuilder, statusClass = "pending") {
-  oddsElements.status.className = `value badge ${statusClass}`;
+  oddsElements.status.className = `value odds-status-value ${statusClass}`;
   oddsElements.status.textContent = "";
   contentBuilder(oddsElements.status);
 }
@@ -479,7 +479,7 @@ function renderAll() {
   renderPlayerRows();
   oddsElements.boardsEvaluated.textContent = "-";
   oddsElements.results.innerHTML = "";
-  setStatus("Input all Parameters", "pending");
+  setStatus("-", "pending");
 }
 
 function cardToInt(card) {
