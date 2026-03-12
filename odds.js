@@ -13,13 +13,14 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "1.3";
-const BUILD_TIMESTAMP = "2026-03-12 11:58";
+const BUILD_VERSION = "1.4";
+const BUILD_TIMESTAMP = "2026-03-12 12:04";
 
 const oddsState = {
   playersAtStart: 2,
   players: [],
   board: [null, null, null, null, null],
+  rankScrollByOwner: {},
 };
 
 const oddsElements = {
@@ -47,6 +48,8 @@ function initializePlayers() {
     seat: i + 1,
     cards: [null, null],
   }));
+
+  oddsState.rankScrollByOwner = {};
 }
 
 function renderSelectButton(grid, label, isActive, onClick) {
@@ -120,6 +123,17 @@ function buildRankSelect(selectedRank, selectedSuit, ownerKey, onChange) {
   const scroller = document.createElement("div");
   scroller.className = "card-rank-scroller";
   const usedCards = collectUsedCards(ownerKey);
+  const savedScrollLeft = oddsState.rankScrollByOwner[ownerKey] || 0;
+
+  if (savedScrollLeft > 0) {
+    requestAnimationFrame(() => {
+      scroller.scrollLeft = savedScrollLeft;
+    });
+  }
+
+  scroller.addEventListener("scroll", () => {
+    oddsState.rankScrollByOwner[ownerKey] = scroller.scrollLeft;
+  });
 
   RANKS.forEach((rank) => {
     const button = document.createElement("button");
@@ -143,7 +157,20 @@ function buildRankSelect(selectedRank, selectedSuit, ownerKey, onChange) {
         return;
       }
 
-      onChange(selectedRank === rank ? null : rank);
+      const selectingNewRank = selectedRank !== rank;
+      if (selectingNewRank) {
+        const desiredScrollLeft =
+          button.offsetLeft - (scroller.clientWidth - button.offsetWidth) / 2;
+        const maxScrollLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+        oddsState.rankScrollByOwner[ownerKey] = Math.min(
+          maxScrollLeft,
+          Math.max(0, desiredScrollLeft)
+        );
+      } else {
+        oddsState.rankScrollByOwner[ownerKey] = scroller.scrollLeft;
+      }
+
+      onChange(selectingNewRank ? rank : null);
     });
 
     scroller.appendChild(button);
