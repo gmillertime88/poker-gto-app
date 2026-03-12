@@ -41,15 +41,16 @@
         <p class="subtitle">Enter all players' hole cards, select the stage, and calculate exact win probabilities.</p>
 
         <div class="field-group">
-          <h2>Players At Start</h2>
+          <h2>Players At Start <span class="required-asterisk" aria-hidden="true">*</span></h2>
           <div class="players-start-row">
             <div id="odds-players-grid" class="button-grid players-grid odds-players-grid"></div>
             <button id="reset-odds-btn" class="small-reset-btn" type="button">Reset</button>
+            <button id="calculate-odds-btn" class="select-btn primary-action top-calculate-btn" type="button">Calculate Odds</button>
           </div>
         </div>
 
         <div class="field-group">
-          <h2>Player Hands</h2>
+          <h2>Player Hands <span class="required-asterisk" aria-hidden="true">*</span></h2>
           <div id="player-rows" class="player-rows"></div>
         </div>
 
@@ -58,21 +59,19 @@
           <div id="board-grid" class="board-grid"></div>
         </div>
 
-        <div class="field-group action-controls">
-          <button id="calculate-odds-btn" class="select-btn primary-action" type="button">Calculate Odds</button>
-        </div>
-
         <section class="result" aria-live="polite">
           <div class="result-row action-row">
             <span class="label">Status</span>
-            <span id="odds-status" class="value badge pending">Enter hands and click Calculate Odds</span>
+            <span id="odds-status" class="value badge pending">Input all Parameters</span>
           </div>
           <div class="result-row">
-            <span class="label">Boards Evaluated</span>
+            <span class="label">Possible Combinations</span>
             <span id="boards-evaluated" class="value">-</span>
           </div>
           <div id="odds-results" class="odds-results"></div>
         </section>
+
+        <p class="required-note">* Required Inputs</p>
 
         <div class="build-tag-wrap">
           <span id="build-tag" class="build-tag">Build -</span>

@@ -41,32 +41,32 @@
         <p class="subtitle">Select your position and hand to get the recommended first-in action.</p>
 
         <div class="field-group">
-          <h2>Players</h2>
-          <div id="players-grid" class="button-grid players-grid"></div>
+          <h2>Players <span class="required-asterisk" aria-hidden="true">*</span></h2>
+          <div id="players-grid" class="button-grid players-grid scroll-selector"></div>
         </div>
 
         <div class="field-group">
-          <h2>Table Temperature</h2>
-          <div id="temperature-grid" class="button-grid temperature-grid"></div>
+          <h2>Table Temperature <span class="required-asterisk" aria-hidden="true">*</span></h2>
+          <div id="temperature-grid" class="button-grid temperature-grid scroll-selector"></div>
         </div>
 
         <div class="field-group">
-          <h2>Position</h2>
-          <div id="position-grid" class="button-grid"></div>
+          <h2>Position <span class="required-asterisk" aria-hidden="true">*</span></h2>
+          <div id="position-grid" class="button-grid scroll-selector"></div>
         </div>
 
         <div class="field-group">
-          <h2>Card 1</h2>
-          <div id="card1-grid" class="button-grid card-grid"></div>
+          <h2>Card 1 <span class="required-asterisk" aria-hidden="true">*</span></h2>
+          <div id="card1-grid" class="button-grid card-grid scroll-selector"></div>
         </div>
 
         <div class="field-group">
-          <h2>Card 2</h2>
-          <div id="card2-grid" class="button-grid card-grid"></div>
+          <h2>Card 2 <span class="required-asterisk" aria-hidden="true">*</span></h2>
+          <div id="card2-grid" class="button-grid card-grid scroll-selector"></div>
         </div>
 
         <div class="field-group">
-          <h2>Suiting</h2>
+          <h2>Suiting <span class="required-asterisk" aria-hidden="true">*</span></h2>
           <div id="suited-grid" class="button-grid suiting-grid"></div>
         </div>
 
@@ -77,13 +77,15 @@
           </div>
           <div class="result-row action-row">
             <span class="label">Action</span>
-            <span id="action-value" class="value badge pending">Select all parameters</span>
+            <span id="action-value" class="value badge pending">Input all Parameters</span>
           </div>
           <div class="result-row">
             <span class="label">Size</span>
             <span id="size-value" class="value">-</span>
           </div>
         </section>
+
+        <p class="required-note">* Required Inputs</p>
 
         <div class="build-tag-wrap">
           <span id="build-tag" class="build-tag">Build -</span>

@@ -108,8 +108,8 @@ body {
 
 .home-logo-link {
   display: inline-flex;
-  width: 63px;
-  height: 63px;
+  width: 95px;
+  height: 95px;
   align-items: center;
   justify-content: center;
   border-radius: 10px;
@@ -124,8 +124,8 @@ body {
 }
 
 .home-logo-icon {
-  width: 51px;
-  height: 51px;
+  width: 77px;
+  height: 77px;
   object-fit: contain;
 }
 
@@ -287,7 +287,7 @@ h1 {
 }
 
 .splash-logo {
-  width: min(420px, 92%);
+  width: min(525px, 96%);
   height: auto;
   display: block;
   filter: drop-shadow(0 10px 22px rgba(2, 6, 23, 0.25));
@@ -303,10 +303,17 @@ h1 {
   color: var(--heading);
 }
 
+.required-asterisk {
+  color: var(--danger);
+  font-weight: 700;
+  margin-left: 2px;
+}
+
 .players-start-row {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .odds-players-grid {
@@ -331,6 +338,11 @@ h1 {
 
 .small-reset-btn:hover {
   border-color: var(--accent);
+}
+
+.top-calculate-btn {
+  margin-left: auto;
+  min-width: 180px;
 }
 
 .menu-grid {
@@ -376,6 +388,35 @@ h1 {
   gap: 8px;
 }
 
+.scroll-selector {
+  display: grid;
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - (8px * 3)) / 4);
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--accent) 60%, transparent) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scroll-selector::-webkit-scrollbar {
+  height: 6px;
+}
+
+.scroll-selector::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--accent) 45%, transparent);
+  border-radius: 999px;
+}
+
+.scroll-selector .select-btn {
+  white-space: nowrap;
+  scroll-snap-align: start;
+}
+
 .players-grid {
   grid-template-columns: repeat(5, minmax(56px, 1fr));
 }
@@ -396,6 +437,12 @@ h1 {
 
 .suiting-grid {
   grid-template-columns: repeat(2, minmax(120px, 1fr));
+}
+
+.button-grid.scroll-selector {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - (8px * 3)) / 4);
 }
 
 .select-btn {
@@ -437,6 +484,13 @@ h1 {
 
 .primary-action {
   min-width: 200px;
+}
+
+.required-note {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: right;
 }
 
 .result {
@@ -886,8 +940,34 @@ h1 {
     font-size: 0.86rem;
   }
 
+  .players-start-row {
+    align-items: stretch;
+    row-gap: 8px;
+  }
+
+  .odds-players-grid {
+    width: auto;
+    flex: 1 1 auto;
+  }
+
+  .small-reset-btn {
+    height: 42px;
+  }
+
+  .top-calculate-btn {
+    margin-left: 0;
+    width: 100%;
+    min-width: 0;
+  }
+
   .card-grid {
     grid-template-columns: repeat(13, minmax(38px, 1fr));
+  }
+
+  .button-grid.scroll-selector {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: calc((100% - (8px * 2)) / 3);
   }
 
   .stage-grid,

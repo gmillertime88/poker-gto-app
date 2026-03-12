@@ -13,8 +13,8 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "1.6";
-const BUILD_TIMESTAMP = "2026-03-12 14:53";
+const BUILD_VERSION = "1.7";
+const BUILD_TIMESTAMP = "2026-03-12 15:23";
 
 const oddsState = {
   playersAtStart: 2,
@@ -52,8 +52,6 @@ function initializePlayers() {
 
   oddsState.rankScrollByOwner = {};
   oddsState.rankEnsureVisibleByOwner = {};
-
-  oddsState.rankScrollByOwner = {};
 }
 
 function renderSelectButton(grid, label, isActive, onClick) {
@@ -481,7 +479,7 @@ function renderAll() {
   renderPlayerRows();
   oddsElements.boardsEvaluated.textContent = "-";
   oddsElements.results.innerHTML = "";
-  setStatus("Enter hands and click Calculate Odds", "pending");
+  setStatus("Input all Parameters", "pending");
 }
 
 function cardToInt(card) {
