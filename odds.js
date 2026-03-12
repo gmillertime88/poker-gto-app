@@ -13,8 +13,8 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "1.2";
-const BUILD_TIMESTAMP = "2026-03-12 10:53";
+const BUILD_VERSION = "1.3";
+const BUILD_TIMESTAMP = "2026-03-12 11:58";
 
 const oddsState = {
   playersAtStart: 2,
@@ -117,34 +117,39 @@ function refreshCardSelectionUI() {
 }
 
 function buildRankSelect(selectedRank, selectedSuit, ownerKey, onChange) {
-  const select = document.createElement("select");
-  select.className = "card-select";
+  const scroller = document.createElement("div");
+  scroller.className = "card-rank-scroller";
   const usedCards = collectUsedCards(ownerKey);
 
-  const placeholder = document.createElement("option");
-  placeholder.value = "";
-  placeholder.textContent = "Rank";
-  select.appendChild(placeholder);
-
   RANKS.forEach((rank) => {
-    const option = document.createElement("option");
-    option.value = rank;
-    option.textContent = rank;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "card-rank-btn";
+    button.textContent = rank;
+    button.setAttribute("aria-label", `Rank ${rank}`);
+    button.setAttribute("aria-pressed", selectedRank === rank ? "true" : "false");
+
     if (selectedSuit) {
       const cardKey = makeCardKey(rank, selectedSuit);
-      option.disabled = usedCards.has(cardKey) && rank !== selectedRank;
+      button.disabled = usedCards.has(cardKey) && rank !== selectedRank;
     }
+
     if (selectedRank === rank) {
-      option.selected = true;
+      button.classList.add("active");
     }
-    select.appendChild(option);
+
+    button.addEventListener("click", () => {
+      if (button.disabled) {
+        return;
+      }
+
+      onChange(selectedRank === rank ? null : rank);
+    });
+
+    scroller.appendChild(button);
   });
 
-  select.addEventListener("change", (event) => {
-    onChange(event.target.value || null);
-  });
-
-  return select;
+  return scroller;
 }
 
 function buildSuitSelect(selectedRank, selectedSuit, ownerKey, onChange) {

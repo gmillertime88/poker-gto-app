@@ -571,6 +571,58 @@ h1 {
   padding: 8px;
 }
 
+.card-rank-scroller {
+  width: 100%;
+  margin-bottom: 6px;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - (6px * 3)) / 4);
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklab, var(--accent) 60%, transparent) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.card-rank-scroller::-webkit-scrollbar {
+  height: 6px;
+}
+
+.card-rank-scroller::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--accent) 45%, transparent);
+  border-radius: 999px;
+}
+
+.card-rank-btn {
+  min-height: 36px;
+  border: 1px solid var(--card-select-border);
+  border-radius: 8px;
+  background: var(--card-select-bg);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 120ms ease;
+}
+
+.card-rank-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.card-rank-btn.active {
+  border-color: #a4d18a;
+  background: #a4d18a;
+  color: #0f172a;
+}
+
+.card-rank-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .player-rows {
   display: grid;
   gap: 10px;
