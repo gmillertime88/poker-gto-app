@@ -13,8 +13,8 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "1.4";
-const BUILD_TIMESTAMP = "2026-03-12 12:04";
+const BUILD_VERSION = "1.5";
+const BUILD_TIMESTAMP = "2026-03-12 14:47";
 
 const oddsState = {
   playersAtStart: 2,
@@ -119,17 +119,42 @@ function refreshCardSelectionUI() {
   renderPlayerRows();
 }
 
+function restoreRankScrollerView(scroller, ownerKey, selectedRank) {
+  requestAnimationFrame(() => {
+    const savedScrollLeft = oddsState.rankScrollByOwner[ownerKey] || 0;
+    if (savedScrollLeft > 0) {
+      scroller.scrollLeft = savedScrollLeft;
+    }
+
+    if (!selectedRank) {
+      return;
+    }
+
+    const activeButton = scroller.querySelector(`.card-rank-btn[data-rank="${selectedRank}"]`);
+    if (!activeButton) {
+      return;
+    }
+
+    const buttonLeft = activeButton.offsetLeft;
+    const buttonRight = buttonLeft + activeButton.offsetWidth;
+    const viewLeft = scroller.scrollLeft;
+    const viewRight = viewLeft + scroller.clientWidth;
+
+    if (buttonLeft < viewLeft || buttonRight > viewRight) {
+      const centeredLeft =
+        buttonLeft - (scroller.clientWidth - activeButton.offsetWidth) / 2;
+      const maxScrollLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+      scroller.scrollLeft = Math.min(maxScrollLeft, Math.max(0, centeredLeft));
+    }
+
+    oddsState.rankScrollByOwner[ownerKey] = scroller.scrollLeft;
+  });
+}
+
 function buildRankSelect(selectedRank, selectedSuit, ownerKey, onChange) {
   const scroller = document.createElement("div");
   scroller.className = "card-rank-scroller";
   const usedCards = collectUsedCards(ownerKey);
-  const savedScrollLeft = oddsState.rankScrollByOwner[ownerKey] || 0;
-
-  if (savedScrollLeft > 0) {
-    requestAnimationFrame(() => {
-      scroller.scrollLeft = savedScrollLeft;
-    });
-  }
 
   scroller.addEventListener("scroll", () => {
     oddsState.rankScrollByOwner[ownerKey] = scroller.scrollLeft;
@@ -140,6 +165,7 @@ function buildRankSelect(selectedRank, selectedSuit, ownerKey, onChange) {
     button.type = "button";
     button.className = "card-rank-btn";
     button.textContent = rank;
+    button.dataset.rank = rank;
     button.setAttribute("aria-label", `Rank ${rank}`);
     button.setAttribute("aria-pressed", selectedRank === rank ? "true" : "false");
 
@@ -175,6 +201,8 @@ function buildRankSelect(selectedRank, selectedSuit, ownerKey, onChange) {
 
     scroller.appendChild(button);
   });
+
+  restoreRankScrollerView(scroller, ownerKey, selectedRank);
 
   return scroller;
 }
