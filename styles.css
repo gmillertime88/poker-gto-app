@@ -721,7 +721,7 @@ h1 {
 .outs-cards {
   margin-top: 4px;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(10, max-content);
   column-gap: 6px;
   row-gap: 6px;
 }
