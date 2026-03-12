@@ -171,6 +171,45 @@ function buildSuitSelect(selectedRank, selectedSuit, ownerKey, onChange) {
   return select;
 }
 
+function buildSuitSymbolPicker(selectedRank, selectedSuit, ownerKey, onChange) {
+  const wrap = document.createElement("div");
+  wrap.className = "suit-picker";
+
+  const usedCards = collectUsedCards(ownerKey);
+  const rankSelected = Boolean(selectedRank);
+
+  SUITS.forEach((suit) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `suit-symbol-btn ${suit.colorClass}`;
+    button.textContent = suit.symbol;
+    button.title = suit.label;
+    button.setAttribute("aria-label", suit.label);
+
+    if (selectedSuit === suit.key) {
+      button.classList.add("active");
+      button.setAttribute("aria-pressed", "true");
+    } else {
+      button.setAttribute("aria-pressed", "false");
+    }
+
+    const duplicateBlocked = rankSelected && usedCards.has(makeCardKey(selectedRank, suit.key)) && suit.key !== selectedSuit;
+    button.disabled = !rankSelected || duplicateBlocked;
+
+    button.addEventListener("click", () => {
+      if (button.disabled) {
+        return;
+      }
+
+      onChange(selectedSuit === suit.key ? null : suit.key);
+    });
+
+    wrap.appendChild(button);
+  });
+
+  return wrap;
+}
+
 function suitMetaByKey(suitKey) {
   return SUITS.find((suit) => suit.key === suitKey) || null;
 }
@@ -280,7 +319,7 @@ function renderBoardGrid() {
       }
     );
 
-    const suitSelect = buildSuitSelect(
+    const suitPicker = buildSuitSymbolPicker(
       oddsState.board[i]?.rank || null,
       oddsState.board[i]?.suit || null,
       ownerKey,
@@ -293,7 +332,7 @@ function renderBoardGrid() {
 
     wrapper.appendChild(label);
     wrapper.appendChild(rankSelect);
-    wrapper.appendChild(suitSelect);
+    wrapper.appendChild(suitPicker);
     oddsElements.boardGrid.appendChild(wrapper);
   }
 }
@@ -328,7 +367,7 @@ function renderPlayerRows() {
         }
       );
 
-      const suitSelect = buildSuitSelect(
+      const suitPicker = buildSuitSymbolPicker(
         player.cards[cardIndex]?.rank || null,
         player.cards[cardIndex]?.suit || null,
         ownerKey,
@@ -340,7 +379,7 @@ function renderPlayerRows() {
       );
 
       cardShell.appendChild(rankSelect);
-      cardShell.appendChild(suitSelect);
+      cardShell.appendChild(suitPicker);
       cardsWrap.appendChild(cardShell);
     }
 
@@ -803,8 +842,8 @@ function renderOddsResults(scenario, totals) {
   const thead = document.createElement("thead");
   const showOutsColumn = scenario.knownBoardCards.length === 4;
   thead.innerHTML = showOutsColumn
-    ? "<tr><th>Player</th><th>Hand</th><th>Win %</th><th>Tie %</th><th>Equity %</th><th>Outs</th></tr>"
-    : "<tr><th>Player</th><th>Hand</th><th>Win %</th><th>Tie %</th><th>Equity %</th></tr>";
+    ? "<tr><th>Player</th><th>Win %</th><th>Tie %</th><th>Equity %</th><th>Outs</th></tr>"
+    : "<tr><th>Player</th><th>Win %</th><th>Tie %</th><th>Equity %</th></tr>";
 
   const tbody = document.createElement("tbody");
   const turnOuts = showOutsColumn ? calculateTurnOuts(scenario) : [];
@@ -818,14 +857,20 @@ function renderOddsResults(scenario, totals) {
     const equityPct = ((totals.equity[idx] / totals.boards) * 100).toFixed(2);
 
     const playerCell = document.createElement("td");
-    playerCell.textContent = `Player ${player.seat}`;
+    playerCell.className = "results-player-cell";
 
-    const handCell = document.createElement("td");
+    const playerLabel = document.createElement("div");
+    playerLabel.className = "results-player-label";
+    playerLabel.textContent = `Player ${player.seat}`;
+    playerCell.appendChild(playerLabel);
+
+    const handCell = document.createElement("div");
     handCell.className = "results-hand-cell";
     player.hole.forEach((cardInt) => {
       const { rankText, suitKey } = cardIntToDisplayParts(cardInt);
       handCell.appendChild(createCardToken(rankText, suitKey));
     });
+    playerCell.appendChild(handCell);
 
     const winCell = document.createElement("td");
     winCell.textContent = winPct;
@@ -837,7 +882,6 @@ function renderOddsResults(scenario, totals) {
     equityCell.textContent = equityPct;
 
     row.appendChild(playerCell);
-    row.appendChild(handCell);
     row.appendChild(winCell);
     row.appendChild(tieCell);
     row.appendChild(equityCell);

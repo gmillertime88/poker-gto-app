@@ -597,6 +597,42 @@ h1 {
   padding: 8px;
 }
 
+.suit-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.suit-symbol-btn {
+  min-height: 34px;
+  border: 1px solid var(--card-select-border);
+  border-radius: 8px;
+  background: var(--card-select-bg);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: 120ms ease;
+}
+
+.suit-symbol-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.suit-symbol-btn.active {
+  border-color: #a4d18a;
+  background: #a4d18a;
+  color: #0f172a;
+}
+
+.suit-symbol-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .player-summary {
   margin-top: 8px;
   font-size: 0.82rem;
@@ -663,6 +699,15 @@ h1 {
   flex-wrap: wrap;
 }
 
+.results-player-cell {
+  min-width: 130px;
+}
+
+.results-player-label {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
 .outs-counts {
   margin-top: 0;
   font-size: 0.82rem;
@@ -670,7 +715,7 @@ h1 {
 }
 
 .outs-cell {
-  min-width: 220px;
+  min-width: 280px;
 }
 
 .outs-cards {
@@ -772,7 +817,7 @@ h1 {
   }
 
   .odds-table {
-    min-width: 600px;
+    min-width: 560px;
   }
 
   .odds-table th,
@@ -783,7 +828,7 @@ h1 {
   }
 
   .outs-cell {
-    min-width: 236px;
+    min-width: 280px;
     white-space: normal;
   }
 }
