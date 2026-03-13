@@ -982,7 +982,7 @@ h1 {
 .outs-cards {
   margin-top: 4px;
   display: grid;
-  grid-template-columns: repeat(10, max-content);
+  grid-template-columns: repeat(8, max-content);
   column-gap: 6px;
   row-gap: 6px;
 }
