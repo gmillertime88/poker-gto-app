@@ -14,8 +14,8 @@ const SUITS = [
 ];
 const CARD_WHEEL_SUIT_ORDER = ["S", "C", "H", "D"];
 
-const BUILD_VERSION = "3.1";
-const BUILD_TIMESTAMP = "2026-03-13 09:53";
+const BUILD_VERSION = "3.2";
+const BUILD_TIMESTAMP = "2026-03-13 09:58";
 const WHEEL_REPEAT_COUNT = 3;
 const WHEEL_SCROLL_DEBOUNCE_MS = 90;
 
