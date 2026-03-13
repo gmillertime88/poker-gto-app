@@ -14,8 +14,8 @@ const SUITS = [
 ];
 const CARD_WHEEL_SUIT_ORDER = ["S", "C", "H", "D"];
 
-const BUILD_VERSION = "2.8";
-const BUILD_TIMESTAMP = "2026-03-13 09:16";
+const BUILD_VERSION = "2.9";
+const BUILD_TIMESTAMP = "2026-03-13 09:27";
 const WHEEL_REPEAT_COUNT = 3;
 const WHEEL_SCROLL_DEBOUNCE_MS = 90;
 
@@ -271,7 +271,9 @@ function buildVerticalWheel({
 
     const targetIndex = options.length + enabledIndex;
     const targetScrollTop = (targetIndex * itemHeight) - midOffset;
-    viewport.scrollTo({ top: targetScrollTop, behavior: "smooth" });
+    if (Math.abs(viewport.scrollTop - targetScrollTop) > 0.5) {
+      viewport.scrollTop = targetScrollTop;
+    }
   }
 
   viewport.addEventListener("scroll", () => {
