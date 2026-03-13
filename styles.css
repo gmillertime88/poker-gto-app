@@ -1060,7 +1060,13 @@ h1 {
   }
 
   .board-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
     max-width: 100%;
+  }
+
+  .board-slot {
+    padding: 8px;
   }
 
   .odds-results {

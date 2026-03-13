@@ -13,8 +13,8 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "2.1";
-const BUILD_TIMESTAMP = "2026-03-12 16:26";
+const BUILD_VERSION = "2.2";
+const BUILD_TIMESTAMP = "2026-03-13 08:13";
 
 const oddsState = {
   playersAtStart: 2,
