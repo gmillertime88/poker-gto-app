@@ -697,6 +697,12 @@ h1 {
   padding: 8px;
 }
 
+.card-wheel-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .card-wheel-group {
   min-width: 0;
 }
@@ -712,7 +718,7 @@ h1 {
 
 .card-wheel-viewport {
   position: relative;
-  height: 228px;
+  height: 196px;
   overflow-y: auto;
   overflow-x: hidden;
   border: 1px solid var(--card-select-border);
@@ -761,12 +767,12 @@ h1 {
 }
 
 .card-wheel-item {
-  min-height: 56px;
+  min-height: 48px;
   border: 0;
   border-bottom: 1px solid color-mix(in oklab, var(--card-select-border) 70%, transparent);
   background: transparent;
   color: var(--text);
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 700;
   cursor: pointer;
   scroll-snap-align: center;
@@ -782,9 +788,12 @@ h1 {
   color: #0f172a;
 }
 
-.single-card-wheel-item {
-  font-size: 1.6rem;
-  letter-spacing: 0.01em;
+.rank-wheel-item {
+  font-size: 1.25rem;
+}
+
+.suit-wheel-item {
+  font-size: 1.45rem;
 }
 
 .card-wheel-item:disabled {

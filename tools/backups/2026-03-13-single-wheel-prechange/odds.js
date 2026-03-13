@@ -13,8 +13,8 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "2.5";
-const BUILD_TIMESTAMP = "2026-03-13 08:34";
+const BUILD_VERSION = "2.4";
+const BUILD_TIMESTAMP = "2026-03-13 08:29";
 const WHEEL_REPEAT_COUNT = 3;
 const WHEEL_SCROLL_DEBOUNCE_MS = 90;
 
@@ -82,40 +82,6 @@ function stageByBoardCount(boardCount) {
 function makeCardKey(rank, suit) {
   return `${rank}-${suit}`;
 }
-
-function parseCardKey(cardKey) {
-  if (!cardKey) {
-    return null;
-  }
-
-  const [rank, suit] = cardKey.split("-");
-  if (!rank || !suit) {
-    return null;
-  }
-
-  return { rank, suit };
-}
-
-function buildCardWheelOptions() {
-  const options = [];
-
-  RANKS.forEach((rank) => {
-    SUITS.forEach((suit) => {
-      options.push({
-        value: makeCardKey(rank, suit.key),
-        rank,
-        suitKey: suit.key,
-        suitSymbol: suit.symbol,
-        suitLabel: suit.label,
-        colorClass: suit.colorClass,
-      });
-    });
-  });
-
-  return options;
-}
-
-const CARD_WHEEL_OPTIONS = buildCardWheelOptions();
 
 function collectUsedCards(excludeOwnerKey = null) {
   const used = new Set();
@@ -300,30 +266,61 @@ function buildVerticalWheel({
   return viewport;
 }
 
-function buildCardWheelSelect(selectedCard, ownerKey, onChange) {
+function buildRankSelect(selectedRank, selectedSuit, ownerKey, onChange) {
   const usedCards = collectUsedCards(ownerKey);
-  const selectedValue = selectedCard?.rank && selectedCard?.suit ? makeCardKey(selectedCard.rank, selectedCard.suit) : null;
 
   const wrap = document.createElement("div");
   wrap.className = "card-wheel-group";
 
   const label = document.createElement("span");
   label.className = "card-wheel-label";
-  label.textContent = "Card";
+  label.textContent = "Rank";
 
   const wheel = buildVerticalWheel({
-    options: CARD_WHEEL_OPTIONS,
-    selectedValue,
-    onChange: (value) => {
-      const parsed = parseCardKey(value);
-      onChange(parsed ? { rank: parsed.rank, suit: parsed.suit } : null);
-    },
+    options: RANKS.map((rank) => ({ value: rank, rank })),
+    selectedValue: selectedRank,
+    onChange,
     isDisabled: (option) => {
-      return usedCards.has(option.value) && option.value !== selectedValue;
+      if (!selectedSuit) {
+        return false;
+      }
+      return usedCards.has(makeCardKey(option.rank, selectedSuit)) && option.rank !== selectedRank;
     },
-    getText: (option) => `${option.rank}${option.suitSymbol}`,
-    getAriaLabel: (option) => `${option.rank} of ${option.suitLabel}`,
-    getItemClass: (option) => `single-card-wheel-item ${option.colorClass}`,
+    getText: (option) => option.rank,
+    getAriaLabel: (option) => `Rank ${option.rank}`,
+    getItemClass: () => "rank-wheel-item",
+    allowClickToggle: true,
+  });
+
+  wrap.appendChild(label);
+  wrap.appendChild(wheel);
+  return wrap;
+}
+
+function buildSuitSymbolPicker(selectedRank, selectedSuit, ownerKey, onChange) {
+  const usedCards = collectUsedCards(ownerKey);
+  const rankSelected = Boolean(selectedRank);
+
+  const wrap = document.createElement("div");
+  wrap.className = "card-wheel-group";
+
+  const label = document.createElement("span");
+  label.className = "card-wheel-label";
+  label.textContent = "Suit";
+
+  const wheel = buildVerticalWheel({
+    options: SUITS.map((suit) => ({ value: suit.key, ...suit })),
+    selectedValue: selectedSuit,
+    onChange,
+    isDisabled: (option) => {
+      if (!rankSelected) {
+        return true;
+      }
+      return usedCards.has(makeCardKey(selectedRank, option.key)) && option.key !== selectedSuit;
+    },
+    getText: (option) => option.symbol,
+    getAriaLabel: (option) => option.label,
+    getItemClass: (option) => `suit-wheel-item ${option.colorClass}`,
     allowClickToggle: true,
   });
 
@@ -420,13 +417,35 @@ function renderBoardGrid() {
     label.textContent = i < 3 ? `Flop ${i + 1}` : i === 3 ? "Turn" : "River";
 
     const ownerKey = `b-${i}`;
-    const cardWheel = buildCardWheelSelect(oddsState.board[i] || null, ownerKey, (card) => {
-      oddsState.board[i] = card;
-      refreshCardSelectionUI();
-    });
+    const rankSelect = buildRankSelect(
+      oddsState.board[i]?.rank || null,
+      oddsState.board[i]?.suit || null,
+      ownerKey,
+      (rank) => {
+        const current = oddsState.board[i] || {};
+        oddsState.board[i] = rank && current.suit ? { rank, suit: current.suit } : rank ? { rank, suit: null } : null;
+        refreshCardSelectionUI();
+      }
+    );
+
+    const suitPicker = buildSuitSymbolPicker(
+      oddsState.board[i]?.rank || null,
+      oddsState.board[i]?.suit || null,
+      ownerKey,
+      (suit) => {
+        const current = oddsState.board[i] || {};
+        oddsState.board[i] = suit && current.rank ? { rank: current.rank, suit } : suit ? { rank: null, suit } : null;
+        refreshCardSelectionUI();
+      }
+    );
+
+    const pickerPair = document.createElement("div");
+    pickerPair.className = "card-wheel-pair";
+    pickerPair.appendChild(rankSelect);
+    pickerPair.appendChild(suitPicker);
 
     wrapper.appendChild(label);
-    wrapper.appendChild(cardWheel);
+    wrapper.appendChild(pickerPair);
     oddsElements.boardGrid.appendChild(wrapper);
   }
 
@@ -457,13 +476,35 @@ function renderPlayerRows() {
       cardLabel.textContent = `Card ${cardIndex + 1}`;
 
       const ownerKey = `p-${playerIndex}-c-${cardIndex}`;
-      const cardWheel = buildCardWheelSelect(player.cards[cardIndex] || null, ownerKey, (card) => {
-        player.cards[cardIndex] = card;
-        refreshCardSelectionUI();
-      });
+      const rankSelect = buildRankSelect(
+        player.cards[cardIndex]?.rank || null,
+        player.cards[cardIndex]?.suit || null,
+        ownerKey,
+        (rank) => {
+          const current = player.cards[cardIndex] || {};
+          player.cards[cardIndex] = rank && current.suit ? { rank, suit: current.suit } : rank ? { rank, suit: null } : null;
+          refreshCardSelectionUI();
+        }
+      );
+
+      const suitPicker = buildSuitSymbolPicker(
+        player.cards[cardIndex]?.rank || null,
+        player.cards[cardIndex]?.suit || null,
+        ownerKey,
+        (suit) => {
+          const current = player.cards[cardIndex] || {};
+          player.cards[cardIndex] = suit && current.rank ? { rank: current.rank, suit } : suit ? { rank: null, suit } : null;
+          refreshCardSelectionUI();
+        }
+      );
+
+      const pickerPair = document.createElement("div");
+      pickerPair.className = "card-wheel-pair";
+      pickerPair.appendChild(rankSelect);
+      pickerPair.appendChild(suitPicker);
 
       cardShell.appendChild(cardLabel);
-      cardShell.appendChild(cardWheel);
+      cardShell.appendChild(pickerPair);
       cardsWrap.appendChild(cardShell);
     }
 
