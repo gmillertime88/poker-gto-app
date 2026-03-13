@@ -12,9 +12,10 @@ const SUITS = [
   { key: "D", symbol: "♦", label: "Diamonds", colorClass: "suit-red" },
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
+const CARD_WHEEL_SUIT_ORDER = ["S", "C", "H", "D"];
 
-const BUILD_VERSION = "2.5";
-const BUILD_TIMESTAMP = "2026-03-13 08:34";
+const BUILD_VERSION = "2.6";
+const BUILD_TIMESTAMP = "2026-03-13 08:38";
 const WHEEL_REPEAT_COUNT = 3;
 const WHEEL_SCROLL_DEBOUNCE_MS = 90;
 
@@ -98,9 +99,15 @@ function parseCardKey(cardKey) {
 
 function buildCardWheelOptions() {
   const options = [];
+  const suitByKey = new Map(SUITS.map((suit) => [suit.key, suit]));
 
-  RANKS.forEach((rank) => {
-    SUITS.forEach((suit) => {
+  CARD_WHEEL_SUIT_ORDER.forEach((suitKey) => {
+    const suit = suitByKey.get(suitKey);
+    if (!suit) {
+      return;
+    }
+
+    RANKS.forEach((rank) => {
       options.push({
         value: makeCardKey(rank, suit.key),
         rank,
