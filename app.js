@@ -8,8 +8,8 @@ const TABLE_TEMPERATURES = [
   { key: "aggressive", label: "Aggressive" },
 ];
 
-const BUILD_VERSION = "3.8";
-const BUILD_TIMESTAMP = "2026-03-13 15:49";
+const BUILD_VERSION = "3.9";
+const BUILD_TIMESTAMP = "2026-03-13 16:04";
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
@@ -107,7 +107,7 @@ const elements = {
   card2Grid: document.getElementById("card2-grid"),
   suitedGrid: document.getElementById("suited-grid"),
   handValue: document.getElementById("hand-value"),
-  actionValue: document.getElementById("action-value"),
+  actionButton: document.getElementById("action-button"),
   sizeValue: document.getElementById("size-value"),
   buildTag: document.getElementById("build-tag"),
 };
@@ -383,13 +383,17 @@ function renderSelections() {
   });
 }
 
-/**
- * Updates the action result badge with visual class + display text.
- */
-function setActionBadge(action, message = action) {
-  const className = (action || "pending").toLowerCase();
-  elements.actionValue.className = `value ${className}`;
-  elements.actionValue.textContent = message;
+function hideActionButton() {
+  elements.actionButton.hidden = true;
+  elements.actionButton.className = "select-btn range-action-btn";
+  elements.actionButton.textContent = "";
+}
+
+function showActionButton(actionText) {
+  const className = (actionText || "").toLowerCase();
+  elements.actionButton.hidden = false;
+  elements.actionButton.className = `select-btn range-action-btn ${className}`;
+  elements.actionButton.textContent = String(actionText || "").toUpperCase();
 }
 
 /**
@@ -431,7 +435,7 @@ function getLocalRecommendation(position, normalizedHand) {
 function updateResult() {
   if (!state.position || !state.card1 || !state.card2 || (state.suited === null && state.card1 !== state.card2)) {
     elements.handValue.textContent = "-";
-    setActionBadge("pending", "-");
+    hideActionButton();
     elements.sizeValue.textContent = "-";
     return;
   }
@@ -441,12 +445,12 @@ function updateResult() {
 
   const localRecommendation = getLocalRecommendation(state.position, normalized);
   if (!localRecommendation) {
-    setActionBadge("pending", "No action found");
+    hideActionButton();
     elements.sizeValue.textContent = "-";
     return;
   }
 
-  setActionBadge(localRecommendation.action, localRecommendation.action);
+  showActionButton(localRecommendation.action);
   elements.sizeValue.textContent = localRecommendation.sizeText;
 }
 
@@ -477,7 +481,7 @@ async function init() {
   } catch (error) {
     renderBuildTag();
     elements.handValue.textContent = "Error";
-    setActionBadge("pending", "Failed to load range data");
+    hideActionButton();
     elements.sizeValue.textContent = "-";
     console.error(error);
   }

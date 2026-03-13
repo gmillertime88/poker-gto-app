@@ -582,6 +582,47 @@ h1 {
   font-size: 0.86rem;
 }
 
+.range-result {
+  margin-top: 14px;
+  padding: 8px 10px;
+}
+
+.range-result .result-row + .result-row,
+.range-result .odds-summary-row + .odds-summary-row {
+  margin-top: 4px;
+}
+
+.range-result .summary-label {
+  font-size: 0.84rem;
+}
+
+.range-action-btn {
+  width: 110px;
+  min-height: 46px;
+  margin: 6px 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: default;
+}
+
+.range-action-btn[hidden] {
+  display: none;
+}
+
+.range-action-btn.fold {
+  color: #b91c1c;
+}
+
+.range-action-btn.raise,
+.range-action-btn.bet {
+  color: #15803d;
+}
+
+.range-action-btn.call,
+.range-action-btn.check {
+  color: #000000;
+}
+
 .build-tag-wrap {
   margin-top: 10px;
   display: flex;
@@ -1137,6 +1178,12 @@ h1 {
     min-height: 42px;
     min-width: 150px;
     padding: 0 14px;
+  }
+
+  .range-action-btn {
+    min-height: 42px;
+    width: 102px;
+    font-size: 0.86rem;
   }
 
   .card-grid {
