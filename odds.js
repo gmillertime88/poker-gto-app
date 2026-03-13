@@ -12,10 +12,9 @@ const SUITS = [
   { key: "D", symbol: "♦", label: "Diamonds", colorClass: "suit-red" },
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
-const CARD_WHEEL_SUIT_ORDER = ["S", "C", "H", "D"];
 
-const BUILD_VERSION = "3.7";
-const BUILD_TIMESTAMP = "2026-03-13 14:26";
+const BUILD_VERSION = "3.8";
+const BUILD_TIMESTAMP = "2026-03-13 15:49";
 const WHEEL_REPEAT_COUNT = 3;
 const WHEEL_SCROLL_DEBOUNCE_MS = 90;
 
@@ -84,45 +83,7 @@ function makeCardKey(rank, suit) {
   return `${rank}-${suit}`;
 }
 
-function parseCardKey(cardKey) {
-  if (!cardKey) {
-    return null;
-  }
-
-  const [rank, suit] = cardKey.split("-");
-  if (!rank || !suit) {
-    return null;
-  }
-
-  return { rank, suit };
-}
-
-function buildCardWheelOptions() {
-  const options = [];
-  const suitByKey = new Map(SUITS.map((suit) => [suit.key, suit]));
-
-  CARD_WHEEL_SUIT_ORDER.forEach((suitKey) => {
-    const suit = suitByKey.get(suitKey);
-    if (!suit) {
-      return;
-    }
-
-    RANKS.forEach((rank) => {
-      options.push({
-        value: makeCardKey(rank, suit.key),
-        rank,
-        suitKey: suit.key,
-        suitSymbol: suit.symbol,
-        suitLabel: suit.label,
-        colorClass: suit.colorClass,
-      });
-    });
-  });
-
-  return options;
-}
-
-const CARD_WHEEL_OPTIONS = buildCardWheelOptions();
+const RANK_WHEEL_OPTIONS = RANKS.map((rank) => ({ value: rank }));
 
 function collectUsedCards(excludeOwnerKey = null) {
   const used = new Set();
@@ -307,27 +268,78 @@ function buildVerticalWheel({
 function buildCardWheelSelect(selectedCard, ownerKey, onChange) {
   const usedCards = collectUsedCards(ownerKey);
   const selectedValue = selectedCard?.rank && selectedCard?.suit ? makeCardKey(selectedCard.rank, selectedCard.suit) : null;
+  const selectedRank = selectedCard?.rank || null;
+  const selectedSuit = selectedCard?.suit || null;
 
   const wrap = document.createElement("div");
   wrap.className = "card-wheel-group";
 
   const wheel = buildVerticalWheel({
-    options: CARD_WHEEL_OPTIONS,
-    selectedValue,
+    options: RANK_WHEEL_OPTIONS,
+    selectedValue: selectedRank,
     onChange: (value) => {
-      const parsed = parseCardKey(value);
-      onChange(parsed ? { rank: parsed.rank, suit: parsed.suit } : null);
+      if (!value) {
+        onChange(null);
+        return;
+      }
+
+      onChange({
+        rank: value,
+        suit: selectedSuit,
+      });
     },
     isDisabled: (option) => {
-      return usedCards.has(option.value) && option.value !== selectedValue;
+      if (selectedRank === option.value) {
+        return false;
+      }
+
+      return SUITS.every((suit) => {
+        const cardValue = makeCardKey(option.value, suit.key);
+        return usedCards.has(cardValue);
+      });
     },
-    getText: (option) => `${option.rank}${option.suitSymbol}`,
-    getAriaLabel: (option) => `${option.rank} of ${option.suitLabel}`,
-    getItemClass: (option) => `single-card-wheel-item ${option.colorClass}`,
+    getText: (option) => option.value,
+    getAriaLabel: (option) => `Rank ${option.value}`,
+    getItemClass: () => "single-rank-wheel-item",
     allowClickToggle: true,
   });
 
+  const suitRow = document.createElement("div");
+  suitRow.className = "card-suit-row";
+
+  SUITS.forEach((suit) => {
+    const suitButton = document.createElement("button");
+    suitButton.type = "button";
+
+    const hasRank = Boolean(selectedRank);
+    const cardValue = hasRank ? makeCardKey(selectedRank, suit.key) : null;
+    const disabled = !hasRank || (cardValue !== selectedValue && usedCards.has(cardValue));
+    const isActive = hasRank && selectedSuit === suit.key;
+
+    suitButton.className = `card-suit-pill ${suit.colorClass}${isActive ? " active" : ""}`;
+    suitButton.textContent = suit.symbol;
+    suitButton.setAttribute("aria-label", hasRank ? `${selectedRank} of ${suit.label}` : suit.label);
+    suitButton.setAttribute("aria-pressed", isActive ? "true" : "false");
+    suitButton.disabled = disabled;
+
+    suitButton.addEventListener("click", () => {
+      if (!selectedRank) {
+        return;
+      }
+
+      if (isActive) {
+        onChange({ rank: selectedRank, suit: null });
+        return;
+      }
+
+      onChange({ rank: selectedRank, suit: suit.key });
+    });
+
+    suitRow.appendChild(suitButton);
+  });
+
   wrap.appendChild(wheel);
+  wrap.appendChild(suitRow);
   return wrap;
 }
 

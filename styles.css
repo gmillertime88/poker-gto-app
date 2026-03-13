@@ -712,6 +712,8 @@ h1 {
 }
 
 .card-wheel-group {
+  display: grid;
+  gap: 7px;
   min-width: 0;
 }
 
@@ -778,17 +780,54 @@ h1 {
   background: #d2e8c5;
 }
 
-.single-card-wheel-item {
-  font-size: 1.6rem;
+.single-rank-wheel-item {
+  font-size: 1.9rem;
   letter-spacing: 0.01em;
 }
 
-.single-card-wheel-item.suit-red.active {
+.single-rank-wheel-item.active {
+  color: #0f172a;
+}
+
+.card-suit-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.card-suit-pill {
+  min-height: 38px;
+  border: 1px solid var(--card-select-border);
+  border-radius: 9px;
+  background: var(--card-select-bg);
+  color: var(--text);
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: 120ms ease;
+}
+
+.card-suit-pill:hover:not(:disabled) {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.card-suit-pill.active {
+  background: #d2e8c5;
+}
+
+.card-suit-pill.suit-red.active {
   color: #991b1b;
 }
 
-.single-card-wheel-item.suit-black.active {
+.card-suit-pill.suit-black.active {
   color: #0f172a;
+}
+
+.card-suit-pill:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .card-wheel-item:disabled {
@@ -1144,6 +1183,38 @@ h1 {
 
   .board-slot {
     padding: 8px;
+  }
+
+  .card-wheel-group {
+    gap: 6px;
+  }
+
+  .card-wheel-viewport {
+    height: 154px;
+  }
+
+  .card-wheel-viewport::before {
+    top: 52px;
+    height: 50px;
+  }
+
+  .card-wheel-item {
+    height: 50px;
+    font-size: 1.3rem;
+  }
+
+  .single-rank-wheel-item {
+    font-size: 1.65rem;
+  }
+
+  .card-suit-row {
+    gap: 5px;
+  }
+
+  .card-suit-pill {
+    min-height: 34px;
+    font-size: 1.18rem;
+    border-radius: 8px;
   }
 
   .odds-results {
