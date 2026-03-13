@@ -14,8 +14,8 @@ const SUITS = [
 ];
 const CARD_WHEEL_SUIT_ORDER = ["S", "C", "H", "D"];
 
-const BUILD_VERSION = "2.6";
-const BUILD_TIMESTAMP = "2026-03-13 08:38";
+const BUILD_VERSION = "2.7";
+const BUILD_TIMESTAMP = "2026-03-13 08:59";
 const WHEEL_REPEAT_COUNT = 3;
 const WHEEL_SCROLL_DEBOUNCE_MS = 90;
 
@@ -314,10 +314,6 @@ function buildCardWheelSelect(selectedCard, ownerKey, onChange) {
   const wrap = document.createElement("div");
   wrap.className = "card-wheel-group";
 
-  const label = document.createElement("span");
-  label.className = "card-wheel-label";
-  label.textContent = "Card";
-
   const wheel = buildVerticalWheel({
     options: CARD_WHEEL_OPTIONS,
     selectedValue,
@@ -334,7 +330,6 @@ function buildCardWheelSelect(selectedCard, ownerKey, onChange) {
     allowClickToggle: true,
   });
 
-  wrap.appendChild(label);
   wrap.appendChild(wheel);
   return wrap;
 }
@@ -436,9 +431,6 @@ function renderBoardGrid() {
     wrapper.appendChild(cardWheel);
     oddsElements.boardGrid.appendChild(wrapper);
   }
-
-  oddsElements.calculateButton.classList.add("board-slot", "calculate-odds-panel");
-  oddsElements.boardGrid.appendChild(oddsElements.calculateButton);
 }
 
 function renderPlayerRows() {
@@ -448,31 +440,12 @@ function renderPlayerRows() {
     const row = document.createElement("div");
     row.className = "player-row";
 
+    const header = document.createElement("div");
+    header.className = "player-header";
+
     const title = document.createElement("h3");
     title.className = "player-title";
     title.textContent = `Player ${player.seat}`;
-
-    const cardsWrap = document.createElement("div");
-    cardsWrap.className = "player-cards";
-
-    for (let cardIndex = 0; cardIndex < 2; cardIndex += 1) {
-      const cardShell = document.createElement("div");
-      cardShell.className = "card-slot";
-
-      const cardLabel = document.createElement("span");
-      cardLabel.className = "board-slot-label";
-      cardLabel.textContent = `Card ${cardIndex + 1}`;
-
-      const ownerKey = `p-${playerIndex}-c-${cardIndex}`;
-      const cardWheel = buildCardWheelSelect(player.cards[cardIndex] || null, ownerKey, (card) => {
-        player.cards[cardIndex] = card;
-        refreshCardSelectionUI();
-      });
-
-      cardShell.appendChild(cardLabel);
-      cardShell.appendChild(cardWheel);
-      cardsWrap.appendChild(cardShell);
-    }
 
     const summary = document.createElement("div");
     summary.className = "player-summary";
@@ -496,9 +469,33 @@ function renderPlayerRows() {
     summary.appendChild(spacer);
     summary.appendChild(cardTwo);
 
-    row.appendChild(title);
+    header.appendChild(title);
+    header.appendChild(summary);
+
+    const cardsWrap = document.createElement("div");
+    cardsWrap.className = "player-cards";
+
+    for (let cardIndex = 0; cardIndex < 2; cardIndex += 1) {
+      const cardShell = document.createElement("div");
+      cardShell.className = "card-slot";
+
+      const cardLabel = document.createElement("span");
+      cardLabel.className = "board-slot-label";
+      cardLabel.textContent = `Card ${cardIndex + 1}`;
+
+      const ownerKey = `p-${playerIndex}-c-${cardIndex}`;
+      const cardWheel = buildCardWheelSelect(player.cards[cardIndex] || null, ownerKey, (card) => {
+        player.cards[cardIndex] = card;
+        refreshCardSelectionUI();
+      });
+
+      cardShell.appendChild(cardLabel);
+      cardShell.appendChild(cardWheel);
+      cardsWrap.appendChild(cardShell);
+    }
+
+    row.appendChild(header);
     row.appendChild(cardsWrap);
-    row.appendChild(summary);
     oddsElements.playerRows.appendChild(row);
   });
 }
@@ -959,32 +956,11 @@ function renderOddsResults(scenario, totals) {
   const tbody = document.createElement("tbody");
   const turnOuts = showOutsColumn ? calculateTurnOuts(scenario) : [];
   const outsBySeat = new Map(turnOuts.map((entry) => [entry.seat, entry]));
-  const winnerHandBySeat = new Map();
-
-  if (scenario.knownBoardCards.length === 5) {
-    let bestRank = null;
-    const winners = [];
-
-    scenario.activePlayers.forEach((player, idx) => {
-      const rankVector = evaluateSevenCards([player.hole[0], player.hole[1], ...scenario.knownBoardCards]);
-
-      if (!bestRank || compareRankVectors(rankVector, bestRank) > 0) {
-        bestRank = rankVector;
-        winners.length = 0;
-        winners.push(idx);
-        return;
-      }
-
-      if (compareRankVectors(rankVector, bestRank) === 0) {
-        winners.push(idx);
-      }
-    });
-
-    const winnerLabel = handCategoryLabel(bestRank || [0]);
-    winners.forEach((winnerIndex) => {
-      winnerHandBySeat.set(scenario.activePlayers[winnerIndex].seat, winnerLabel);
-    });
-  }
+  const handLabelBySeat = new Map();
+  scenario.activePlayers.forEach((player) => {
+    const currentRankVector = evaluateSevenCards([player.hole[0], player.hole[1], ...scenario.knownBoardCards]);
+    handLabelBySeat.set(player.seat, handCategoryLabel(currentRankVector));
+  });
 
   scenario.activePlayers.forEach((player, idx) => {
     const row = document.createElement("tr");
@@ -1011,11 +987,11 @@ function renderOddsResults(scenario, totals) {
       handCell.appendChild(createCardToken(rankText, suitKey));
     });
 
-    const winnerHandLabel = winnerHandBySeat.get(player.seat);
-    if (winnerHandLabel) {
+    const handValueLabel = handLabelBySeat.get(player.seat);
+    if (handValueLabel) {
       const handType = document.createElement("span");
       handType.className = "winner-hand-label";
-      handType.textContent = winnerHandLabel;
+      handType.textContent = handValueLabel;
       handCell.appendChild(handType);
     }
     playerCell.appendChild(handCell);

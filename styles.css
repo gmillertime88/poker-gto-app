@@ -361,17 +361,19 @@ h1 {
 .calculate-odds-panel {
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--surface-soft);
-  color: var(--danger);
-  padding: 10px;
-  min-height: 118px;
-  font-size: 1rem;
+  background: var(--panel-soft);
+  color: var(--text);
+  margin: 10px auto 0;
+  min-width: 170px;
+  min-height: 46px;
+  padding: 0 18px;
+  font-size: 0.95rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1;
   text-align: center;
   cursor: pointer;
   transition: 120ms ease;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
 }
@@ -701,18 +703,9 @@ h1 {
   min-width: 0;
 }
 
-.card-wheel-label {
-  display: inline-block;
-  margin-bottom: 6px;
-  color: var(--heading);
-  font-size: 0.78rem;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
 .card-wheel-viewport {
   position: relative;
-  height: 228px;
+  height: 168px;
   overflow-y: auto;
   overflow-x: hidden;
   border: 1px solid var(--card-select-border);
@@ -724,6 +717,20 @@ h1 {
   -webkit-overflow-scrolling: touch;
 }
 
+.card-wheel-viewport::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 10px;
+  top: 56px;
+  height: 56px;
+  border: 1px solid color-mix(in oklab, var(--accent) 45%, var(--card-select-border));
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--accent) 10%, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
 .card-wheel-viewport::-webkit-scrollbar {
   width: 6px;
 }
@@ -733,35 +740,13 @@ h1 {
   border-radius: 999px;
 }
 
-.card-wheel-viewport::before,
-.card-wheel-viewport::after {
-  content: "";
-  position: sticky;
-  display: block;
-  left: 0;
-  width: 100%;
-  height: 32px;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.card-wheel-viewport::before {
-  top: 0;
-  background: linear-gradient(to bottom, color-mix(in oklab, var(--card-select-bg) 92%, transparent), transparent);
-}
-
-.card-wheel-viewport::after {
-  bottom: 0;
-  background: linear-gradient(to top, color-mix(in oklab, var(--card-select-bg) 92%, transparent), transparent);
-}
-
 .card-wheel-rail {
   display: flex;
   flex-direction: column;
 }
 
 .card-wheel-item {
-  min-height: 56px;
+  height: 56px;
   border: 0;
   border-bottom: 1px solid color-mix(in oklab, var(--card-select-border) 70%, transparent);
   background: transparent;
@@ -779,12 +764,19 @@ h1 {
 
 .card-wheel-item.active {
   background: #a4d18a;
-  color: #0f172a;
 }
 
 .single-card-wheel-item {
   font-size: 1.6rem;
   letter-spacing: 0.01em;
+}
+
+.single-card-wheel-item.suit-red.active {
+  color: #991b1b;
+}
+
+.single-card-wheel-item.suit-black.active {
+  color: #0f172a;
 }
 
 .card-wheel-item:disabled {
@@ -805,6 +797,13 @@ h1 {
   font-size: 0.95rem;
 }
 
+.player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
 .player-cards {
   margin-top: 8px;
   display: grid;
@@ -819,9 +818,10 @@ h1 {
 }
 
 .player-summary {
-  margin-top: 8px;
+  margin-top: 0;
   font-size: 0.82rem;
   color: var(--muted);
+  text-align: right;
 }
 
 .player-card-display {
@@ -1035,7 +1035,9 @@ h1 {
   }
 
   .calculate-odds-panel {
-    min-height: 96px;
+    min-height: 42px;
+    min-width: 150px;
+    padding: 0 14px;
   }
 
   .card-grid {
@@ -1064,6 +1066,10 @@ h1 {
   .player-rows {
     grid-template-columns: 1fr;
     max-width: 100%;
+  }
+
+  .player-header {
+    align-items: flex-start;
   }
 
   .board-grid {
