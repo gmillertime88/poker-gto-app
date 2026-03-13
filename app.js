@@ -8,8 +8,8 @@ const TABLE_TEMPERATURES = [
   { key: "aggressive", label: "Aggressive" },
 ];
 
-const BUILD_VERSION = "3.0";
-const BUILD_TIMESTAMP = "2026-03-13 09:50";
+const BUILD_VERSION = "3.1";
+const BUILD_TIMESTAMP = "2026-03-13 09:53";
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
@@ -25,8 +25,6 @@ const SUITING = [
   { label: "Suited", value: true },
   { label: "Off-suit", value: false },
 ];
-const RANGE_WHEEL_REPEAT_COUNT = 3;
-const RANGE_WHEEL_SCROLL_DEBOUNCE_MS = 90;
 
 // Baseline open-raise sizing recommendations by position (in big blinds).
 const OPEN_SIZE_BB = {
@@ -321,140 +319,6 @@ function renderButton(grid, label, isActive, onClick, disabled = false) {
   grid.appendChild(button);
 }
 
-function normalizeWheelIndex(index, length) {
-  return ((index % length) + length) % length;
-}
-
-function findClosestEnabledWheelIndex(options, startIndex, isDisabled) {
-  if (!options.length) {
-    return -1;
-  }
-
-  for (let offset = 0; offset < options.length; offset += 1) {
-    const forward = normalizeWheelIndex(startIndex + offset, options.length);
-    if (!isDisabled(options[forward])) {
-      return forward;
-    }
-
-    const backward = normalizeWheelIndex(startIndex - offset, options.length);
-    if (!isDisabled(options[backward])) {
-      return backward;
-    }
-  }
-
-  return -1;
-}
-
-function buildRangeWheel({ options, selectedValue, onChange, isDisabled, getText, getItemClass }) {
-  const wrap = document.createElement("div");
-  wrap.className = "card-wheel-group range-wheel-group";
-
-  const viewport = document.createElement("div");
-  viewport.className = "card-wheel-viewport range-wheel-viewport";
-
-  const rail = document.createElement("div");
-  rail.className = "card-wheel-rail";
-
-  for (let repeatIndex = 0; repeatIndex < RANGE_WHEEL_REPEAT_COUNT; repeatIndex += 1) {
-    options.forEach((option, optionIndex) => {
-      const disabled = isDisabled(option);
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = `card-wheel-item range-wheel-item ${getItemClass(option)}${selectedValue === option.value ? " active" : ""}`;
-      button.textContent = getText(option);
-      button.setAttribute("aria-pressed", selectedValue === option.value ? "true" : "false");
-      button.dataset.optionIndex = String(optionIndex);
-      button.disabled = disabled;
-
-      button.addEventListener("click", () => {
-        if (disabled) {
-          return;
-        }
-        onChange(option.value);
-      });
-
-      rail.appendChild(button);
-    });
-  }
-
-  viewport.appendChild(rail);
-  wrap.appendChild(viewport);
-
-  let settleTimer = null;
-  let commitEnabled = false;
-
-  function getItemHeight() {
-    const item = rail.querySelector(".card-wheel-item");
-    return item ? item.getBoundingClientRect().height : 56;
-  }
-
-  function centerOffset(itemHeight) {
-    return (viewport.clientHeight - itemHeight) / 2;
-  }
-
-  function normalizeScrollPosition(itemHeight) {
-    const segmentHeight = itemHeight * options.length;
-    const minScrollTop = (segmentHeight * 0.5) - centerOffset(itemHeight);
-    const maxScrollTop = (segmentHeight * 1.5) - centerOffset(itemHeight);
-
-    if (viewport.scrollTop < minScrollTop) {
-      viewport.scrollTop += segmentHeight;
-    } else if (viewport.scrollTop > maxScrollTop) {
-      viewport.scrollTop -= segmentHeight;
-    }
-  }
-
-  function snapToNearestEnabled() {
-    if (!options.length) {
-      return;
-    }
-
-    const itemHeight = getItemHeight();
-    const midOffset = centerOffset(itemHeight);
-    const rawIndex = Math.round((viewport.scrollTop + midOffset) / itemHeight);
-    const normalizedIndex = normalizeWheelIndex(rawIndex, options.length);
-    const enabledIndex = findClosestEnabledWheelIndex(options, normalizedIndex, isDisabled);
-
-    if (enabledIndex < 0) {
-      return;
-    }
-
-    const targetIndex = options.length + enabledIndex;
-    const targetScrollTop = (targetIndex * itemHeight) - midOffset;
-    if (Math.abs(viewport.scrollTop - targetScrollTop) > 0.5) {
-      viewport.scrollTop = targetScrollTop;
-    }
-  }
-
-  viewport.addEventListener("scroll", () => {
-    const itemHeight = getItemHeight();
-    normalizeScrollPosition(itemHeight);
-
-    if (!commitEnabled) {
-      return;
-    }
-
-    if (settleTimer) {
-      window.clearTimeout(settleTimer);
-    }
-
-    settleTimer = window.setTimeout(snapToNearestEnabled, RANGE_WHEEL_SCROLL_DEBOUNCE_MS);
-  });
-
-  requestAnimationFrame(() => {
-    const itemHeight = getItemHeight();
-    const selectedIndex = Math.max(0, options.findIndex((option) => option.value === selectedValue));
-    const initialIndex = options.length + selectedIndex;
-    viewport.scrollTop = (initialIndex * itemHeight) - centerOffset(itemHeight);
-
-    requestAnimationFrame(() => {
-      commitEnabled = true;
-    });
-  });
-
-  return wrap;
-}
-
 /**
  * Re-renders all selectable controls based on current state.
  * Also enforces suited-option rules for pocket pairs.
@@ -483,40 +347,24 @@ function renderSelections() {
   const activePositions = getActivePositions();
 
   elements.positionGrid.innerHTML = "";
-  elements.positionGrid.appendChild(
-    buildRangeWheel({
-      options: activePositions.map((position) => ({ value: position, label: position })),
-      selectedValue: state.position,
-      onChange: (value) => setSelectionValue("position", value),
-      isDisabled: () => false,
-      getText: (option) => option.label,
-      getItemClass: () => "",
-    })
-  );
+  activePositions.forEach((position) => {
+    renderButton(
+      elements.positionGrid,
+      position,
+      state.position === position,
+      () => setSelectionValue("position", position)
+    );
+  });
 
   elements.card1Grid.innerHTML = "";
-  elements.card1Grid.appendChild(
-    buildRangeWheel({
-      options: RANKS.map((rank) => ({ value: rank, label: rank })),
-      selectedValue: state.card1,
-      onChange: (value) => setSelectionValue("card1", value),
-      isDisabled: () => false,
-      getText: (option) => option.label,
-      getItemClass: () => "",
-    })
-  );
+  RANKS.forEach((rank) => {
+    renderButton(elements.card1Grid, rank, state.card1 === rank, () => setSelectionValue("card1", rank));
+  });
 
   elements.card2Grid.innerHTML = "";
-  elements.card2Grid.appendChild(
-    buildRangeWheel({
-      options: RANKS.map((rank) => ({ value: rank, label: rank })),
-      selectedValue: state.card2,
-      onChange: (value) => setSelectionValue("card2", value),
-      isDisabled: () => false,
-      getText: (option) => option.label,
-      getItemClass: () => "",
-    })
-  );
+  RANKS.forEach((rank) => {
+    renderButton(elements.card2Grid, rank, state.card2 === rank, () => setSelectionValue("card2", rank));
+  });
 
   const isPair = state.card1 && state.card2 && state.card1 === state.card2;
   if (isPair) {
@@ -524,16 +372,15 @@ function renderSelections() {
   }
 
   elements.suitedGrid.innerHTML = "";
-  elements.suitedGrid.appendChild(
-    buildRangeWheel({
-      options: SUITING.map((option) => ({ value: option.value, label: option.label })),
-      selectedValue: state.suited,
-      onChange: (value) => setSelectionValue("suited", value),
-      isDisabled: (option) => isPair && option.value === true,
-      getText: (option) => option.label,
-      getItemClass: (option) => `range-suiting-item ${option.value ? "suited-choice" : "offsuit-choice"}`,
-    })
-  );
+  SUITING.forEach((option) => {
+    renderButton(
+      elements.suitedGrid,
+      option.label,
+      state.suited === option.value,
+      () => setSelectionValue("suited", option.value),
+      isPair && option.value === true
+    );
+  });
 }
 
 /**
