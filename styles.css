@@ -763,7 +763,7 @@ h1 {
 }
 
 .card-wheel-item.active {
-  background: #a4d18a;
+  background: #d2e8c5;
 }
 
 .single-card-wheel-item {
@@ -782,6 +782,40 @@ h1 {
 .card-wheel-item:disabled {
   opacity: 0.35;
   cursor: not-allowed;
+}
+
+.range-wheel-host {
+  max-width: 220px;
+  margin: 0 auto;
+}
+
+.range-wheel-group {
+  width: 100%;
+}
+
+.range-wheel-viewport {
+  height: 168px;
+}
+
+.range-wheel-item {
+  height: 56px;
+  font-size: 1.12rem;
+}
+
+.range-wheel-item.active {
+  color: #0f172a;
+}
+
+.range-suiting-item {
+  font-size: 0.98rem;
+}
+
+.range-suiting-item.suited-choice.active {
+  color: #14532d;
+}
+
+.range-suiting-item.offsuit-choice.active {
+  color: #92400e;
 }
 
 .player-rows {
@@ -1065,6 +1099,10 @@ h1 {
 
   .player-rows {
     grid-template-columns: 1fr;
+    max-width: 100%;
+  }
+
+  .range-wheel-host {
     max-width: 100%;
   }
 
