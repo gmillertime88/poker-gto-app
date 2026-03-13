@@ -14,8 +14,8 @@ const SUITS = [
 ];
 const CARD_WHEEL_SUIT_ORDER = ["S", "C", "H", "D"];
 
-const BUILD_VERSION = "3.2";
-const BUILD_TIMESTAMP = "2026-03-13 09:58";
+const BUILD_VERSION = "3.3";
+const BUILD_TIMESTAMP = "2026-03-13 10:11";
 const WHEEL_REPEAT_COUNT = 3;
 const WHEEL_SCROLL_DEBOUNCE_MS = 90;
 
@@ -954,9 +954,33 @@ function renderOddsResults(scenario, totals) {
   const turnOuts = showOutsColumn ? calculateTurnOuts(scenario) : [];
   const outsBySeat = new Map(turnOuts.map((entry) => [entry.seat, entry]));
   const handLabelBySeat = new Map();
+  let bestCurrentRank = null;
+  const leadingSeats = [];
+
   scenario.activePlayers.forEach((player) => {
     const currentRankVector = evaluateSevenCards([player.hole[0], player.hole[1], ...scenario.knownBoardCards]);
     handLabelBySeat.set(player.seat, handCategoryLabel(currentRankVector));
+
+    if (!bestCurrentRank || compareRankVectors(currentRankVector, bestCurrentRank) > 0) {
+      bestCurrentRank = currentRankVector;
+      leadingSeats.length = 0;
+      leadingSeats.push(player.seat);
+      return;
+    }
+
+    if (compareRankVectors(currentRankVector, bestCurrentRank) === 0) {
+      leadingSeats.push(player.seat);
+    }
+  });
+
+  const leadersAreTied = leadingSeats.length > 1;
+  const isRiver = scenario.knownBoardCards.length === 5;
+  const leadLabel = isRiver
+    ? (leadersAreTied ? "Winner - Tie" : "Winner")
+    : (leadersAreTied ? "Leader - Tie" : "Leader");
+  const leadLabelBySeat = new Map();
+  leadingSeats.forEach((seat) => {
+    leadLabelBySeat.set(seat, leadLabel);
   });
 
   scenario.activePlayers.forEach((player, idx) => {
@@ -990,6 +1014,14 @@ function renderOddsResults(scenario, totals) {
       handType.className = "winner-hand-label";
       handType.textContent = handValueLabel;
       handCell.appendChild(handType);
+
+      const leadText = leadLabelBySeat.get(player.seat);
+      if (leadText) {
+        const leadIndicator = document.createElement("span");
+        leadIndicator.className = "lead-status-label";
+        leadIndicator.textContent = leadText;
+        handCell.appendChild(leadIndicator);
+      }
     }
     playerCell.appendChild(handCell);
 
