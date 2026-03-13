@@ -697,107 +697,55 @@ h1 {
   padding: 8px;
 }
 
-.card-wheel-pair {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.card-wheel-group {
-  min-width: 0;
-}
-
-.card-wheel-label {
-  display: inline-block;
+.card-rank-scroller {
+  width: 100%;
   margin-bottom: 6px;
-  color: var(--heading);
-  font-size: 0.78rem;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-}
-
-.card-wheel-viewport {
-  position: relative;
-  height: 196px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  border: 1px solid var(--card-select-border);
-  border-radius: 10px;
-  background: var(--card-select-bg);
-  scroll-snap-type: y mandatory;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc((100% - (6px * 3)) / 4);
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 2px;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in oklab, var(--accent) 60%, transparent) transparent;
   -webkit-overflow-scrolling: touch;
 }
 
-.card-wheel-viewport::-webkit-scrollbar {
-  width: 6px;
+.card-rank-scroller::-webkit-scrollbar {
+  height: 6px;
 }
 
-.card-wheel-viewport::-webkit-scrollbar-thumb {
+.card-rank-scroller::-webkit-scrollbar-thumb {
   background: color-mix(in oklab, var(--accent) 45%, transparent);
   border-radius: 999px;
 }
 
-.card-wheel-viewport::before,
-.card-wheel-viewport::after {
-  content: "";
-  position: sticky;
-  display: block;
-  left: 0;
-  width: 100%;
-  height: 32px;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.card-wheel-viewport::before {
-  top: 0;
-  background: linear-gradient(to bottom, color-mix(in oklab, var(--card-select-bg) 92%, transparent), transparent);
-}
-
-.card-wheel-viewport::after {
-  bottom: 0;
-  background: linear-gradient(to top, color-mix(in oklab, var(--card-select-bg) 92%, transparent), transparent);
-}
-
-.card-wheel-rail {
-  display: flex;
-  flex-direction: column;
-}
-
-.card-wheel-item {
-  min-height: 48px;
-  border: 0;
-  border-bottom: 1px solid color-mix(in oklab, var(--card-select-border) 70%, transparent);
-  background: transparent;
+.card-rank-btn {
+  min-height: 36px;
+  border: 1px solid var(--card-select-border);
+  border-radius: 8px;
+  background: var(--card-select-bg);
   color: var(--text);
-  font-size: 1.2rem;
+  font-size: 0.95rem;
   font-weight: 700;
   cursor: pointer;
-  scroll-snap-align: center;
   transition: 120ms ease;
 }
 
-.card-wheel-item:hover:not(:disabled) {
-  background: color-mix(in oklab, var(--accent) 12%, transparent);
+.card-rank-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  transform: translateY(-1px);
 }
 
-.card-wheel-item.active {
+.card-rank-btn.active {
+  border-color: #a4d18a;
   background: #a4d18a;
   color: #0f172a;
 }
 
-.rank-wheel-item {
-  font-size: 1.25rem;
-}
-
-.suit-wheel-item {
-  font-size: 1.45rem;
-}
-
-.card-wheel-item:disabled {
-  opacity: 0.35;
+.card-rank-btn:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
@@ -825,6 +773,42 @@ h1 {
   border: 1px dashed var(--card-select-border);
   border-radius: 10px;
   padding: 8px;
+}
+
+.suit-picker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.suit-symbol-btn {
+  min-height: 34px;
+  border: 1px solid var(--card-select-border);
+  border-radius: 8px;
+  background: var(--card-select-bg);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: 120ms ease;
+}
+
+.suit-symbol-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.suit-symbol-btn.active {
+  border-color: #a4d18a;
+  background: #a4d18a;
+  color: #0f172a;
+}
+
+.suit-symbol-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .player-summary {

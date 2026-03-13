@@ -13,15 +13,15 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "2.4";
-const BUILD_TIMESTAMP = "2026-03-13 08:29";
-const WHEEL_REPEAT_COUNT = 3;
-const WHEEL_SCROLL_DEBOUNCE_MS = 90;
+const BUILD_VERSION = "2.3";
+const BUILD_TIMESTAMP = "2026-03-13 08:21";
 
 const oddsState = {
   playersAtStart: 2,
   players: [],
   board: [null, null, null, null, null],
+  rankScrollByOwner: {},
+  rankEnsureVisibleByOwner: {},
 };
 
 const oddsElements = {
@@ -49,6 +49,9 @@ function initializePlayers() {
     seat: i + 1,
     cards: [null, null],
   }));
+
+  oddsState.rankScrollByOwner = {};
+  oddsState.rankEnsureVisibleByOwner = {};
 }
 
 function renderSelectButton(grid, label, isActive, onClick) {
@@ -118,219 +121,168 @@ function refreshCardSelectionUI() {
   renderPlayerRows();
 }
 
-function normalizeWheelIndex(index, length) {
-  return ((index % length) + length) % length;
-}
-
-function findClosestEnabledIndex(options, startIndex, isDisabled) {
-  if (!options.length) {
-    return -1;
-  }
-
-  for (let offset = 0; offset < options.length; offset += 1) {
-    const forward = normalizeWheelIndex(startIndex + offset, options.length);
-    if (!isDisabled(options[forward])) {
-      return forward;
-    }
-
-    const backward = normalizeWheelIndex(startIndex - offset, options.length);
-    if (!isDisabled(options[backward])) {
-      return backward;
-    }
-  }
-
-  return -1;
-}
-
-function buildVerticalWheel({
-  options,
-  selectedValue,
-  onChange,
-  isDisabled,
-  getText,
-  getAriaLabel,
-  getItemClass,
-  allowClickToggle,
-}) {
-  const viewport = document.createElement("div");
-  viewport.className = "card-wheel-viewport";
-
-  const rail = document.createElement("div");
-  rail.className = "card-wheel-rail";
-
-  for (let repeatIndex = 0; repeatIndex < WHEEL_REPEAT_COUNT; repeatIndex += 1) {
-    options.forEach((option, optionIndex) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      const disabled = isDisabled(option);
-      button.className = `card-wheel-item ${getItemClass(option)}${selectedValue === option.value ? " active" : ""}`;
-      button.textContent = getText(option);
-      button.setAttribute("aria-label", getAriaLabel(option));
-      button.setAttribute("aria-pressed", selectedValue === option.value ? "true" : "false");
-      button.dataset.optionIndex = String(optionIndex);
-      button.disabled = disabled;
-
-      button.addEventListener("click", () => {
-        if (disabled) {
-          return;
-        }
-
-        if (allowClickToggle && selectedValue === option.value) {
-          onChange(null);
-          return;
-        }
-
-        onChange(option.value);
-      });
-
-      rail.appendChild(button);
-    });
-  }
-
-  viewport.appendChild(rail);
-
-  let settleTimer = null;
-  let commitEnabled = false;
-
-  function getItemHeight() {
-    const item = rail.querySelector(".card-wheel-item");
-    return item ? item.getBoundingClientRect().height : 48;
-  }
-
-  function centerOffset(itemHeight) {
-    return (viewport.clientHeight - itemHeight) / 2;
-  }
-
-  function normalizeScrollPosition(itemHeight) {
-    const segmentHeight = itemHeight * options.length;
-    const minScrollTop = (segmentHeight * 0.5) - centerOffset(itemHeight);
-    const maxScrollTop = (segmentHeight * 1.5) - centerOffset(itemHeight);
-
-    if (viewport.scrollTop < minScrollTop) {
-      viewport.scrollTop += segmentHeight;
-    } else if (viewport.scrollTop > maxScrollTop) {
-      viewport.scrollTop -= segmentHeight;
-    }
-  }
-
-  function snapAndCommit() {
-    if (!options.length) {
-      return;
-    }
-
-    const itemHeight = getItemHeight();
-    const midOffset = centerOffset(itemHeight);
-    const rawIndex = Math.round((viewport.scrollTop + midOffset) / itemHeight);
-    const normalizedIndex = normalizeWheelIndex(rawIndex, options.length);
-    const enabledIndex = findClosestEnabledIndex(options, normalizedIndex, isDisabled);
-
-    if (enabledIndex === -1) {
-      return;
-    }
-
-    const targetIndex = options.length + enabledIndex;
-    const targetScrollTop = (targetIndex * itemHeight) - midOffset;
-    viewport.scrollTo({ top: targetScrollTop, behavior: "smooth" });
-
-    const nextValue = options[enabledIndex].value;
-    if (nextValue !== selectedValue) {
-      onChange(nextValue);
-    }
-  }
-
-  viewport.addEventListener("scroll", () => {
-    const itemHeight = getItemHeight();
-    normalizeScrollPosition(itemHeight);
-
-    if (!commitEnabled) {
-      return;
-    }
-
-    if (settleTimer) {
-      window.clearTimeout(settleTimer);
-    }
-
-    settleTimer = window.setTimeout(snapAndCommit, WHEEL_SCROLL_DEBOUNCE_MS);
-  });
-
+function restoreRankScrollerView(scroller, ownerKey) {
   requestAnimationFrame(() => {
-    const itemHeight = getItemHeight();
-    const selectedIndex = Math.max(0, options.findIndex((option) => option.value === selectedValue));
-    const initialIndex = options.length + selectedIndex;
-    viewport.scrollTop = (initialIndex * itemHeight) - centerOffset(itemHeight);
-    requestAnimationFrame(() => {
-      commitEnabled = true;
-    });
-  });
+    const savedScrollLeft = oddsState.rankScrollByOwner[ownerKey] || 0;
+    if (savedScrollLeft > 0) {
+      scroller.scrollLeft = savedScrollLeft;
+    }
 
-  return viewport;
+    const pendingRank = oddsState.rankEnsureVisibleByOwner[ownerKey] || null;
+    if (!pendingRank) {
+      return;
+    }
+
+    const activeButton = scroller.querySelector(`.card-rank-btn[data-rank="${pendingRank}"]`);
+    if (!activeButton) {
+      delete oddsState.rankEnsureVisibleByOwner[ownerKey];
+      return;
+    }
+
+    activeButton.scrollIntoView({ behavior: "auto", block: "nearest", inline: "center" });
+    oddsState.rankScrollByOwner[ownerKey] = scroller.scrollLeft;
+    delete oddsState.rankEnsureVisibleByOwner[ownerKey];
+  });
 }
 
 function buildRankSelect(selectedRank, selectedSuit, ownerKey, onChange) {
+  const scroller = document.createElement("div");
+  scroller.className = "card-rank-scroller";
   const usedCards = collectUsedCards(ownerKey);
 
-  const wrap = document.createElement("div");
-  wrap.className = "card-wheel-group";
-
-  const label = document.createElement("span");
-  label.className = "card-wheel-label";
-  label.textContent = "Rank";
-
-  const wheel = buildVerticalWheel({
-    options: RANKS.map((rank) => ({ value: rank, rank })),
-    selectedValue: selectedRank,
-    onChange,
-    isDisabled: (option) => {
-      if (!selectedSuit) {
-        return false;
-      }
-      return usedCards.has(makeCardKey(option.rank, selectedSuit)) && option.rank !== selectedRank;
-    },
-    getText: (option) => option.rank,
-    getAriaLabel: (option) => `Rank ${option.rank}`,
-    getItemClass: () => "rank-wheel-item",
-    allowClickToggle: true,
+  scroller.addEventListener("scroll", () => {
+    oddsState.rankScrollByOwner[ownerKey] = scroller.scrollLeft;
   });
 
-  wrap.appendChild(label);
-  wrap.appendChild(wheel);
-  return wrap;
+  RANKS.forEach((rank) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "card-rank-btn";
+    button.textContent = rank;
+    button.dataset.rank = rank;
+    button.setAttribute("aria-label", `Rank ${rank}`);
+    button.setAttribute("aria-pressed", selectedRank === rank ? "true" : "false");
+
+    if (selectedSuit) {
+      const cardKey = makeCardKey(rank, selectedSuit);
+      button.disabled = usedCards.has(cardKey) && rank !== selectedRank;
+    }
+
+    if (selectedRank === rank) {
+      button.classList.add("active");
+    }
+
+    button.addEventListener("click", () => {
+      if (button.disabled) {
+        return;
+      }
+
+      const selectingNewRank = selectedRank !== rank;
+      oddsState.rankScrollByOwner[ownerKey] = scroller.scrollLeft;
+      if (selectingNewRank) {
+        oddsState.rankEnsureVisibleByOwner[ownerKey] = rank;
+      } else {
+        delete oddsState.rankEnsureVisibleByOwner[ownerKey];
+      }
+
+      onChange(selectingNewRank ? rank : null);
+    });
+
+    scroller.appendChild(button);
+  });
+
+  restoreRankScrollerView(scroller, ownerKey);
+
+  return scroller;
+}
+
+function buildSuitSelect(selectedRank, selectedSuit, ownerKey, onChange) {
+  const select = document.createElement("select");
+  select.className = "card-select";
+  const usedCards = collectUsedCards(ownerKey);
+
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.textContent = "Suit";
+  select.appendChild(placeholder);
+
+  SUITS.forEach((suit) => {
+    const option = document.createElement("option");
+    option.value = suit.key;
+    option.textContent = `${suit.symbol} ${suit.label}`;
+    option.style.color = suit.colorClass === "suit-red" ? "#f87171" : "#e2e8f0";
+    if (selectedRank) {
+      const cardKey = makeCardKey(selectedRank, suit.key);
+      option.disabled = usedCards.has(cardKey) && suit.key !== selectedSuit;
+    }
+    if (selectedSuit === suit.key) {
+      option.selected = true;
+    }
+    select.appendChild(option);
+  });
+
+  select.addEventListener("change", (event) => {
+    const suitKey = event.target.value || null;
+    updateSuitSelectColor(select, suitKey);
+    onChange(suitKey);
+  });
+
+  updateSuitSelectColor(select, selectedSuit || null);
+
+  return select;
 }
 
 function buildSuitSymbolPicker(selectedRank, selectedSuit, ownerKey, onChange) {
+  const wrap = document.createElement("div");
+  wrap.className = "suit-picker";
+
   const usedCards = collectUsedCards(ownerKey);
   const rankSelected = Boolean(selectedRank);
 
-  const wrap = document.createElement("div");
-  wrap.className = "card-wheel-group";
+  SUITS.forEach((suit) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `suit-symbol-btn ${suit.colorClass}`;
+    button.textContent = suit.symbol;
+    button.title = suit.label;
+    button.setAttribute("aria-label", suit.label);
 
-  const label = document.createElement("span");
-  label.className = "card-wheel-label";
-  label.textContent = "Suit";
+    if (selectedSuit === suit.key) {
+      button.classList.add("active");
+      button.setAttribute("aria-pressed", "true");
+    } else {
+      button.setAttribute("aria-pressed", "false");
+    }
 
-  const wheel = buildVerticalWheel({
-    options: SUITS.map((suit) => ({ value: suit.key, ...suit })),
-    selectedValue: selectedSuit,
-    onChange,
-    isDisabled: (option) => {
-      if (!rankSelected) {
-        return true;
+    const duplicateBlocked = rankSelected && usedCards.has(makeCardKey(selectedRank, suit.key)) && suit.key !== selectedSuit;
+    button.disabled = !rankSelected || duplicateBlocked;
+
+    button.addEventListener("click", () => {
+      if (button.disabled) {
+        return;
       }
-      return usedCards.has(makeCardKey(selectedRank, option.key)) && option.key !== selectedSuit;
-    },
-    getText: (option) => option.symbol,
-    getAriaLabel: (option) => option.label,
-    getItemClass: (option) => `suit-wheel-item ${option.colorClass}`,
-    allowClickToggle: true,
+
+      onChange(selectedSuit === suit.key ? null : suit.key);
+    });
+
+    wrap.appendChild(button);
   });
 
-  wrap.appendChild(label);
-  wrap.appendChild(wheel);
   return wrap;
 }
 
 function suitMetaByKey(suitKey) {
   return SUITS.find((suit) => suit.key === suitKey) || null;
+}
+
+function updateSuitSelectColor(select, suitKey) {
+  const suitMeta = suitMetaByKey(suitKey);
+  if (!suitMeta) {
+    select.style.color = "";
+    return;
+  }
+
+  select.style.color = suitMeta.colorClass === "suit-red" ? "#fca5a5" : "#e5e7eb";
 }
 
 function appendCardMarkup(container, rank, suit) {
@@ -439,13 +391,9 @@ function renderBoardGrid() {
       }
     );
 
-    const pickerPair = document.createElement("div");
-    pickerPair.className = "card-wheel-pair";
-    pickerPair.appendChild(rankSelect);
-    pickerPair.appendChild(suitPicker);
-
     wrapper.appendChild(label);
-    wrapper.appendChild(pickerPair);
+    wrapper.appendChild(rankSelect);
+    wrapper.appendChild(suitPicker);
     oddsElements.boardGrid.appendChild(wrapper);
   }
 
@@ -498,13 +446,9 @@ function renderPlayerRows() {
         }
       );
 
-      const pickerPair = document.createElement("div");
-      pickerPair.className = "card-wheel-pair";
-      pickerPair.appendChild(rankSelect);
-      pickerPair.appendChild(suitPicker);
-
       cardShell.appendChild(cardLabel);
-      cardShell.appendChild(pickerPair);
+      cardShell.appendChild(rankSelect);
+      cardShell.appendChild(suitPicker);
       cardsWrap.appendChild(cardShell);
     }
 
