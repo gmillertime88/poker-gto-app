@@ -358,13 +358,6 @@ h1 {
   min-width: 180px;
 }
 
-.board-calc-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 10px;
-}
-
 .calculate-odds-panel {
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -574,7 +567,19 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 14px;
+  padding-top: 62px;
   background: color-mix(in oklab, var(--panel-soft) 70%, transparent);
+  position: relative;
+}
+
+.result-calc-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  min-width: 120px;
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: 0.86rem;
 }
 
 .build-tag-wrap {
@@ -1135,10 +1140,6 @@ h1 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
     max-width: 100%;
-  }
-
-  .board-calc-row {
-    grid-template-columns: 1fr;
   }
 
   .board-slot {
