@@ -13,8 +13,8 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "2.2";
-const BUILD_TIMESTAMP = "2026-03-13 08:13";
+const BUILD_VERSION = "2.3";
+const BUILD_TIMESTAMP = "2026-03-13 08:21";
 
 const oddsState = {
   playersAtStart: 2,
@@ -419,6 +419,10 @@ function renderPlayerRows() {
       const cardShell = document.createElement("div");
       cardShell.className = "card-slot";
 
+      const cardLabel = document.createElement("span");
+      cardLabel.className = "board-slot-label";
+      cardLabel.textContent = `Card ${cardIndex + 1}`;
+
       const ownerKey = `p-${playerIndex}-c-${cardIndex}`;
       const rankSelect = buildRankSelect(
         player.cards[cardIndex]?.rank || null,
@@ -442,6 +446,7 @@ function renderPlayerRows() {
         }
       );
 
+      cardShell.appendChild(cardLabel);
       cardShell.appendChild(rankSelect);
       cardShell.appendChild(suitPicker);
       cardsWrap.appendChild(cardShell);
