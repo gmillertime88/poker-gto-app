@@ -1122,6 +1122,44 @@ h1 {
   color: var(--muted);
 }
 
+.training-controls {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(130px, 1fr));
+  gap: 8px;
+}
+
+.training-status {
+  margin-top: 16px;
+  padding-top: 14px;
+}
+
+.training-post-hand {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.select-btn.danger {
+  border-color: color-mix(in oklab, var(--danger) 55%, var(--border));
+  color: color-mix(in oklab, var(--danger) 82%, var(--text));
+  background: color-mix(in oklab, var(--danger) 14%, var(--panel-soft));
+}
+
+.select-btn.danger:hover:not(:disabled) {
+  border-color: var(--danger);
+}
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.training-table {
+  min-width: 640px;
+}
+
 @media (max-width: 640px) {
   .top-nav {
     grid-template-columns: auto 1fr auto;
@@ -1283,5 +1321,14 @@ h1 {
   .outs-cell {
     min-width: 0;
     white-space: normal;
+  }
+
+  .training-controls,
+  .training-post-hand {
+    grid-template-columns: 1fr;
+  }
+
+  .training-table {
+    min-width: 560px;
   }
 }

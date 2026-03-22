@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MillerTime Poker Training</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="theme.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="card">
+        <div class="top-nav">
+          <div class="home-brand">
+            <a class="home-logo-link" href="index.html" aria-label="Go to Main Menu">
+              <img class="home-logo-icon" src="assets/millertime-poker-logo.png" alt="MillerTime Poker" />
+            </a>
+          </div>
+          <h1 class="page-title">MillerTime Poker Training</h1>
+          <details class="hamburger-menu">
+            <summary class="hamburger-trigger" aria-label="Open menu">
+              <span></span>
+              <span></span>
+              <span></span>
+            </summary>
+            <div class="hamburger-panel">
+              <div class="theme-control menu-theme-control">
+                <span class="theme-label">Dark</span>
+                <label class="theme-switch" for="theme-toggle-training" aria-label="Toggle light mode">
+                  <input id="theme-toggle-training" type="checkbox" data-theme-toggle />
+                  <span class="theme-slider"></span>
+                </label>
+                <span class="theme-label">Light</span>
+              </div>
+              <a class="nav-link menu-nav-link" href="ranges.html">Go to Ranges</a>
+              <a class="nav-link menu-nav-link" href="odds.html">Go to Odds</a>
+              <a class="nav-link menu-nav-link" href="training.html" aria-current="page">Go to Training</a>
+            </div>
+          </details>
+        </div>
+
+        <p class="subtitle">Practice tournament decision-making with live all-player odds and per-street recommendations.</p>
+
+        <div class="field-group">
+          <h2>Players <span class="required-asterisk" aria-hidden="true">*</span></h2>
+          <div id="training-players-grid" class="button-grid players-grid"></div>
+        </div>
+
+        <div class="training-controls">
+          <button id="training-start-btn" class="select-btn" type="button">Start Session</button>
+          <button id="training-new-hand-btn" class="select-btn" type="button" disabled>Deal New Hand</button>
+          <button id="training-next-street-btn" class="select-btn" type="button" disabled>Next Street</button>
+          <button id="training-resolve-btn" class="select-btn" type="button" disabled>Resolve Hand</button>
+        </div>
+
+        <section class="result training-status" aria-live="polite">
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Session: <span id="training-session-status" class="value">Not started</span></span>
+          </div>
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Street: <span id="training-street" class="value">-</span></span>
+          </div>
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Board: <span id="training-board" class="value">-</span></span>
+          </div>
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Your Hand: <span id="training-user-hand" class="value">-</span></span>
+          </div>
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Recommended Action: <span id="training-recommendation" class="value">-</span></span>
+          </div>
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Pot: <span id="training-pot" class="value">0</span></span>
+          </div>
+        </section>
+
+        <div class="field-group">
+          <h2>Player Odds</h2>
+          <div class="table-wrap">
+            <table class="odds-table training-table">
+              <thead>
+                <tr>
+                  <th>Player</th>
+                  <th>Status</th>
+                  <th>Stack</th>
+                  <th>Hand</th>
+                  <th>Win %</th>
+                  <th>Equity %</th>
+                </tr>
+              </thead>
+              <tbody id="training-odds-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="training-post-hand" class="training-post-hand" hidden>
+          <button id="training-proceed-btn" class="select-btn" type="button">Proceed With Current Chip Totals</button>
+          <button id="training-reset-btn" class="select-btn danger" type="button">Reset and Start Over</button>
+        </div>
+
+        <div class="build-tag-wrap">
+          <span id="build-tag" class="build-tag">Build -</span>
+        </div>
+      </section>
+    </main>
+
+    <script src="training.js"></script>
+  </body>
+</html>

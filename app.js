@@ -8,8 +8,8 @@ const TABLE_TEMPERATURES = [
   { key: "aggressive", label: "Aggressive" },
 ];
 
-const BUILD_VERSION = "3.9";
-const BUILD_TIMESTAMP = "2026-03-13 16:04";
+const BUILD_VERSION = "4.0";
+const BUILD_TIMESTAMP = "2026-03-22 12:18";
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
