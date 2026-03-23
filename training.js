@@ -21,8 +21,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "4.9";
-const BUILD_TIMESTAMP = "2026-03-23 13:12";
+const BUILD_VERSION = "5.0";
+const BUILD_TIMESTAMP = "2026-03-23 13:16";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -260,8 +260,12 @@ function deriveAction(baseAction, position, score, threshold, delta) {
 
 function buildRangeMapForContext(baseRows, players, thresholds) {
   const rangeMap = new Map();
-  const playerDelta = WIDEN_DELTA_BY_PLAYERS[players] ?? 0;
-  const temperatureDelta = TEMPERATURE_RANGE_ADJUST[trainingState.temperature] ?? 0;
+  const playerDelta = Object.prototype.hasOwnProperty.call(WIDEN_DELTA_BY_PLAYERS, players)
+    ? WIDEN_DELTA_BY_PLAYERS[players]
+    : 0;
+  const temperatureDelta = Object.prototype.hasOwnProperty.call(TEMPERATURE_RANGE_ADJUST, trainingState.temperature)
+    ? TEMPERATURE_RANGE_ADJUST[trainingState.temperature]
+    : 0;
   const delta = playerDelta + temperatureDelta;
 
   baseRows.forEach((baseRow) => {
@@ -519,7 +523,10 @@ function getPreflopRecommendation(player) {
   const hole = normalizedHoleFromInts(player.cards[0], player.cards[1]);
   const key = tableKey(hole.card1, hole.card2, hole.suited);
   const row = getRangeMap().get(key);
-  return row?.[player.position] || "Fold";
+  if (!row) {
+    return "Fold";
+  }
+  return row[player.position] || "Fold";
 }
 
 function streetLabel(street) {
@@ -612,11 +619,13 @@ function findStartIndexForStreet(hand) {
   const seatMap = positionToSeatMap(hand.players);
 
   if (hand.street === "preflop") {
-    const bbIndex = seatMap.get("BB") ?? 0;
+    const bbSeatIndex = seatMap.get("BB");
+    const bbIndex = typeof bbSeatIndex === "number" ? bbSeatIndex : 0;
     return hand.players.length > 0 ? (bbIndex + 1) % hand.players.length : 0;
   }
 
-  const buttonIndex = seatMap.get("D") ?? 0;
+  const buttonSeatIndex = seatMap.get("D");
+  const buttonIndex = typeof buttonSeatIndex === "number" ? buttonSeatIndex : 0;
   return hand.players.length > 0 ? (buttonIndex + 1) % hand.players.length : 0;
 }
 
@@ -962,7 +971,9 @@ function recommendationForSituation(hand, player, toCall, equity) {
     return "Fold";
   }
 
-  const adjust = TEMPERATURE_POSTFLOP_ADJUST[trainingState.temperature] ?? 0;
+  const adjust = Object.prototype.hasOwnProperty.call(TEMPERATURE_POSTFLOP_ADJUST, trainingState.temperature)
+    ? TEMPERATURE_POSTFLOP_ADJUST[trainingState.temperature]
+    : 0;
   if (toCall <= 0) {
     if (equity >= (0.58 + adjust)) {
       return "Bet";
@@ -1009,7 +1020,10 @@ function calcRaiseTarget(hand, player) {
   let target;
 
   if (hand.street === "preflop") {
-    const openTarget = Math.max(Math.round((OPEN_SIZE_BB[player.position] ?? 2.5) * BIG_BLIND), BIG_BLIND * 2);
+    const openSizeBb = Object.prototype.hasOwnProperty.call(OPEN_SIZE_BB, player.position)
+      ? OPEN_SIZE_BB[player.position]
+      : 2.5;
+    const openTarget = Math.max(Math.round(openSizeBb * BIG_BLIND), BIG_BLIND * 2);
     if (hand.currentBet <= BIG_BLIND) {
       target = openTarget;
     } else if (hand.currentStreetRaises <= 1) {
@@ -1070,7 +1084,9 @@ function recommendationReason(hand, player, toCall, equity, recommendation) {
 function getNpcAction(hand, player, toCall, recommendation, equity) {
   const temp = trainingState.temperature;
   const aggrBias = temp === "aggressive" ? 0.15 : (temp === "conservative" ? -0.12 : 0);
-  const posBias = POSITION_AGGRESSION[player.position] ?? 0;
+  const posBias = Object.prototype.hasOwnProperty.call(POSITION_AGGRESSION, player.position)
+    ? POSITION_AGGRESSION[player.position]
+    : 0;
   const totalBias = aggrBias + posBias;
   const recAction = normalizedAction(recommendation);
   const pressure = toCall / Math.max(1, player.chips + player.streetBet);
