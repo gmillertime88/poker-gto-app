@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MillerTime Poker Training</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="theme.js" defer></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="card">
+        <div class="top-nav">
+          <div class="home-brand">
+            <a class="home-logo-link" href="index.html" aria-label="Go to Main Menu">
+              <img class="home-logo-icon" src="assets/millertime-poker-logo.png" alt="MillerTime Poker" />
+            </a>
+          </div>
+          <h1 class="page-title">MillerTime Poker Training</h1>
+          <details class="hamburger-menu">
+            <summary class="hamburger-trigger" aria-label="Open menu">
+              <span></span>
+              <span></span>
+              <span></span>
+            </summary>
+            <div class="hamburger-panel">
+              <div class="theme-control menu-theme-control">
+                <span class="theme-label">Dark</span>
+                <label class="theme-switch" for="theme-toggle-training" aria-label="Toggle light mode">
+                  <input id="theme-toggle-training" type="checkbox" data-theme-toggle />
+                  <span class="theme-slider"></span>
+                </label>
+                <span class="theme-label">Light</span>
+              </div>
+              <a class="nav-link menu-nav-link" href="ranges.html">Go to Ranges</a>
+              <a class="nav-link menu-nav-link" href="odds.html">Go to Odds</a>
+              <a class="nav-link menu-nav-link" href="training.html" aria-current="page">Go to Training</a>
+            </div>
+          </details>
+        </div>
+
+        <p class="subtitle">Set the table context, then play one full simulated hand with recommendations and feedback.</p>
+
+        <section class="field-group">
+          <h2>Players <span class="required-asterisk" aria-hidden="true">*</span></h2>
+          <div id="training-players-grid" class="button-grid players-grid"></div>
+        </section>
+
+        <section class="field-group">
+          <h2>Table Temperature <span class="required-asterisk" aria-hidden="true">*</span></h2>
+          <div id="training-temperature-grid" class="button-grid temperature-grid"></div>
+        </section>
+
+        <section class="field-group">
+          <h2>Your Position <span class="required-asterisk" aria-hidden="true">*</span></h2>
+          <div id="training-position-grid" class="button-grid"></div>
+        </section>
+
+        <section class="training-controls">
+          <button id="training-start-btn" class="select-btn" type="button">Start Hand</button>
+          <button id="training-reset-btn" class="select-btn danger" type="button">Reset</button>
+        </section>
+
+        <section id="training-status" class="result training-status" aria-live="polite">
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Street: <span id="training-street" class="value">-</span></span>
+          </div>
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Pot: <span id="training-pot" class="value">-</span></span>
+          </div>
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Your Odds: <span id="training-odds" class="value">-</span></span>
+          </div>
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Recommended: <span id="training-reco" class="value">-</span></span>
+          </div>
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Action On: <span id="training-action-on" class="value">-</span></span>
+          </div>
+        </section>
+
+        <section class="field-group">
+          <h2>Board</h2>
+          <div id="training-board" class="board-display"></div>
+        </section>
+
+        <section class="field-group">
+          <h2>Table</h2>
+          <div class="table-wrap">
+            <table class="odds-table training-table">
+              <thead>
+                <tr>
+                  <th>Seat</th>
+                  <th>Position</th>
+                  <th>Cards</th>
+                  <th>Stack</th>
+                  <th>Status</th>
+                  <th>Street Bet</th>
+                  <th>Last Action</th>
+                </tr>
+              </thead>
+              <tbody id="training-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="field-group">
+          <h2>Action</h2>
+          <div id="training-action-buttons" class="training-action-buttons">
+            <button id="training-fold-btn" class="select-btn danger" type="button" disabled>Fold</button>
+            <button id="training-check-call-btn" class="select-btn" type="button" disabled>Call</button>
+            <button id="training-bet-raise-btn" class="select-btn" type="button" disabled>Raise</button>
+          </div>
+          <p id="training-prompt" class="required-note">Start a hand to begin training.</p>
+        </section>
+
+        <section class="field-group">
+          <h2>Hand Log</h2>
+          <div id="training-log" class="training-log"></div>
+        </section>
+
+        <section id="training-summary" class="result training-summary" hidden>
+          <div class="result-row odds-summary-row">
+            <span class="label summary-label">Summary: <span id="training-summary-headline" class="value">-</span></span>
+          </div>
+          <div id="training-summary-details" class="training-summary-details"></div>
+        </section>
+
+        <div class="build-tag-wrap">
+          <span id="training-build-tag" class="build-tag">Build -</span>
+        </div>
+      </section>
+    </main>
+
+    <script src="training.js"></script>
+  </body>
+</html>
