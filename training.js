@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "5.9";
-const BUILD_TIMESTAMP = "2026-03-23 15:08";
+const BUILD_VERSION = "6.0";
+const BUILD_TIMESTAMP = "2026-03-23 15:16";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -102,6 +102,8 @@ const trainingState = {
   tournamentResult: "",
   userSeat: null,
   betSelectionActive: false,
+  handResultMessage: "-",
+  pendingRecommendationAction: null,
 };
 
 const el = {
@@ -117,6 +119,7 @@ const el = {
   odds: document.getElementById("training-odds"),
   recommendation: document.getElementById("training-reco"),
   actionOn: document.getElementById("training-action-on"),
+  handResult: document.getElementById("training-hand-result"),
   board: document.getElementById("training-board"),
   tableBody: document.getElementById("training-table-body"),
   foldBtn: document.getElementById("training-fold-btn"),
@@ -869,6 +872,15 @@ function renderTable(hand) {
 
 function renderStatus(hand, equity = null, recommendation = "-") {
   el.session.textContent = getSessionStatusText();
+  const handResultText = trainingState.handResultMessage || "-";
+  const canQuickApplyRecommendation = Boolean(
+    trainingState.waitingForUser
+    && trainingState.pendingRecommendationAction
+    && hand
+    && hand.actionOn === "You"
+    && recommendation
+    && recommendation !== "-"
+  );
 
   if (!hand) {
     el.street.textContent = "-";
@@ -876,7 +888,13 @@ function renderStatus(hand, equity = null, recommendation = "-") {
     el.odds.textContent = "-";
     el.recommendation.textContent = "-";
     el.recommendation.className = "value training-reco-value";
+    el.recommendation.removeAttribute("role");
+    el.recommendation.removeAttribute("tabindex");
+    el.recommendation.removeAttribute("title");
     el.actionOn.textContent = "-";
+    if (el.handResult) {
+      el.handResult.textContent = handResultText;
+    }
     return;
   }
 
@@ -884,8 +902,20 @@ function renderStatus(hand, equity = null, recommendation = "-") {
   el.pot.textContent = chipsLabel(hand.pot);
   el.odds.textContent = equity === null ? "-" : `${(equity * 100).toFixed(1)}%`;
   el.recommendation.textContent = recommendation;
-  el.recommendation.className = `value training-reco-value ${normalizedAction(recommendation)}`;
+  el.recommendation.className = `value training-reco-value ${normalizedAction(recommendation)}${canQuickApplyRecommendation ? " clickable" : ""}`;
+  if (canQuickApplyRecommendation) {
+    el.recommendation.setAttribute("role", "button");
+    el.recommendation.setAttribute("tabindex", "0");
+    el.recommendation.setAttribute("title", "Click to apply recommended action");
+  } else {
+    el.recommendation.removeAttribute("role");
+    el.recommendation.removeAttribute("tabindex");
+    el.recommendation.removeAttribute("title");
+  }
   el.actionOn.textContent = hand.actionOn || "-";
+  if (el.handResult) {
+    el.handResult.textContent = handResultText;
+  }
 }
 
 function renderAll(hand, equity = null, recommendation = "-") {
@@ -1286,17 +1316,51 @@ function buildDecisionRecord(hand, player, recommendationAction, recommendationT
   });
 }
 
-async function getUserAction(hand, player, toCall, recommendation, equity) {
+async function getUserAction(hand, player, toCall, recommendation, equity, recommendationAction = recommendation) {
   return new Promise((resolve) => {
     const raiseTo = calcRaiseTarget(hand, player);
     const { minTarget, maxTarget } = getAggressiveTargetBounds(hand, player, toCall);
+    const normalizedRecommendation = normalizedAction(recommendationAction);
     trainingState.betSelectionActive = false;
     updateActionButtons(false, toCall, raiseTo, minTarget, maxTarget, player);
+
+    trainingState.pendingRecommendationAction = () => {
+      if (!trainingState.pendingUserDecision) {
+        return;
+      }
+
+      if (normalizedRecommendation === "fold") {
+        trainingState.pendingUserDecision("fold");
+        return;
+      }
+
+      if (normalizedRecommendation === "check") {
+        trainingState.pendingUserDecision("check");
+        return;
+      }
+
+      if (normalizedRecommendation === "call") {
+        trainingState.pendingUserDecision(toCall > 0 ? "call" : "check");
+        return;
+      }
+
+      if (normalizedRecommendation === "raise" || normalizedRecommendation === "bet") {
+        const targetBet = calcRaiseTarget(hand, player);
+        trainingState.pendingUserDecision({
+          type: toCall > 0 ? "raise" : "bet",
+          targetBet,
+        });
+        return;
+      }
+
+      trainingState.pendingUserDecision(toCall > 0 ? "call" : "check");
+    };
 
     trainingState.waitingForUser = true;
     trainingState.pendingUserDecision = (action) => {
       trainingState.waitingForUser = false;
       trainingState.pendingUserDecision = null;
+      trainingState.pendingRecommendationAction = null;
       trainingState.betSelectionActive = false;
       updateActionButtons(true, 0, 0, 0, 0);
       resolve(action);
@@ -1342,7 +1406,7 @@ async function runBettingRound(hand, handId) {
     let action;
 
     if (player.isUser) {
-      action = await getUserAction(hand, player, toCall, recommendationTextValue, actorEquity);
+      action = await getUserAction(hand, player, toCall, recommendationTextValue, actorEquity, recommendation);
       buildDecisionRecord(hand, player, recommendation, recommendationTextValue, action, toCall, actorEquity, reason);
     } else {
       await sleep(getNpcThinkDelayMs(), handId);
@@ -1488,6 +1552,7 @@ function resetTrainingStateVisuals() {
   el.summary.hidden = true;
   el.summaryHeadline.textContent = "-";
   el.summaryDetails.innerHTML = "";
+  trainingState.handResultMessage = "-";
   setInitialPrompt();
 }
 
@@ -1505,6 +1570,7 @@ function initializeTournament() {
   trainingState.handsPlayed = 0;
   trainingState.tournamentFinished = false;
   trainingState.tournamentResult = "";
+  trainingState.handResultMessage = "-";
 }
 
 function persistTournamentStacks(hand) {
@@ -1548,6 +1614,7 @@ function clearTournamentProgress() {
   trainingState.tournamentFinished = false;
   trainingState.tournamentResult = "";
   trainingState.userSeat = null;
+  trainingState.handResultMessage = "-";
 }
 
 function createHand() {
@@ -1681,6 +1748,13 @@ async function playHand(handId) {
       addLog(`Showdown complete. Winner: ${winnerText}.`, "raise");
     }
 
+    const handWinnerText = winners.map((winner) => (winner.isUser ? "You" : `Seat ${winner.seat}`)).join(", ");
+    if (winners.some((winner) => winner.isUser)) {
+      trainingState.handResultMessage = winners.length > 1 ? "Split pot with you in winners." : "You won the hand.";
+    } else {
+      trainingState.handResultMessage = `${handWinnerText} won the hand.`;
+    }
+
     const finalUser = getUserPlayer(trainingState.hand);
     const finalEquity = finalUser && !finalUser.folded ? estimateSeatEquity(trainingState.hand, finalUser.seat) : null;
     renderAll(trainingState.hand, finalEquity, "Hand complete");
@@ -1707,6 +1781,7 @@ async function playHand(handId) {
     updateActionButtons(true, 0, 0);
     trainingState.waitingForUser = false;
     trainingState.pendingUserDecision = null;
+    trainingState.pendingRecommendationAction = null;
     trainingState.betSelectionActive = false;
     el.startButton.disabled = trainingState.tournamentFinished;
   }
@@ -1760,6 +1835,7 @@ function applySettingsChange() {
   trainingState.showdownRevealed = false;
   trainingState.waitingForUser = false;
   trainingState.pendingUserDecision = null;
+  trainingState.pendingRecommendationAction = null;
   trainingState.betSelectionActive = false;
   clearTournamentProgress();
   if (el.settingsPanel) {
@@ -1789,6 +1865,7 @@ function resetHand() {
   clearTournamentProgress();
   trainingState.waitingForUser = false;
   trainingState.pendingUserDecision = null;
+  trainingState.pendingRecommendationAction = null;
   trainingState.betSelectionActive = false;
   el.startButton.textContent = "Deal";
   el.startButton.disabled = false;
@@ -1819,6 +1896,7 @@ function startHand() {
   trainingState.hand = createHand();
   trainingState.showdownRevealed = false;
   trainingState.decisionLog = [];
+  trainingState.handResultMessage = "Hand in progress";
 
   el.summary.hidden = true;
   el.startButton.disabled = true;
@@ -1832,6 +1910,22 @@ function startHand() {
 }
 
 function hookActionButtons() {
+  if (el.recommendation) {
+    const triggerRecommendedAction = () => {
+      if (trainingState.pendingRecommendationAction) {
+        trainingState.pendingRecommendationAction();
+      }
+    };
+
+    el.recommendation.addEventListener("click", triggerRecommendedAction);
+    el.recommendation.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        triggerRecommendedAction();
+      }
+    });
+  }
+
   if (el.betSizeInput) {
     el.betSizeInput.addEventListener("input", () => {
       syncBetSizeControlsFromSource(el.betSizeInput.value);

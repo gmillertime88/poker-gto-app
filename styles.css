@@ -1238,6 +1238,32 @@ h1 {
   color: #b91c1c;
 }
 
+.training-reco-value.clickable {
+  cursor: pointer;
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.training-reco-value.clickable:hover,
+.training-reco-value.clickable:focus-visible {
+  background: color-mix(in oklab, var(--accent) 30%, transparent);
+  outline: none;
+}
+
+.training-hand-result-value {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 4px 10px;
+  border-radius: 9px;
+  font-size: 1.14rem;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  color: color-mix(in oklab, var(--accent) 70%, var(--text));
+  background: color-mix(in oklab, var(--accent) 18%, transparent);
+  border: 1px solid color-mix(in oklab, var(--accent) 48%, var(--border));
+}
+
 .training-table {
   min-width: 860px;
 }
