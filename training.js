@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "6.0";
-const BUILD_TIMESTAMP = "2026-03-23 15:16";
+const BUILD_VERSION = "6.1";
+const BUILD_TIMESTAMP = "2026-03-23 15:23";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -1300,6 +1300,37 @@ function getEligibleSeats(hand, order) {
     .map((player) => player.seat);
 }
 
+function decisionActionLabel(action) {
+  const actionType = normalizedAction(action);
+
+  if (actionType === "fold") {
+    return "Fold";
+  }
+
+  if (actionType === "check") {
+    return "Check";
+  }
+
+  if (actionType === "call") {
+    return "Call";
+  }
+
+  if (actionType === "raise" || actionType === "bet") {
+    const verb = actionType === "raise" ? "Raise" : "Bet";
+    if (typeof action === "object" && action !== null) {
+      if (action.allIn) {
+        return `${verb} (All-In)`;
+      }
+      if (Number.isFinite(action.targetBet)) {
+        return `${verb} to ${Math.round(action.targetBet)}`;
+      }
+    }
+    return verb;
+  }
+
+  return String(action || "-");
+}
+
 function buildDecisionRecord(hand, player, recommendationAction, recommendationTextValue, action, toCall, equity, reason) {
   if (!player.isUser) {
     return;
@@ -1309,7 +1340,7 @@ function buildDecisionRecord(hand, player, recommendationAction, recommendationT
     street: streetLabel(hand.street),
     toCall,
     recommendation: recommendationTextValue,
-    action,
+    action: decisionActionLabel(action),
     equity,
     reason,
     followed: didFollowRecommendation(recommendationAction, action),
