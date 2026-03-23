@@ -21,8 +21,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "4.3";
-const BUILD_TIMESTAMP = "2026-03-23 10:13";
+const BUILD_VERSION = "4.4";
+const BUILD_TIMESTAMP = "2026-03-23 10:25";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -101,6 +101,7 @@ const trainingState = {
 const el = {
   playersGrid: document.getElementById("training-players-grid"),
   temperatureGrid: document.getElementById("training-temperature-grid"),
+  settingsPanel: document.getElementById("training-settings-panel") || null,
   positionGrid: document.getElementById("training-position-grid"),
   startButton: document.getElementById("training-start-btn"),
   resetButton: document.getElementById("training-reset-btn"),
@@ -122,6 +123,32 @@ const el = {
   summaryDetails: document.getElementById("training-summary-details"),
   buildTag: document.getElementById("training-build-tag"),
 };
+
+function setPromptMessage(message, recommendation = null) {
+  if (!el.prompt) {
+    return;
+  }
+
+  el.prompt.textContent = message;
+  el.prompt.className = "training-prompt";
+
+  if (!recommendation) {
+    return;
+  }
+
+  const action = normalizedAction(recommendation);
+  if (action === "fold") {
+    el.prompt.classList.add("reco-fold");
+    return;
+  }
+
+  if (action === "raise") {
+    el.prompt.classList.add("reco-raise");
+    return;
+  }
+
+  el.prompt.classList.add("reco-other");
+}
 
 function renderBuildTag() {
   if (!el.buildTag) {
@@ -170,6 +197,33 @@ function buildPositionThresholds(baseRows) {
   });
 
   return thresholds;
+}
+
+function rotateSessionPositions() {
+  if (!trainingState.tournamentStacks) {
+    return;
+  }
+
+  const positions = POSITIONS_BY_PLAYERS[trainingState.players] || POSITIONS_BY_PLAYERS[9];
+  if (!positions.length) {
+    return;
+  }
+
+  const rotated = new Map();
+  for (let i = 0; i < positions.length; i += 1) {
+    const from = positions[i];
+    const to = positions[(i + 1) % positions.length];
+    rotated.set(to, trainingState.tournamentStacks.get(from) || 0);
+  }
+
+  trainingState.tournamentStacks = rotated;
+
+  if (trainingState.userPosition) {
+    const currentIndex = positions.indexOf(trainingState.userPosition);
+    if (currentIndex >= 0) {
+      trainingState.userPosition = positions[(currentIndex + 1) % positions.length];
+    }
+  }
 }
 
 function deriveAction(baseAction, position, score, threshold, delta) {
@@ -1071,7 +1125,7 @@ async function getUserAction(hand, player, toCall, recommendation, equity) {
     };
 
     const equityPct = `${(equity * 100).toFixed(1)}%`;
-    el.prompt.textContent = `Your turn (${streetLabel(hand.street)}): to call ${toCall}. Equity ${equityPct}. Recommended ${recommendation}.`;
+    setPromptMessage(`Your turn (${streetLabel(hand.street)}): to call ${toCall}. Equity ${equityPct}. Recommended ${recommendation}.`, recommendation);
   });
 }
 
@@ -1111,7 +1165,7 @@ async function runBettingRound(hand, handId) {
       action = await getUserAction(hand, player, toCall, recommendationTextValue, actorEquity);
       buildDecisionRecord(hand, player, recommendation, recommendationTextValue, action, toCall, actorEquity, reason);
     } else {
-      el.prompt.textContent = `Seat ${player.seat} is thinking...`;
+      setPromptMessage(`Seat ${player.seat} is thinking...`);
       await sleep(getNpcThinkDelayMs(), handId);
       action = getNpcAction(hand, player, toCall, recommendation, actorEquity);
     }
@@ -1241,7 +1295,7 @@ function renderSummary(hand, winners) {
 }
 
 function setInitialPrompt() {
-  el.prompt.textContent = "Start a hand to begin training. Chip stacks persist across hands until the session ends.";
+  setPromptMessage("Start a hand to begin training. Chip stacks persist across hands until the session ends.");
 }
 
 function resetTrainingStateVisuals() {
@@ -1426,10 +1480,10 @@ async function playHand(handId) {
     renderSummary(trainingState.hand, winners);
 
     if (sessionDone) {
-      el.prompt.textContent = `${trainingState.tournamentResult}. Click Reset to start a new session.`;
+      setPromptMessage(`${trainingState.tournamentResult}. Click Reset to start a new session.`);
       el.startButton.disabled = true;
     } else {
-      el.prompt.textContent = "Hand complete. Click Start Hand to continue the session with current chip stacks.";
+      setPromptMessage("Hand complete. Click Deal to continue the session with current chip stacks.");
       el.startButton.disabled = false;
     }
   } catch (error) {
@@ -1438,7 +1492,7 @@ async function playHand(handId) {
     }
 
     console.error(error);
-    el.prompt.textContent = "Training hand stopped due to an unexpected error.";
+    setPromptMessage("Training hand stopped due to an unexpected error.");
   } finally {
     updateActionButtons(true, 0, 0);
     trainingState.waitingForUser = false;
@@ -1511,20 +1565,29 @@ function resetHand() {
   clearTournamentProgress();
   trainingState.waitingForUser = false;
   trainingState.pendingUserDecision = null;
-  el.startButton.textContent = "Start Hand";
+  el.startButton.textContent = "Deal";
   el.startButton.disabled = false;
+  if (el.settingsPanel) {
+    el.settingsPanel.open = true;
+  }
   resetTrainingStateVisuals();
 }
 
 function startHand() {
   if (!trainingState.userPosition) {
-    el.prompt.textContent = "Select your position before starting a hand.";
+    setPromptMessage("Select your position before starting a hand.");
     return;
   }
 
   if (trainingState.tournamentFinished) {
-    el.prompt.textContent = `${trainingState.tournamentResult}. Click Reset to begin a new session.`;
+    setPromptMessage(`${trainingState.tournamentResult}. Click Reset to begin a new session.`);
     return;
+  }
+
+  const continuingSession = Boolean(trainingState.tournamentStacks && trainingState.handsPlayed > 0);
+  if (continuingSession) {
+    rotateSessionPositions();
+    renderSelectors();
   }
 
   if (!trainingState.tournamentStacks) {
@@ -1538,7 +1601,10 @@ function startHand() {
 
   el.summary.hidden = true;
   el.startButton.disabled = true;
-  el.startButton.textContent = "Continue Session";
+  el.startButton.textContent = "Deal";
+  if (el.settingsPanel) {
+    el.settingsPanel.open = false;
+  }
   addLog(`Hand ${trainingState.handsPlayed + 1} started.`);
   playHand(trainingState.handId);
 }
@@ -1583,7 +1649,7 @@ async function initTraining() {
     hookActionButtons();
   } catch (error) {
     console.error(error);
-    el.prompt.textContent = "Unable to initialize Training module.";
+    setPromptMessage("Unable to initialize Training module.");
   }
 }
 

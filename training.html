@@ -41,23 +41,27 @@
 
         <p class="subtitle">Set the table context, then play a running session where chip stacks carry over each hand.</p>
 
-        <section class="field-group">
-          <h2>Players <span class="required-asterisk" aria-hidden="true">*</span></h2>
-          <div id="training-players-grid" class="button-grid players-grid"></div>
-        </section>
+        <details id="training-settings-panel" class="training-settings" open>
+          <summary class="training-settings-summary">Session Settings</summary>
 
-        <section class="field-group">
-          <h2>Table Temperature <span class="required-asterisk" aria-hidden="true">*</span></h2>
-          <div id="training-temperature-grid" class="button-grid temperature-grid"></div>
-        </section>
+          <section class="field-group">
+            <h2>Players <span class="required-asterisk" aria-hidden="true">*</span></h2>
+            <div id="training-players-grid" class="button-grid players-grid"></div>
+          </section>
 
-        <section class="field-group">
-          <h2>Your Position <span class="required-asterisk" aria-hidden="true">*</span></h2>
-          <div id="training-position-grid" class="button-grid"></div>
-        </section>
+          <section class="field-group">
+            <h2>Table Temperature <span class="required-asterisk" aria-hidden="true">*</span></h2>
+            <div id="training-temperature-grid" class="button-grid temperature-grid"></div>
+          </section>
+
+          <section class="field-group">
+            <h2>Your Position <span class="required-asterisk" aria-hidden="true">*</span></h2>
+            <div id="training-position-grid" class="button-grid"></div>
+          </section>
+        </details>
 
         <section class="training-controls">
-          <button id="training-start-btn" class="select-btn" type="button">Start Hand</button>
+          <button id="training-start-btn" class="select-btn" type="button">Deal</button>
           <button id="training-reset-btn" class="select-btn danger" type="button">Reset</button>
         </section>
 
@@ -114,7 +118,7 @@
             <button id="training-check-call-btn" class="select-btn" type="button" disabled>Call</button>
             <button id="training-bet-raise-btn" class="select-btn" type="button" disabled>Raise</button>
           </div>
-          <p id="training-prompt" class="required-note">Start a hand to begin training.</p>
+          <p id="training-prompt" class="training-prompt">Start a hand to begin training.</p>
         </section>
 
         <section class="field-group">

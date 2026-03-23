@@ -1144,6 +1144,25 @@ h1 {
   gap: 8px;
 }
 
+.training-settings {
+  margin-top: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  padding: 10px 10px 2px;
+}
+
+.training-settings-summary {
+  cursor: pointer;
+  font-weight: 700;
+  color: var(--heading);
+  margin-bottom: 6px;
+}
+
+.training-settings[open] .training-settings-summary {
+  margin-bottom: 10px;
+}
+
 .training-status {
   margin-top: 14px;
   padding-top: 14px;
@@ -1194,6 +1213,25 @@ h1 {
   display: grid;
   grid-template-columns: repeat(3, minmax(120px, 1fr));
   gap: 8px;
+}
+
+.training-prompt {
+  margin: 10px 0 0;
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.training-prompt.reco-fold {
+  color: #b91c1c;
+}
+
+.training-prompt.reco-raise {
+  color: #166534;
+}
+
+.training-prompt.reco-other {
+  color: #000000;
 }
 
 .training-log {
