@@ -1170,18 +1170,6 @@ h1 {
   background: linear-gradient(to right, transparent, color-mix(in oklab, var(--surface) 85%, transparent));
 }
 
-.training-table-tools {
-  margin-bottom: 8px;
-}
-
-.training-compact-toggle {
-  display: inline-flex;
-  gap: 8px;
-  align-items: center;
-  font-size: 0.88rem;
-  color: var(--text-muted);
-}
-
 .training-controls {
   margin-top: 14px;
   display: grid;
@@ -1687,6 +1675,18 @@ h1 {
     text-align: left;
   }
 
+  .training-table td.col-seat {
+    grid-row: 1;
+  }
+
+  .training-table td.col-position {
+    grid-row: 2;
+  }
+
+  .training-table td.col-cards {
+    grid-row: 3;
+  }
+
   .training-table td.col-stack,
   .training-table td.col-status,
   .training-table td.col-bet,
@@ -1696,18 +1696,28 @@ h1 {
     text-align: right;
   }
 
+  .training-table td.col-stack {
+    grid-row: 1;
+  }
+
+  .training-table td.col-status {
+    grid-row: 2;
+  }
+
+  .training-table td.col-bet {
+    grid-row: 3;
+  }
+
+  .training-table td.col-action {
+    grid-row: 4;
+  }
+
   .training-table td.col-stack .training-mobile-field-value,
   .training-table td.col-status .training-mobile-field-value,
   .training-table td.col-bet .training-mobile-field-value,
   .training-table td.col-action .training-mobile-field-value {
     text-align: right;
     overflow-wrap: anywhere;
-  }
-
-  .training-table.compact-view .col-status,
-  .training-table.compact-view .col-bet,
-  .training-table.compact-view .col-action {
-    display: none;
   }
 
   .training-table td.col-seat,

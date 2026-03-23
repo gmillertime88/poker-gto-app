@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "5.7";
-const BUILD_TIMESTAMP = "2026-03-23 14:56";
+const BUILD_VERSION = "5.8";
+const BUILD_TIMESTAMP = "2026-03-23 15:00";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -118,9 +118,7 @@ const el = {
   recommendation: document.getElementById("training-reco"),
   actionOn: document.getElementById("training-action-on"),
   board: document.getElementById("training-board"),
-  table: document.getElementById("training-table"),
   tableBody: document.getElementById("training-table-body"),
-  compactToggle: document.getElementById("training-compact-toggle"),
   foldBtn: document.getElementById("training-fold-btn"),
   checkCallBtn: document.getElementById("training-check-call-btn"),
   betRaiseBtn: document.getElementById("training-bet-raise-btn"),
@@ -136,19 +134,6 @@ const el = {
   summaryDetails: document.getElementById("training-summary-details"),
   buildTag: document.getElementById("training-build-tag"),
 };
-
-function shouldUseMobileCompactByDefault() {
-  return window.matchMedia && window.matchMedia("(max-width: 640px)").matches;
-}
-
-function updateTrainingTableViewMode() {
-  if (!el.table) {
-    return;
-  }
-
-  const compactEnabled = Boolean(el.compactToggle && el.compactToggle.checked);
-  el.table.classList.toggle("compact-view", compactEnabled);
-}
 
 function setPromptMessage(message, recommendation = null) {
   if (!el.prompt) {
@@ -1914,11 +1899,6 @@ function hookActionButtons() {
 async function initTraining() {
   renderBuildTag();
   renderSelectors();
-  if (el.compactToggle) {
-    el.compactToggle.checked = shouldUseMobileCompactByDefault();
-    el.compactToggle.addEventListener("change", updateTrainingTableViewMode);
-  }
-  updateTrainingTableViewMode();
   resetTrainingStateVisuals();
 
   el.startButton.addEventListener("click", startHand);
