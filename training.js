@@ -7,6 +7,9 @@ const TABLE_TEMPERATURES = [
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 const POSITIONS_BY_PLAYERS = {
+  2: ["D", "BB"],
+  3: ["D", "SB", "BB"],
+  4: ["D", "SB", "BB", "UTG"],
   5: ["D", "SB", "BB", "UTG", "CO"],
   6: ["D", "SB", "BB", "UTG", "MP1", "CO"],
   7: ["D", "SB", "BB", "UTG", "MP1", "MP2", "CO"],
@@ -21,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "5.3";
-const BUILD_TIMESTAMP = "2026-03-23 13:41";
+const BUILD_VERSION = "5.4";
+const BUILD_TIMESTAMP = "2026-03-23 14:16";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -563,7 +566,7 @@ function getSessionStatusText() {
     return "Not started";
   }
 
-  const userChips = trainingState.tournamentStacks.get(trainingState.userPosition) || 0;
+  const userChips = trainingState.tournamentStacks.get(trainingState.userSeat) || 0;
   const activePlayers = Array.from(trainingState.tournamentStacks.values()).filter((chips) => chips > 0).length;
 
   if (trainingState.tournamentFinished) {
@@ -1561,24 +1564,23 @@ function postBlinds(hand) {
   let sb = hand.players[seatMap.get("SB")];
   let bb = hand.players[seatMap.get("BB")];
 
-  if (!sb && hand.players.length >= 2) {
-    sb = hand.players[0];
-  }
-  if (!bb && hand.players.length >= 2) {
-    bb = hand.players[1 % hand.players.length];
+  if (!bb && hand.players.length >= 1) {
+    bb = hand.players[0];
   }
 
-  if (!sb || !bb) {
+  if (!bb) {
     return;
   }
 
-  const sbPaid = sb.chips > 0 ? postChips(hand, sb, SMALL_BLIND) : 0;
+  const sbPaid = sb && sb.chips > 0 ? postChips(hand, sb, SMALL_BLIND) : 0;
   const bbPaid = bb.chips > 0 ? postChips(hand, bb, BIG_BLIND) : 0;
 
-  sb.lastAction = sbPaid > 0 ? `Post SB ${sbPaid}` : "Out";
+  if (sb) {
+    sb.lastAction = sbPaid > 0 ? `Post SB ${sbPaid}` : "Out";
+  }
   bb.lastAction = bbPaid > 0 ? `Post BB ${bbPaid}` : "Out";
 
-  if (sbPaid > 0) {
+  if (sb && sbPaid > 0) {
     addLog(`Seat ${sb.seat} posts small blind ${sbPaid}.`);
   }
   if (bbPaid > 0) {
@@ -1779,6 +1781,7 @@ function startHand() {
   if (el.settingsPanel) {
     el.settingsPanel.open = false;
   }
+  setPromptMessage("Hand dealt. Waiting for action.");
   addLog(`Hand ${trainingState.handsPlayed + 1} started.`);
   playHand(trainingState.handId);
 }

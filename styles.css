@@ -1011,6 +1011,22 @@ h1 {
   flex-wrap: wrap;
 }
 
+/* Training card and board tokens at 150% scale for readability. */
+#training-board.board-display {
+  gap: 12px;
+}
+
+.training-table .results-hand-cell {
+  gap: 9px;
+}
+
+#training-board .card-token,
+.training-table .card-token {
+  gap: 2px;
+  padding: 3px 9px;
+  font-size: 1.23rem;
+}
+
 .winner-hand-label {
   display: inline-flex;
   align-items: center;
