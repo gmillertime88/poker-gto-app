@@ -1157,7 +1157,7 @@ h1 {
 }
 
 .training-table {
-  min-width: 640px;
+  min-width: 860px;
 }
 
 @media (max-width: 640px) {
@@ -1329,6 +1329,6 @@ h1 {
   }
 
   .training-table {
-    min-width: 560px;
+    min-width: 760px;
   }
 }

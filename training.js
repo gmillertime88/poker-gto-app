@@ -1,12 +1,25 @@
 const TRAINING_PLAYER_COUNTS = [2, 3, 4, 5, 6, 7, 8, 9];
 const TRAINING_STREETS = [
-  { key: "preflop", label: "Pre-Flop", boardCount: 0, bet: 20 },
-  { key: "flop", label: "Flop", boardCount: 3, bet: 20 },
-  { key: "turn", label: "Turn", boardCount: 4, bet: 40 },
-  { key: "river", label: "River", boardCount: 5, bet: 40 },
+  { key: "preflop", label: "Pre-Flop", boardCount: 0, bet: 20, call: 12 },
+  { key: "flop", label: "Flop", boardCount: 3, bet: 24, call: 16 },
+  { key: "turn", label: "Turn", boardCount: 4, bet: 36, call: 24 },
+  { key: "river", label: "River", boardCount: 5, bet: 36, call: 24 },
 ];
-const BUILD_VERSION = "4.0";
-const BUILD_TIMESTAMP = "2026-03-22 11:50";
+const POSITIONS_BY_PLAYERS = {
+  2: ["D", "BB"],
+  3: ["D", "SB", "BB"],
+  4: ["D", "SB", "BB", "UTG"],
+  5: ["D", "SB", "BB", "UTG", "CO"],
+  6: ["D", "SB", "BB", "UTG", "MP1", "CO"],
+  7: ["D", "SB", "BB", "UTG", "MP1", "MP2", "CO"],
+  8: ["D", "SB", "BB", "UTG", "MP1", "MP2", "HJ", "CO"],
+  9: ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"],
+};
+const PRE_FLOP_ORDER = ["UTG", "MP1", "MP2", "MP3", "HJ", "CO", "D", "SB", "BB"];
+const POST_FLOP_ORDER = ["SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO", "D"];
+
+const BUILD_VERSION = "4.1";
+const BUILD_TIMESTAMP = "2026-03-22 12:20";
 const STARTING_CHIPS = 1000;
 const MONTE_CARLO_SAMPLES = 1200;
 const SUITS = ["S", "H", "D", "C"];
@@ -22,6 +35,7 @@ const trainingState = {
   players: [],
   handNumber: 0,
   streetIndex: -1,
+  buttonOffset: 0,
   board: [],
   handDeck: [],
   activeHandPlayers: [],
@@ -29,7 +43,9 @@ const trainingState = {
   handInProgress: false,
   handResolved: false,
   oddsByPlayerId: new Map(),
+  rangeMap: new Map(),
   lastResultMessage: "",
+  userRecommendation: "-",
 };
 
 const trainingElements = {
@@ -98,14 +114,110 @@ function drawCard(deck) {
   return deck.pop();
 }
 
+function normalizeAction(action) {
+  if (!action) {
+    return "Fold";
+  }
+
+  const value = String(action).toLowerCase();
+  if (value === "raise") {
+    return "Raise";
+  }
+  if (value === "bet") {
+    return "Bet";
+  }
+  if (value === "call") {
+    return "Call";
+  }
+  if (value === "check") {
+    return "Check";
+  }
+  return "Fold";
+}
+
+function rotatePlayers(players, offset) {
+  if (!players.length) {
+    return [];
+  }
+
+  const start = ((offset % players.length) + players.length) % players.length;
+  return players.slice(start).concat(players.slice(0, start));
+}
+
+function holeToRangeKey(holeCards) {
+  const cardA = cardFromInt(holeCards[0]);
+  const cardB = cardFromInt(holeCards[1]);
+  const high = Math.max(cardA.rank, cardB.rank);
+  const low = Math.min(cardA.rank, cardB.rank);
+  const suited = cardA.suit === cardB.suit ? 1 : 0;
+  return `${high}-${low}-${suited}`;
+}
+
+function fallbackPreflopAction(holeCards) {
+  const cardA = cardFromInt(holeCards[0]);
+  const cardB = cardFromInt(holeCards[1]);
+  const high = Math.max(cardA.rank, cardB.rank);
+  const low = Math.min(cardA.rank, cardB.rank);
+  const pair = cardA.rank === cardB.rank;
+  const suited = cardA.suit === cardB.suit;
+
+  if (pair && high >= 11) {
+    return "Raise";
+  }
+  if (pair && high >= 7) {
+    return "Call";
+  }
+  if (high >= 13 && low >= 10) {
+    return "Raise";
+  }
+  if (suited && high >= 11 && low >= 8) {
+    return "Call";
+  }
+  return "Fold";
+}
+
+function preflopActionForPlayer(player) {
+  const key = holeToRangeKey(player.hole);
+  const row = trainingState.rangeMap.get(key);
+
+  if (!row || !player.position || !row[player.position]) {
+    return fallbackPreflopAction(player.hole);
+  }
+
+  return normalizeAction(row[player.position]);
+}
+
+function postflopActionForPlayer(streetKey, equityPct) {
+  const profile = {
+    flop: { strong: 58, medium: 38, weak: 22 },
+    turn: { strong: 60, medium: 40, weak: 24 },
+    river: { strong: 63, medium: 44, weak: 27 },
+  };
+  const p = profile[streetKey] || profile.flop;
+
+  if (equityPct >= p.strong) {
+    return "Bet";
+  }
+  if (equityPct >= p.medium) {
+    return "Call";
+  }
+  if (equityPct >= p.weak) {
+    return "Check";
+  }
+  return "Fold";
+}
+
 function resetPlayers(playerCount) {
   trainingState.players = Array.from({ length: playerCount }, (_, index) => ({
     id: index + 1,
     chips: STARTING_CHIPS,
     eliminated: false,
     inHand: false,
+    folded: false,
     committed: 0,
     hole: [],
+    position: "-",
+    lastAction: "-",
   }));
 }
 
@@ -143,19 +255,6 @@ function revealBoardUpTo(boardCount) {
   while (trainingState.board.length < boardCount && trainingState.handDeck.length > 0) {
     trainingState.board.push(drawCard(trainingState.handDeck));
   }
-}
-
-function collectStreetBets(amount) {
-  trainingState.activeHandPlayers.forEach((player) => {
-    if (player.chips <= 0) {
-      return;
-    }
-
-    const contribution = Math.min(amount, player.chips);
-    player.chips -= contribution;
-    player.committed += contribution;
-    trainingState.pot += contribution;
-  });
 }
 
 function straightHighFromRanks(ranks) {
@@ -356,26 +455,6 @@ function calculateOddsForStreet(playersInHand, boardCards) {
   return odds;
 }
 
-function recommendationForUser(streetKey, equityPct) {
-  const profile = {
-    preflop: { strong: 55, medium: 35, top: "Raise", mid: "Call", low: "Fold" },
-    flop: { strong: 50, medium: 30, top: "Bet", mid: "Check/Call", low: "Fold" },
-    turn: { strong: 52, medium: 32, top: "Bet", mid: "Check/Call", low: "Fold" },
-    river: { strong: 56, medium: 35, top: "Value Bet", mid: "Check/Call", low: "Fold" },
-  };
-
-  const current = profile[streetKey] || profile.preflop;
-  if (equityPct >= current.strong) {
-    return `${current.top} (${equityPct.toFixed(1)}% equity)`;
-  }
-
-  if (equityPct >= current.medium) {
-    return `${current.mid} (${equityPct.toFixed(1)}% equity)`;
-  }
-
-  return `${current.low} (${equityPct.toFixed(1)}% equity)`;
-}
-
 function cardListText(cards) {
   if (!cards || !cards.length) {
     return "-";
@@ -402,6 +481,8 @@ function renderOddsTable() {
 
     const status = player.eliminated
       ? "Eliminated"
+      : player.folded
+      ? "Folded"
       : player.inHand
       ? "In Hand"
       : trainingState.handResolved
@@ -410,7 +491,9 @@ function renderOddsTable() {
 
     const cells = [
       playerLabel(player),
+      player.position || "-",
       status,
+      player.lastAction || "-",
       String(player.chips),
       cardListText(player.hole),
       odds ? odds.winPct.toFixed(2) : "-",
@@ -430,34 +513,16 @@ function renderOddsTable() {
 function renderStatus() {
   const street = currentStreet();
   const user = trainingState.players.find((player) => player.id === 1);
-  const userOdds = user ? trainingState.oddsByPlayerId.get(user.id) : null;
 
   trainingElements.sessionStatus.textContent = trainingState.lastResultMessage || "Session ready";
   trainingElements.street.textContent = street ? street.label : "-";
   trainingElements.board.textContent = cardListText(trainingState.board);
   trainingElements.userHand.textContent = user ? cardListText(user.hole) : "-";
+  trainingElements.recommendation.textContent = trainingState.userRecommendation || "-";
   trainingElements.pot.textContent = String(trainingState.pot);
-
-  if (!trainingState.handInProgress || !street || !userOdds) {
-    trainingElements.recommendation.textContent = "-";
-  } else {
-    trainingElements.recommendation.textContent = recommendationForUser(street.key, userOdds.equityPct);
-  }
 
   renderOddsTable();
   updateControlStates();
-}
-
-function computeAndRenderOdds() {
-  const playersInHand = trainingState.activeHandPlayers;
-  if (!playersInHand.length) {
-    trainingState.oddsByPlayerId.clear();
-    renderStatus();
-    return;
-  }
-
-  trainingState.oddsByPlayerId = calculateOddsForStreet(playersInHand, trainingState.board);
-  renderStatus();
 }
 
 function markEliminations() {
@@ -466,8 +531,138 @@ function markEliminations() {
       player.chips = 0;
       player.eliminated = true;
       player.inHand = false;
+      player.folded = false;
     }
   });
+}
+
+function assignPositions(activePlayers) {
+  const positions = POSITIONS_BY_PLAYERS[activePlayers.length] || POSITIONS_BY_PLAYERS[9];
+  const rotated = rotatePlayers(activePlayers, trainingState.buttonOffset);
+  rotated.forEach((player, index) => {
+    player.position = positions[index] || `P${index + 1}`;
+  });
+  return rotated;
+}
+
+function getActionOrder(streetKey) {
+  const order = streetKey === "preflop" ? PRE_FLOP_ORDER : POST_FLOP_ORDER;
+  return [...trainingState.activeHandPlayers].sort((a, b) => {
+    const ai = order.indexOf(a.position);
+    const bi = order.indexOf(b.position);
+    const left = ai >= 0 ? ai : 99;
+    const right = bi >= 0 ? bi : 99;
+    return left - right;
+  });
+}
+
+function computeCurrentOdds() {
+  if (!trainingState.activeHandPlayers.length) {
+    trainingState.oddsByPlayerId.clear();
+    return;
+  }
+
+  trainingState.oddsByPlayerId = calculateOddsForStreet(trainingState.activeHandPlayers, trainingState.board);
+}
+
+function chooseActionForPlayer(player, street) {
+  if (street.key === "preflop") {
+    return preflopActionForPlayer(player);
+  }
+
+  const odds = trainingState.oddsByPlayerId.get(player.id);
+  const equity = odds ? odds.equityPct : 0;
+  return postflopActionForPlayer(street.key, equity);
+}
+
+function applyActionContributions(street, actionsByPlayerId) {
+  const aggressiveExists = Array.from(actionsByPlayerId.values()).some((value) => value === "Raise" || value === "Bet");
+
+  getActionOrder(street.key).forEach((player) => {
+    const action = actionsByPlayerId.get(player.id) || "Fold";
+    player.lastAction = action;
+
+    if (action === "Fold") {
+      player.folded = true;
+      player.inHand = false;
+      return;
+    }
+
+    let amount = 0;
+    if (action === "Raise" || action === "Bet") {
+      amount = street.bet;
+    } else if (action === "Call") {
+      amount = street.call;
+    } else if (action === "Check") {
+      amount = aggressiveExists ? street.call : 0;
+    }
+
+    const contribution = Math.min(amount, player.chips);
+    player.chips -= contribution;
+    player.committed += contribution;
+    trainingState.pot += contribution;
+  });
+
+  trainingState.activeHandPlayers = trainingState.activeHandPlayers.filter((player) => player.inHand && !player.folded);
+}
+
+function endHandWithRemainingPlayer(player) {
+  player.chips += trainingState.pot;
+  trainingState.pot = 0;
+  trainingState.handInProgress = false;
+  trainingState.handResolved = true;
+  trainingElements.postHandWrap.hidden = false;
+  trainingState.lastResultMessage = `Hand ${trainingState.handNumber} complete. Winner: ${playerLabel(player)} (everyone else folded).`;
+  trainingState.userRecommendation = player.id === 1 ? player.lastAction : "-";
+  trainingState.players.forEach((entry) => {
+    entry.inHand = false;
+    entry.folded = false;
+  });
+  markEliminations();
+  trainingState.activeHandPlayers = [];
+  trainingState.oddsByPlayerId.clear();
+}
+
+function processCurrentStreet() {
+  const street = currentStreet();
+  if (!street || !trainingState.handInProgress) {
+    renderStatus();
+    return;
+  }
+
+  revealBoardUpTo(street.boardCount);
+  computeCurrentOdds();
+
+  const actionsByPlayerId = new Map();
+  trainingState.activeHandPlayers.forEach((player) => {
+    const action = chooseActionForPlayer(player, street);
+    actionsByPlayerId.set(player.id, action);
+  });
+
+  const user = trainingState.players.find((entry) => entry.id === 1);
+  trainingState.userRecommendation = user && actionsByPlayerId.has(1)
+    ? actionsByPlayerId.get(1)
+    : "-";
+
+  applyActionContributions(street, actionsByPlayerId);
+
+  if (trainingState.activeHandPlayers.length === 1) {
+    endHandWithRemainingPlayer(trainingState.activeHandPlayers[0]);
+    renderStatus();
+    return;
+  }
+
+  if (trainingState.activeHandPlayers.length === 0) {
+    trainingState.handInProgress = false;
+    trainingState.handResolved = true;
+    trainingElements.postHandWrap.hidden = false;
+    trainingState.lastResultMessage = `Hand ${trainingState.handNumber} ended with all players folding.`;
+    renderStatus();
+    return;
+  }
+
+  computeCurrentOdds();
+  renderStatus();
 }
 
 function startNewHand() {
@@ -476,6 +671,7 @@ function startNewHand() {
     trainingState.handInProgress = false;
     trainingState.handResolved = true;
     trainingState.lastResultMessage = "Session complete: fewer than two players have chips remaining.";
+    trainingState.userRecommendation = "-";
     trainingElements.postHandWrap.hidden = false;
     renderStatus();
     return;
@@ -497,18 +693,22 @@ function startNewHand() {
   trainingState.players.forEach((player) => {
     player.hole = [];
     player.inHand = false;
+    player.folded = false;
     player.committed = 0;
+    player.position = "-";
+    player.lastAction = "-";
   });
 
-  activePlayers.forEach((player) => {
+  const positioned = assignPositions(activePlayers);
+  positioned.forEach((player) => {
     player.inHand = true;
+    player.folded = false;
     player.hole = [drawCard(trainingState.handDeck), drawCard(trainingState.handDeck)];
   });
+  trainingState.activeHandPlayers = positioned;
+  trainingState.buttonOffset = (trainingState.buttonOffset + 1) % Math.max(1, positioned.length);
 
-  trainingState.activeHandPlayers = activePlayers;
-
-  collectStreetBets(TRAINING_STREETS[0].bet);
-  computeAndRenderOdds();
+  processCurrentStreet();
 }
 
 function advanceStreet() {
@@ -521,11 +721,7 @@ function advanceStreet() {
   }
 
   trainingState.streetIndex += 1;
-  const street = currentStreet();
-
-  revealBoardUpTo(street.boardCount);
-  collectStreetBets(street.bet);
-  computeAndRenderOdds();
+  processCurrentStreet();
 }
 
 function resolveCurrentHand() {
@@ -548,12 +744,14 @@ function resolveCurrentHand() {
     }
   });
 
+  trainingState.pot = 0;
   trainingState.handInProgress = false;
   trainingState.handResolved = true;
   trainingElements.postHandWrap.hidden = false;
 
   trainingState.players.forEach((player) => {
     player.inHand = false;
+    player.folded = false;
   });
 
   markEliminations();
@@ -563,13 +761,16 @@ function resolveCurrentHand() {
     .join(", ");
   trainingState.lastResultMessage = `Hand ${trainingState.handNumber} complete. Winner: ${winnerLabels}`;
 
-  computeAndRenderOdds();
+  trainingState.activeHandPlayers = [];
+  trainingState.oddsByPlayerId.clear();
+  renderStatus();
 }
 
 function startSession() {
   resetPlayers(trainingState.selectedPlayers);
   trainingState.handNumber = 0;
   trainingState.streetIndex = -1;
+  trainingState.buttonOffset = 0;
   trainingState.board = [];
   trainingState.pot = 0;
   trainingState.handDeck = [];
@@ -578,6 +779,7 @@ function startSession() {
   trainingState.handResolved = false;
   trainingState.oddsByPlayerId.clear();
   trainingState.lastResultMessage = "Session started. Deal a hand to begin.";
+  trainingState.userRecommendation = "-";
   trainingElements.postHandWrap.hidden = true;
   renderStatus();
 }
@@ -587,9 +789,28 @@ function proceedWithCurrentStacks() {
   startNewHand();
 }
 
-function initTraining() {
+async function loadPreflopRanges() {
+  try {
+    const response = await fetch("ranges.json", { cache: "no-cache" });
+    if (!response.ok) {
+      throw new Error("Failed to load ranges");
+    }
+    const rows = await response.json();
+    const map = new Map();
+    rows.forEach((row) => {
+      const key = `${row.card1}-${row.card2}-${row.suited ? 1 : 0}`;
+      map.set(key, row);
+    });
+    trainingState.rangeMap = map;
+  } catch (error) {
+    trainingState.rangeMap = new Map();
+  }
+}
+
+async function initTraining() {
   renderBuildTag();
   renderPlayerCountButtons();
+  await loadPreflopRanges();
   startSession();
 
   trainingElements.startBtn.addEventListener("click", startSession);
@@ -601,7 +822,9 @@ function initTraining() {
 }
 
 if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initTraining);
+  document.addEventListener("DOMContentLoaded", () => {
+    initTraining();
+  });
 } else {
   initTraining();
 }
