@@ -21,8 +21,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "5.0";
-const BUILD_TIMESTAMP = "2026-03-23 13:16";
+const BUILD_VERSION = "5.1";
+const BUILD_TIMESTAMP = "2026-03-23 13:19";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -199,7 +199,7 @@ function buildPositionThresholds(baseRows) {
       .filter((row) => row[position] === "Raise")
       .map((row) => handStrength(row.card1, row.card2, row.suited));
 
-    thresholds[position] = raiseScores.length ? Math.min(...raiseScores) : Infinity;
+    thresholds[position] = raiseScores.length ? Math.min.apply(null, raiseScores) : Infinity;
   });
 
   return thresholds;
@@ -269,7 +269,7 @@ function buildRangeMapForContext(baseRows, players, thresholds) {
   const delta = playerDelta + temperatureDelta;
 
   baseRows.forEach((baseRow) => {
-    const row = { ...baseRow };
+    const row = Object.assign({}, baseRow);
     const score = handStrength(baseRow.card1, baseRow.card2, baseRow.suited);
 
     Object.keys(thresholds).forEach((position) => {
@@ -434,13 +434,13 @@ function evaluateSevenCards(cards) {
       return;
     }
 
-    const unique = [...new Set(ranks)];
+    const unique = Array.from(new Set(ranks));
     const sfHigh = straightHighFromRanks(unique);
     if (sfHigh > bestStraightFlush) {
       bestStraightFlush = sfHigh;
     }
 
-    const sorted = [...ranks].sort((a, b) => b - a);
+    const sorted = ranks.slice().sort((a, b) => b - a);
     if (!flushRanks || compareRankVectors(sorted.slice(0, 5), flushRanks) > 0) {
       flushRanks = sorted.slice(0, 5);
     }
@@ -476,13 +476,13 @@ function evaluateSevenCards(cards) {
     }
 
     if (pairCandidates.length > 0) {
-      const pairRank = Math.max(...pairCandidates);
+      const pairRank = Math.max.apply(null, pairCandidates);
       return [6, tripRank, pairRank];
     }
   }
 
   if (flushRanks) {
-    return [5, ...flushRanks];
+    return [5].concat(flushRanks);
   }
 
   const straightHigh = straightHighFromRanks(distinctRanks);
@@ -492,7 +492,7 @@ function evaluateSevenCards(cards) {
 
   if (trips.length > 0) {
     const kickers = distinctRanks.filter((rank) => rank !== trips[0]).slice(0, 2);
-    return [3, trips[0], ...kickers];
+    return [3, trips[0]].concat(kickers);
   }
 
   if (pairs.length >= 2) {
@@ -504,10 +504,10 @@ function evaluateSevenCards(cards) {
 
   if (pairs.length === 1) {
     const kickers = distinctRanks.filter((rank) => rank !== pairs[0]).slice(0, 3);
-    return [1, pairs[0], ...kickers];
+    return [1, pairs[0]].concat(kickers);
   }
 
-  return [0, ...distinctRanks.slice(0, 5)];
+  return [0].concat(distinctRanks.slice(0, 5));
 }
 
 function normalizedHoleFromInts(cardA, cardB) {
@@ -573,8 +573,8 @@ function describeBoardTexture(boardCards) {
   });
 
   ranks.sort((a, b) => b - a);
-  const maxSuit = Math.max(...suitCounts);
-  const paired = [...rankCounts.values()].some((count) => count >= 2);
+  const maxSuit = Math.max.apply(null, suitCounts);
+  const paired = Array.from(rankCounts.values()).some((count) => count >= 2);
   const spread = ranks[0] - ranks[ranks.length - 1];
 
   const suitText = maxSuit >= 4 ? "very wet (strong flush pressure)" : (maxSuit === 3 ? "two-tone" : "rainbow-ish");
@@ -590,7 +590,7 @@ function getSessionStatusText() {
   }
 
   const userChips = trainingState.tournamentStacks.get(trainingState.userPosition) || 0;
-  const activePlayers = [...trainingState.tournamentStacks.values()].filter((chips) => chips > 0).length;
+  const activePlayers = Array.from(trainingState.tournamentStacks.values()).filter((chips) => chips > 0).length;
 
   if (trainingState.tournamentFinished) {
     return `${trainingState.tournamentResult} | You: ${userChips}/${trainingState.tournamentTotalChips}`;
@@ -881,7 +881,7 @@ function getUserPlayer(hand) {
 }
 
 function sampleFromDeck(deck, count) {
-  const copy = [...deck];
+  const copy = deck.slice();
   for (let i = copy.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
     [copy[i], copy[j]] = [copy[j], copy[i]];
@@ -901,7 +901,7 @@ function estimateSeatEquity(hand, seat, trials = 900) {
     return 1;
   }
 
-  const knownCards = new Set([actor.cards[0], actor.cards[1], ...hand.board]);
+  const knownCards = new Set([actor.cards[0], actor.cards[1]].concat(hand.board));
   const availableDeck = [];
   for (let cardInt = 0; cardInt < 52; cardInt += 1) {
     if (!knownCards.has(cardInt)) {
@@ -924,11 +924,11 @@ function estimateSeatEquity(hand, seat, trials = 900) {
     }
 
     const simulatedBoard = hand.board.concat(drawn.slice(cursor, cursor + unknownBoard));
-    const actorRank = evaluateSevenCards([actor.cards[0], actor.cards[1], ...simulatedBoard]);
+    const actorRank = evaluateSevenCards([actor.cards[0], actor.cards[1]].concat(simulatedBoard));
 
     const allRanks = [actorRank];
     sampledOpponents.forEach((cards) => {
-      allRanks.push(evaluateSevenCards([cards[0], cards[1], ...simulatedBoard]));
+      allRanks.push(evaluateSevenCards([cards[0], cards[1]].concat(simulatedBoard)));
     });
 
     let best = allRanks[0];
@@ -1355,7 +1355,7 @@ function evaluateShowdownWinner(hand) {
   const winners = [];
 
   contenders.forEach((player) => {
-    const rankVector = evaluateSevenCards([player.cards[0], player.cards[1], ...hand.board]);
+    const rankVector = evaluateSevenCards([player.cards[0], player.cards[1]].concat(hand.board));
     if (!best || compareRankVectors(rankVector, best) > 0) {
       best = rankVector;
       winners.length = 0;
@@ -1412,14 +1412,14 @@ function renderSummary(hand, winners) {
     foldOutcome.textContent = "Outcome driver: hand ended before showdown due to fold pressure and stack leverage.";
     el.summaryDetails.appendChild(foldOutcome);
   } else {
-    const winnerHand = evaluateSevenCards([winners[0].cards[0], winners[0].cards[1], ...hand.board]);
+    const winnerHand = evaluateSevenCards([winners[0].cards[0], winners[0].cards[1]].concat(hand.board));
     const winnerHandLabel = handCategoryLabel(winnerHand);
     const showdownNote = document.createElement("p");
     showdownNote.textContent = `Outcome driver: showdown resolved by best made hand (${winnerHandLabel}).`;
     el.summaryDetails.appendChild(showdownNote);
 
     if (user && !user.folded) {
-      const userHandLabel = handCategoryLabel(evaluateSevenCards([user.cards[0], user.cards[1], ...hand.board]));
+      const userHandLabel = handCategoryLabel(evaluateSevenCards([user.cards[0], user.cards[1]].concat(hand.board)));
       const userShowdown = document.createElement("p");
       userShowdown.textContent = `Your showdown hand: ${userHandLabel}.`;
       el.summaryDetails.appendChild(userShowdown);
@@ -1489,7 +1489,7 @@ function evaluateTournamentCompletion() {
   }
 
   const userChips = stacks.get(trainingState.userPosition) || 0;
-  const active = [...stacks.values()].filter((chips) => chips > 0).length;
+  const active = Array.from(stacks.values()).filter((chips) => chips > 0).length;
 
   if (userChips <= 0) {
     trainingState.tournamentFinished = true;
