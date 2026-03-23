@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "5.8";
-const BUILD_TIMESTAMP = "2026-03-23 15:00";
+const BUILD_VERSION = "5.9";
+const BUILD_TIMESTAMP = "2026-03-23 15:08";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -802,6 +802,9 @@ function renderTable(hand) {
     if (player.isUser) {
       row.className = "training-user-row";
     }
+    if (hand.pendingSeat === player.seat) {
+      row.classList.add("training-pending-row");
+    }
 
     const seatCell = document.createElement("td");
     seatCell.className = "col-seat";
@@ -1333,6 +1336,7 @@ async function runBettingRound(hand, handId) {
 
     hand.actionOn = player.isUser ? "You" : `Seat ${player.seat}`;
     hand.thinkingSeat = player.isUser ? null : player.seat;
+    hand.pendingSeat = player.seat;
     renderAll(hand, userEquity, player.isUser ? recommendationTextValue : "-");
 
     let action;
@@ -1346,6 +1350,7 @@ async function runBettingRound(hand, handId) {
     }
 
     hand.thinkingSeat = null;
+    hand.pendingSeat = null;
     const result = applyAction(hand, player, action);
     addLog(`${player.isUser ? "You" : `Seat ${player.seat}`} ${player.lastAction.toLowerCase()}.`, result.aggressive ? "raise" : "info");
 
@@ -1366,6 +1371,7 @@ async function runBettingRound(hand, handId) {
   }
 
   hand.thinkingSeat = null;
+  hand.pendingSeat = null;
   updateActionButtons(true, 0, 0, 0, 0);
 }
 
@@ -1592,6 +1598,7 @@ function createHand() {
     pot: 0,
     actionOn: "-",
     thinkingSeat: null,
+    pendingSeat: null,
     finishedByFold: false,
     userStartChips,
   };

@@ -1632,6 +1632,7 @@ h1 {
     padding: 3px 0;
     border: 0;
     text-align: left;
+    font-size: 1.23rem;
   }
 
   .training-table td::before {
@@ -1649,7 +1650,7 @@ h1 {
     min-width: 0;
     margin-right: 0;
     color: var(--heading);
-    font-size: 0.74rem;
+    font-size: 1.11rem;
     font-weight: 800;
     letter-spacing: 0.02em;
     text-transform: uppercase;
@@ -1725,23 +1726,30 @@ h1 {
     position: static;
     background: transparent;
   }
+
+  .training-table tbody tr.training-pending-row {
+    border-color: color-mix(in oklab, var(--accent) 65%, var(--table-border));
+    background: color-mix(in oklab, var(--accent) 18%, var(--surface-soft));
+    box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent);
+  }
 }
 
 @media (max-width: 390px) {
-  .training-table .col-status,
-  .training-table .col-bet {
-    display: none;
-  }
-
   .training-table td::before {
     content: none;
   }
 
   .training-mobile-field-label {
-    font-size: 0.7rem;
+    font-size: 1.05rem;
   }
 
   .training-table tbody tr {
     column-gap: 10px;
   }
+}
+
+.training-table tbody tr.training-pending-row {
+  border-color: color-mix(in oklab, var(--accent) 55%, var(--table-border));
+  background: color-mix(in oklab, var(--accent) 10%, var(--surface-soft));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 42%, transparent);
 }
