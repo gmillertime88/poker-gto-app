@@ -9,16 +9,8 @@ APP_JS_PATH = ROOT_PATH / "app.js"
 ODDS_JS_PATH = ROOT_PATH / "odds.js"
 TRAINING_JS_PATH = ROOT_PATH / "training.js"
 TARGET_FILES = [APP_JS_PATH, ODDS_JS_PATH, TRAINING_JS_PATH]
-HTML_CACHE_BUST_PATHS = [
-    ROOT_PATH / "index.html",
-    ROOT_PATH / "odds.html",
-    ROOT_PATH / "ranges.html",
-    ROOT_PATH / "training.html",
-]
 VERSION_PATTERN = re.compile(r'const BUILD_VERSION = "([^"]+)";')
 TIMESTAMP_PATTERN = re.compile(r'const BUILD_TIMESTAMP = "([^"]+)";')
-TRAINING_LINK_PATTERN = re.compile(r'href="training\.html(?:\?v=[^"]*)?"')
-TRAINING_SCRIPT_PATTERN = re.compile(r'src="training\.js(?:\?v=[^"]*)?"')
 
 
 def bump_version(version: str) -> str:
@@ -38,15 +30,8 @@ def bump_version(version: str) -> str:
     return "1.1"
 
 
-def apply_training_cache_busting(content: str, version: str, file_name: str) -> str:
-    updated = TRAINING_LINK_PATTERN.sub(f'href="training.html?v={version}"', content)
-    if file_name == "training.html":
-        updated = TRAINING_SCRIPT_PATTERN.sub(f'src="training.js?v={version}"', updated)
-    return updated
-
-
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Bump build constants and update training cache-busting URLs")
+    parser = argparse.ArgumentParser(description="Bump BUILD_VERSION and BUILD_TIMESTAMP in app.js, odds.js, and training.js")
     parser.add_argument("--dry-run", action="store_true", help="Show new values without writing files")
     args = parser.parse_args()
 
@@ -71,11 +56,6 @@ def main() -> int:
                 print(f"SKIP (missing): {target_path.name}")
                 continue
             print(f"WOULD UPDATE: {target_path.name}")
-        for html_path in HTML_CACHE_BUST_PATHS:
-            if not html_path.exists():
-                print(f"SKIP (missing): {html_path.name}")
-                continue
-            print(f"WOULD CACHE-BUST: {html_path.name}")
         return 0
 
     for target_path in TARGET_FILES:
@@ -91,19 +71,6 @@ def main() -> int:
         updated = TIMESTAMP_PATTERN.sub(f'const BUILD_TIMESTAMP = "{new_timestamp}";', updated, count=1)
         target_path.write_text(updated, encoding="utf-8")
         print(f"UPDATED: {target_path.name}")
-
-    for html_path in HTML_CACHE_BUST_PATHS:
-        if not html_path.exists():
-            print(f"SKIP (missing): {html_path.name}")
-            continue
-
-        content = html_path.read_text(encoding="utf-8")
-        updated = apply_training_cache_busting(content, new_version, html_path.name)
-        if updated != content:
-            html_path.write_text(updated, encoding="utf-8")
-            print(f"UPDATED CACHE-BUST: {html_path.name}")
-        else:
-            print(f"UNCHANGED CACHE-BUST: {html_path.name}")
 
     return 0
 
