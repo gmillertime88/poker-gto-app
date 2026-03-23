@@ -7,7 +7,8 @@ from pathlib import Path
 ROOT_PATH = Path(__file__).resolve().parents[1]
 APP_JS_PATH = ROOT_PATH / "app.js"
 ODDS_JS_PATH = ROOT_PATH / "odds.js"
-TARGET_FILES = [APP_JS_PATH, ODDS_JS_PATH]
+TRAINING_JS_PATH = ROOT_PATH / "training.js"
+TARGET_FILES = [APP_JS_PATH, ODDS_JS_PATH, TRAINING_JS_PATH]
 VERSION_PATTERN = re.compile(r'const BUILD_VERSION = "([^"]+)";')
 TIMESTAMP_PATTERN = re.compile(r'const BUILD_TIMESTAMP = "([^"]+)";')
 
@@ -30,7 +31,7 @@ def bump_version(version: str) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Bump BUILD_VERSION and BUILD_TIMESTAMP in app.js and odds.js")
+    parser = argparse.ArgumentParser(description="Bump BUILD_VERSION and BUILD_TIMESTAMP in app.js, odds.js, and training.js")
     parser.add_argument("--dry-run", action="store_true", help="Show new values without writing files")
     args = parser.parse_args()
 
