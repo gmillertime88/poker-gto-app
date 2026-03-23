@@ -21,8 +21,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "5.1";
-const BUILD_TIMESTAMP = "2026-03-23 13:19";
+const BUILD_VERSION = "5.2";
+const BUILD_TIMESTAMP = "2026-03-23 13:21";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -1844,7 +1844,7 @@ function hookActionButtons() {
         allIn: true,
       });
     });
-  });
+  }
 }
 
 async function initTraining() {
