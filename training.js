@@ -28,9 +28,9 @@ const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
 const STARTING_STACK = 1000;
 const NPC_ACTION_DELAY_RANGE_MS = {
-  conservative: [9000, 12000],
-  normal: [8000, 11000],
-  aggressive: [7000, 10000],
+  conservative: [5000, 5000],
+  normal: [5000, 5000],
+  aggressive: [5000, 5000],
 };
 const STREETS = ["preflop", "flop", "turn", "river"];
 
