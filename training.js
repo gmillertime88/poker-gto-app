@@ -21,8 +21,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "5.2";
-const BUILD_TIMESTAMP = "2026-03-23 13:21";
+const BUILD_VERSION = "5.3";
+const BUILD_TIMESTAMP = "2026-03-23 13:41";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -97,6 +97,8 @@ const trainingState = {
   handsPlayed: 0,
   tournamentFinished: false,
   tournamentResult: "",
+  userSeat: null,
+  betSelectionActive: false,
 };
 
 const el = {
@@ -203,34 +205,6 @@ function buildPositionThresholds(baseRows) {
   });
 
   return thresholds;
-}
-
-function rotateSessionPositions() {
-  if (!trainingState.tournamentStacks) {
-    return;
-  }
-
-  const positions = POSITIONS_BY_PLAYERS[trainingState.players] || POSITIONS_BY_PLAYERS[9];
-  const activePositions = positions.filter((position) => (trainingState.tournamentStacks.get(position) || 0) > 0);
-  if (!activePositions.length) {
-    return;
-  }
-
-  const rotated = new Map(trainingState.tournamentStacks);
-  for (let i = 0; i < activePositions.length; i += 1) {
-    const from = activePositions[i];
-    const to = activePositions[(i + 1) % activePositions.length];
-    rotated.set(to, trainingState.tournamentStacks.get(from) || 0);
-  }
-
-  trainingState.tournamentStacks = rotated;
-
-  if (trainingState.userPosition) {
-    const currentIndex = activePositions.indexOf(trainingState.userPosition);
-    if (currentIndex >= 0) {
-      trainingState.userPosition = activePositions[(currentIndex + 1) % activePositions.length];
-    }
-  }
 }
 
 function deriveAction(baseAction, position, score, threshold, delta) {
@@ -680,20 +654,25 @@ function getAggressiveTargetBounds(hand, player, toCall) {
 
 function readSelectedAggressiveTarget(minTarget, maxTarget, fallbackTarget) {
   if (!el.betSizeInput) {
-    return clampValue(fallbackTarget, minTarget, maxTarget);
+    return clampValue(fallbackTarget, 0, maxTarget);
   }
 
   const parsed = Number(el.betSizeInput.value);
   const value = Number.isFinite(parsed) ? parsed : fallbackTarget;
-  return clampValue(Math.round(value), minTarget, maxTarget);
+  return clampValue(Math.round(value), 0, maxTarget);
 }
 
-function updateBetSizingControls(disabled = true, minTarget = 0, maxTarget = 0, suggestedTarget = 0) {
+function updateBetSizingControls(disabled = true, maxTarget = 0, suggestedTarget = 0) {
   if (!el.betSizeInput || !el.betSizeRange) {
     return;
   }
 
-  if (disabled || minTarget <= 0 || maxTarget <= 0) {
+  const betSizingWrap = document.getElementById("training-bet-sizing");
+  if (betSizingWrap) {
+    betSizingWrap.hidden = Boolean(disabled);
+  }
+
+  if (disabled || maxTarget <= 0) {
     el.betSizeInput.disabled = true;
     el.betSizeInput.min = "0";
     el.betSizeInput.max = "0";
@@ -711,18 +690,18 @@ function updateBetSizingControls(disabled = true, minTarget = 0, maxTarget = 0, 
     return;
   }
 
-  const clampedSuggested = clampValue(Math.round(suggestedTarget), minTarget, maxTarget);
+  const clampedSuggested = clampValue(Math.round(suggestedTarget), 0, maxTarget);
   el.betSizeInput.disabled = false;
-  el.betSizeInput.min = String(minTarget);
+  el.betSizeInput.min = "0";
   el.betSizeInput.max = String(maxTarget);
   el.betSizeInput.value = String(clampedSuggested);
   if (el.betSizeSlider) {
     el.betSizeSlider.disabled = false;
-    el.betSizeSlider.min = String(minTarget);
+    el.betSizeSlider.min = "0";
     el.betSizeSlider.max = String(maxTarget);
     el.betSizeSlider.value = String(clampedSuggested);
   }
-  el.betSizeRange.textContent = `Range: ${minTarget} - ${maxTarget}`;
+  el.betSizeRange.textContent = `Range: 0 - ${maxTarget}`;
   if (el.betSizeCurrent) {
     el.betSizeCurrent.textContent = `Selected: ${clampedSuggested}`;
   }
@@ -752,27 +731,30 @@ function syncBetSizeControlsFromSource(value) {
   }
 }
 
-function updateActionButtons(disabled = true, toCall = 0, raiseTo = 0, minTarget = 0, maxTarget = 0) {
-  const canAggressive = !disabled && maxTarget > handCurrentBetSafe();
+function updateActionButtons(disabled = true, toCall = 0, raiseTo = 0, minTarget = 0, maxTarget = 0, player = null) {
+  const actor = player || (trainingState.hand ? getUserPlayer(trainingState.hand) : null);
+  const canAggressive = !disabled && Boolean(actor) && actor.chips > 0;
+  const showFold = !disabled && toCall > 0;
+  const showCallOrCheck = !disabled;
+  const showBet = canAggressive;
+  const suggestedAmount = actor ? Math.max(0, raiseTo - actor.streetBet) : 0;
 
-  el.foldBtn.disabled = disabled || toCall === 0;
-  el.checkCallBtn.disabled = disabled;
-  el.betRaiseBtn.disabled = !canAggressive;
+  el.foldBtn.hidden = !showFold;
+  el.checkCallBtn.hidden = !showCallOrCheck;
+  el.betRaiseBtn.hidden = !showBet;
+
+  el.foldBtn.disabled = !showFold;
+  el.checkCallBtn.disabled = !showCallOrCheck;
+  el.betRaiseBtn.disabled = !showBet;
   if (el.allInBtn) {
-    el.allInBtn.disabled = !canAggressive;
+    el.allInBtn.hidden = true;
+    el.allInBtn.disabled = true;
   }
 
   el.checkCallBtn.textContent = toCall > 0 ? `Call ${toCall}` : "Check";
-  el.betRaiseBtn.textContent = toCall > 0 ? "Raise" : "Bet";
+  el.betRaiseBtn.textContent = trainingState.betSelectionActive ? "Confirm Bet" : "Bet";
 
-  updateBetSizingControls(!canAggressive, minTarget, maxTarget, raiseTo);
-}
-
-function handCurrentBetSafe() {
-  if (!trainingState.hand) {
-    return 0;
-  }
-  return trainingState.hand.currentBet;
+  updateBetSizingControls(!(showBet && trainingState.betSelectionActive), actor ? actor.chips : 0, suggestedAmount);
 }
 
 function renderBoard(hand) {
@@ -1264,12 +1246,14 @@ async function getUserAction(hand, player, toCall, recommendation, equity) {
   return new Promise((resolve) => {
     const raiseTo = calcRaiseTarget(hand, player);
     const { minTarget, maxTarget } = getAggressiveTargetBounds(hand, player, toCall);
-    updateActionButtons(false, toCall, raiseTo, minTarget, maxTarget);
+    trainingState.betSelectionActive = false;
+    updateActionButtons(false, toCall, raiseTo, minTarget, maxTarget, player);
 
     trainingState.waitingForUser = true;
     trainingState.pendingUserDecision = (action) => {
       trainingState.waitingForUser = false;
       trainingState.pendingUserDecision = null;
+      trainingState.betSelectionActive = false;
       updateActionButtons(true, 0, 0, 0, 0);
       resolve(action);
     };
@@ -1462,10 +1446,14 @@ function resetTrainingStateVisuals() {
 
 function initializeTournament() {
   const positions = POSITIONS_BY_PLAYERS[trainingState.players] || POSITIONS_BY_PLAYERS[9];
+  const startingUserSeat = Math.max(1, positions.indexOf(trainingState.userPosition) + 1);
   trainingState.tournamentStacks = new Map();
-  positions.forEach((position) => {
-    trainingState.tournamentStacks.set(position, STARTING_STACK);
-  });
+  for (let seat = 1; seat <= positions.length; seat += 1) {
+    trainingState.tournamentStacks.set(seat, STARTING_STACK);
+  }
+  trainingState.userSeat = startingUserSeat;
+  trainingState.userPosition = positions[startingUserSeat - 1] || trainingState.userPosition;
+  trainingState.betSelectionActive = false;
   trainingState.tournamentTotalChips = positions.length * STARTING_STACK;
   trainingState.handsPlayed = 0;
   trainingState.tournamentFinished = false;
@@ -1478,7 +1466,7 @@ function persistTournamentStacks(hand) {
   }
 
   hand.players.forEach((player) => {
-    trainingState.tournamentStacks.set(player.position, player.chips);
+    trainingState.tournamentStacks.set(player.seat, player.chips);
   });
 }
 
@@ -1488,7 +1476,7 @@ function evaluateTournamentCompletion() {
     return false;
   }
 
-  const userChips = stacks.get(trainingState.userPosition) || 0;
+  const userChips = stacks.get(trainingState.userSeat) || 0;
   const active = Array.from(stacks.values()).filter((chips) => chips > 0).length;
 
   if (userChips <= 0) {
@@ -1512,32 +1500,45 @@ function clearTournamentProgress() {
   trainingState.handsPlayed = 0;
   trainingState.tournamentFinished = false;
   trainingState.tournamentResult = "";
+  trainingState.userSeat = null;
 }
 
 function createHand() {
-  const positions = POSITIONS_BY_PLAYERS[trainingState.players] || POSITIONS_BY_PLAYERS[9];
+  const configuredPositions = POSITIONS_BY_PLAYERS[trainingState.players] || POSITIONS_BY_PLAYERS[9];
   const deck = shuffle(createDeck());
 
   if (!trainingState.tournamentStacks) {
     initializeTournament();
   }
 
-  const activePositions = positions.filter((position) => (trainingState.tournamentStacks.get(position) || 0) > 0);
+  const activeSeats = Array.from(trainingState.tournamentStacks.entries())
+    .filter(([, chips]) => chips > 0)
+    .map(([seat]) => seat)
+    .sort((a, b) => a - b);
+  const activeCount = activeSeats.length;
+  const activePositions = POSITIONS_BY_PLAYERS[activeCount] || configuredPositions;
+  const handOffset = activeCount > 0 ? (trainingState.handsPlayed % activeCount) : 0;
 
-  const players = activePositions.map((position, idx) => ({
-    chips: trainingState.tournamentStacks.get(position) || 0,
-    inHand: true,
-    seat: idx + 1,
-    position,
-    isUser: position === trainingState.userPosition,
-    cards: [deck.pop(), deck.pop()],
-    folded: false,
-    eliminated: false,
-    streetBet: 0,
-    lastAction: "-",
-  }));
+  const players = activeSeats.map((seat, idx) => {
+    const position = activePositions[(idx + handOffset) % activePositions.length];
+    return {
+      chips: trainingState.tournamentStacks.get(seat) || 0,
+      inHand: true,
+      seat,
+      position,
+      isUser: seat === trainingState.userSeat,
+      cards: [deck.pop(), deck.pop()],
+      folded: false,
+      eliminated: false,
+      streetBet: 0,
+      lastAction: "-",
+    };
+  });
 
   const userPlayer = players.find((player) => player.isUser);
+  if (userPlayer) {
+    trainingState.userPosition = userPlayer.position;
+  }
   const userStartChips = userPlayer ? userPlayer.chips : 0;
 
   return {
@@ -1659,6 +1660,7 @@ async function playHand(handId) {
     updateActionButtons(true, 0, 0);
     trainingState.waitingForUser = false;
     trainingState.pendingUserDecision = null;
+    trainingState.betSelectionActive = false;
     el.startButton.disabled = trainingState.tournamentFinished;
   }
 }
@@ -1711,6 +1713,7 @@ function applySettingsChange() {
   trainingState.showdownRevealed = false;
   trainingState.waitingForUser = false;
   trainingState.pendingUserDecision = null;
+  trainingState.betSelectionActive = false;
   clearTournamentProgress();
   if (el.settingsPanel) {
     el.settingsPanel.open = true;
@@ -1739,6 +1742,7 @@ function resetHand() {
   clearTournamentProgress();
   trainingState.waitingForUser = false;
   trainingState.pendingUserDecision = null;
+  trainingState.betSelectionActive = false;
   el.startButton.textContent = "Deal";
   el.startButton.disabled = false;
   if (el.settingsPanel) {
@@ -1758,15 +1762,11 @@ function startHand() {
     return;
   }
 
-  const continuingSession = Boolean(trainingState.tournamentStacks && trainingState.handsPlayed > 0);
-  if (continuingSession) {
-    rotateSessionPositions();
-    renderSelectors();
-  }
-
   if (!trainingState.tournamentStacks) {
     initializeTournament();
   }
+
+  trainingState.betSelectionActive = false;
 
   trainingState.handId += 1;
   trainingState.hand = createHand();
@@ -1812,6 +1812,7 @@ function hookActionButtons() {
 
     const user = getUserPlayer(trainingState.hand);
     const toCall = Math.max(0, trainingState.hand.currentBet - user.streetBet);
+    trainingState.betSelectionActive = false;
     trainingState.pendingUserDecision(toCall > 0 ? "call" : "check");
   });
 
@@ -1822,9 +1823,16 @@ function hookActionButtons() {
 
     const user = getUserPlayer(trainingState.hand);
     const toCall = Math.max(0, trainingState.hand.currentBet - user.streetBet);
-    const { minTarget, maxTarget } = getAggressiveTargetBounds(trainingState.hand, user, toCall);
     const fallbackTarget = calcRaiseTarget(trainingState.hand, user);
-    const targetBet = readSelectedAggressiveTarget(minTarget, maxTarget, fallbackTarget);
+
+    if (!trainingState.betSelectionActive) {
+      trainingState.betSelectionActive = true;
+      updateActionButtons(false, toCall, fallbackTarget, 0, 0, user);
+      return;
+    }
+
+    const selectedAmount = readSelectedAggressiveTarget(0, user.chips, Math.max(0, fallbackTarget - user.streetBet));
+    const targetBet = user.streetBet + selectedAmount;
     trainingState.pendingUserDecision({
       type: toCall > 0 ? "raise" : "bet",
       targetBet,
