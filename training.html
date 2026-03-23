@@ -39,7 +39,7 @@
           </details>
         </div>
 
-        <p class="subtitle">Set the table context, then play one full simulated hand with recommendations and feedback.</p>
+        <p class="subtitle">Set the table context, then play a running session where chip stacks carry over each hand.</p>
 
         <section class="field-group">
           <h2>Players <span class="required-asterisk" aria-hidden="true">*</span></h2>
@@ -63,6 +63,9 @@
 
         <section id="training-status" class="result training-status" aria-live="polite">
           <div class="result-row odds-summary-row">
+            <span class="label summary-label">Session: <span id="training-session" class="value">-</span></span>
+          </div>
+          <div class="result-row odds-summary-row">
             <span class="label summary-label">Street: <span id="training-street" class="value">-</span></span>
           </div>
           <div class="result-row odds-summary-row">
@@ -71,8 +74,8 @@
           <div class="result-row odds-summary-row">
             <span class="label summary-label">Your Odds: <span id="training-odds" class="value">-</span></span>
           </div>
-          <div class="result-row odds-summary-row">
-            <span class="label summary-label">Recommended: <span id="training-reco" class="value">-</span></span>
+          <div class="result-row odds-summary-row training-reco-row">
+            <span class="label summary-label">Recommended: <span id="training-reco" class="value training-reco-value">-</span></span>
           </div>
           <div class="result-row odds-summary-row">
             <span class="label summary-label">Action On: <span id="training-action-on" class="value">-</span></span>

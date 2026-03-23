@@ -91,6 +91,11 @@ const trainingState = {
   waitingForUser: false,
   pendingUserDecision: null,
   decisionLog: [],
+  tournamentStacks: null,
+  tournamentTotalChips: 0,
+  handsPlayed: 0,
+  tournamentFinished: false,
+  tournamentResult: "",
 };
 
 const el = {
@@ -99,6 +104,7 @@ const el = {
   positionGrid: document.getElementById("training-position-grid"),
   startButton: document.getElementById("training-start-btn"),
   resetButton: document.getElementById("training-reset-btn"),
+  session: document.getElementById("training-session"),
   street: document.getElementById("training-street"),
   pot: document.getElementById("training-pot"),
   odds: document.getElementById("training-odds"),
@@ -261,6 +267,11 @@ function rankNumToText(rankNum) {
 function makeCardToken(cardInt, hidden = false) {
   const token = document.createElement("span");
   token.className = `card-token${hidden ? " card-token-hidden" : ""}`;
+
+  if (cardInt === null || cardInt === undefined) {
+    token.textContent = "--";
+    return token;
+  }
 
   if (hidden) {
     token.textContent = "??";
@@ -457,6 +468,69 @@ function streetLabel(street) {
   return street.charAt(0).toUpperCase() + street.slice(1);
 }
 
+function handCategoryLabel(rankVector) {
+  if (rankVector[0] === 8 && rankVector[1] === 14) {
+    return "Royal Flush";
+  }
+
+  const labels = [
+    "High Card",
+    "Pair",
+    "Two Pair",
+    "Three of a Kind",
+    "Straight",
+    "Flush",
+    "Full House",
+    "Four of a Kind",
+    "Straight Flush",
+  ];
+
+  return labels[rankVector[0]] || "Hand";
+}
+
+function describeBoardTexture(boardCards) {
+  if (!boardCards || boardCards.length < 3) {
+    return "Board texture unavailable.";
+  }
+
+  const suitCounts = [0, 0, 0, 0];
+  const rankCounts = new Map();
+  const ranks = [];
+
+  boardCards.forEach((cardInt) => {
+    const { rank, suit } = cardFromInt(cardInt);
+    suitCounts[suit] += 1;
+    rankCounts.set(rank, (rankCounts.get(rank) || 0) + 1);
+    ranks.push(rank);
+  });
+
+  ranks.sort((a, b) => b - a);
+  const maxSuit = Math.max(...suitCounts);
+  const paired = [...rankCounts.values()].some((count) => count >= 2);
+  const spread = ranks[0] - ranks[ranks.length - 1];
+
+  const suitText = maxSuit >= 4 ? "very wet (strong flush pressure)" : (maxSuit === 3 ? "two-tone" : "rainbow-ish");
+  const pairText = paired ? "paired" : "unpaired";
+  const connectText = spread <= 5 ? "connected" : "disconnected";
+
+  return `${pairText}, ${connectText}, ${suitText}`;
+}
+
+function getSessionStatusText() {
+  if (!trainingState.tournamentStacks) {
+    return "Not started";
+  }
+
+  const userChips = trainingState.tournamentStacks.get(trainingState.userPosition) || 0;
+  const activePlayers = [...trainingState.tournamentStacks.values()].filter((chips) => chips > 0).length;
+
+  if (trainingState.tournamentFinished) {
+    return `${trainingState.tournamentResult} | You: ${userChips}/${trainingState.tournamentTotalChips}`;
+  }
+
+  return `Hand ${trainingState.handsPlayed + 1} | You: ${userChips}/${trainingState.tournamentTotalChips} | Players Left: ${activePlayers}`;
+}
+
 function positionToSeatMap(players) {
   const map = new Map();
   players.forEach((p, idx) => {
@@ -568,7 +642,7 @@ function renderTable(hand) {
     stackCell.textContent = chipsLabel(player.chips);
 
     const statusCell = document.createElement("td");
-    statusCell.textContent = player.folded ? "Folded" : (isAllIn(player) ? "All-In" : "Active");
+    statusCell.textContent = player.eliminated ? "Eliminated" : (player.folded ? "Folded" : (isAllIn(player) ? "All-In" : "Active"));
 
     const streetBetCell = document.createElement("td");
     streetBetCell.textContent = String(player.streetBet);
@@ -588,11 +662,14 @@ function renderTable(hand) {
 }
 
 function renderStatus(hand, equity = null, recommendation = "-") {
+  el.session.textContent = getSessionStatusText();
+
   if (!hand) {
     el.street.textContent = "-";
     el.pot.textContent = "-";
     el.odds.textContent = "-";
     el.recommendation.textContent = "-";
+    el.recommendation.className = "value training-reco-value";
     el.actionOn.textContent = "-";
     return;
   }
@@ -601,6 +678,7 @@ function renderStatus(hand, equity = null, recommendation = "-") {
   el.pot.textContent = chipsLabel(hand.pot);
   el.odds.textContent = equity === null ? "-" : `${(equity * 100).toFixed(1)}%`;
   el.recommendation.textContent = recommendation;
+  el.recommendation.className = `value training-reco-value ${normalizedAction(recommendation)}`;
   el.actionOn.textContent = hand.actionOn || "-";
 }
 
@@ -733,10 +811,22 @@ function recommendationForSituation(hand, player, toCall, equity) {
 
 function normalizedAction(action) {
   const raw = String(action || "").toLowerCase();
-  if (raw === "bet") {
+  if (raw.startsWith("bet")) {
     return "raise";
   }
-  return raw;
+  if (raw.startsWith("raise")) {
+    return "raise";
+  }
+  if (raw.startsWith("call")) {
+    return "call";
+  }
+  if (raw.startsWith("check")) {
+    return "check";
+  }
+  if (raw.startsWith("fold")) {
+    return "fold";
+  }
+  return "info";
 }
 
 function didFollowRecommendation(recommended, taken) {
@@ -777,6 +867,32 @@ function recommendationText(hand, player, recommendation, toCall) {
   const target = calcRaiseTarget(hand, player);
   const verb = toCall > 0 ? "Raise" : "Bet";
   return `${verb} to ${target}`;
+}
+
+function recommendationReason(hand, player, toCall, equity, recommendation) {
+  if (hand.street === "preflop") {
+    const base = getPreflopRecommendation(player);
+    if (toCall <= 0) {
+      return `Range-driven preflop plan from ${player.position}: ${base}.`;
+    }
+
+    if (base === "Raise") {
+      return `Strong range from ${player.position}; continue aggressively unless facing very large pressure.`;
+    }
+
+    if (base === "Call") {
+      return `Marginal continue hand from ${player.position}; call performs better than raising.`;
+    }
+
+    return `Out-of-range continue from ${player.position}; folding preserves chips.`;
+  }
+
+  const potOdds = toCall / Math.max(1, (hand.pot + toCall));
+  if (toCall <= 0) {
+    return `No call required. Equity ${(equity * 100).toFixed(1)}% supports ${recommendation.toLowerCase()} pressure.`;
+  }
+
+  return `Pot odds ${(potOdds * 100).toFixed(1)}% vs equity ${(equity * 100).toFixed(1)}% -> ${recommendation.toLowerCase()}.`;
 }
 
 function getNpcAction(hand, player, toCall, recommendation, equity) {
@@ -925,7 +1041,7 @@ function getEligibleSeats(hand, order) {
     .map((player) => player.seat);
 }
 
-function buildDecisionRecord(hand, player, recommendationAction, recommendationTextValue, action, toCall, equity) {
+function buildDecisionRecord(hand, player, recommendationAction, recommendationTextValue, action, toCall, equity, reason) {
   if (!player.isUser) {
     return;
   }
@@ -936,6 +1052,7 @@ function buildDecisionRecord(hand, player, recommendationAction, recommendationT
     recommendation: recommendationTextValue,
     action,
     equity,
+    reason,
     followed: didFollowRecommendation(recommendationAction, action),
   });
 }
@@ -983,6 +1100,7 @@ async function runBettingRound(hand, handId) {
     const actorEquity = estimateSeatEquity(hand, player.seat);
     const recommendation = recommendationForSituation(hand, player, toCall, actorEquity);
     const recommendationTextValue = recommendationText(hand, player, recommendation, toCall);
+    const reason = recommendationReason(hand, player, toCall, actorEquity, recommendation);
 
     hand.actionOn = player.isUser ? "You" : `Seat ${player.seat}`;
     renderAll(hand, userEquity, player.isUser ? recommendationTextValue : "-");
@@ -991,7 +1109,7 @@ async function runBettingRound(hand, handId) {
 
     if (player.isUser) {
       action = await getUserAction(hand, player, toCall, recommendationTextValue, actorEquity);
-      buildDecisionRecord(hand, player, recommendation, recommendationTextValue, action, toCall, actorEquity);
+      buildDecisionRecord(hand, player, recommendation, recommendationTextValue, action, toCall, actorEquity, reason);
     } else {
       el.prompt.textContent = `Seat ${player.seat} is thinking...`;
       await sleep(getNpcThinkDelayMs(), handId);
@@ -1060,23 +1178,56 @@ function payoutShowdown(hand) {
   return winners;
 }
 
-function renderSummary(winners) {
+function renderSummary(hand, winners) {
   const followed = trainingState.decisionLog.filter((item) => item.followed).length;
   const total = trainingState.decisionLog.length;
+  const missed = total - followed;
 
   const winnerText = winners.map((winner) => (winner.isUser ? "You" : `Seat ${winner.seat}`)).join(", ");
   el.summaryHeadline.textContent = `${winnerText} won the hand.`;
 
   el.summaryDetails.innerHTML = "";
 
+  const user = getUserPlayer(hand);
+  const userEndChips = user ? user.chips : 0;
+  const stackDelta = userEndChips - hand.userStartChips;
+  const texture = describeBoardTexture(hand.board);
+
+  const result = document.createElement("p");
+  result.textContent = `You started this hand with ${hand.userStartChips} chips and finished with ${userEndChips} (${stackDelta >= 0 ? "+" : ""}${stackDelta}).`;
+  el.summaryDetails.appendChild(result);
+
+  const board = document.createElement("p");
+  board.textContent = `Board texture: ${texture}`;
+  el.summaryDetails.appendChild(board);
+
+  if (hand.finishedByFold) {
+    const foldOutcome = document.createElement("p");
+    foldOutcome.textContent = "Outcome driver: hand ended before showdown due to fold pressure and stack leverage.";
+    el.summaryDetails.appendChild(foldOutcome);
+  } else {
+    const winnerHand = evaluateSevenCards([winners[0].cards[0], winners[0].cards[1], ...hand.board]);
+    const winnerHandLabel = handCategoryLabel(winnerHand);
+    const showdownNote = document.createElement("p");
+    showdownNote.textContent = `Outcome driver: showdown resolved by best made hand (${winnerHandLabel}).`;
+    el.summaryDetails.appendChild(showdownNote);
+
+    if (user && !user.folded) {
+      const userHandLabel = handCategoryLabel(evaluateSevenCards([user.cards[0], user.cards[1], ...hand.board]));
+      const userShowdown = document.createElement("p");
+      userShowdown.textContent = `Your showdown hand: ${userHandLabel}.`;
+      el.summaryDetails.appendChild(userShowdown);
+    }
+  }
+
   const score = document.createElement("p");
-  score.textContent = `You followed ${followed} of ${total} recommendations.`;
+  score.textContent = `Decision quality: followed ${followed} of ${total} recommendations (${missed} deviations).`;
   el.summaryDetails.appendChild(score);
 
   trainingState.decisionLog.forEach((item, idx) => {
     const row = document.createElement("p");
     row.className = item.followed ? "summary-good" : "summary-missed";
-    row.textContent = `${idx + 1}. ${item.street} | Equity ${(item.equity * 100).toFixed(1)}% | Recommended ${item.recommendation} | You ${item.action}${item.followed ? "" : " (missed)"}`;
+    row.textContent = `${idx + 1}. ${item.street} | Equity ${(item.equity * 100).toFixed(1)}% | Recommended ${item.recommendation} | You ${item.action}${item.followed ? "" : " (missed)"} | Why: ${item.reason}`;
     el.summaryDetails.appendChild(row);
   });
 
@@ -1090,7 +1241,7 @@ function renderSummary(winners) {
 }
 
 function setInitialPrompt() {
-  el.prompt.textContent = "Start a hand to begin training.";
+  el.prompt.textContent = "Start a hand to begin training. Chip stacks persist across hands until the session ends.";
 }
 
 function resetTrainingStateVisuals() {
@@ -1103,20 +1254,83 @@ function resetTrainingStateVisuals() {
   setInitialPrompt();
 }
 
+function initializeTournament() {
+  const positions = POSITIONS_BY_PLAYERS[trainingState.players] || POSITIONS_BY_PLAYERS[9];
+  trainingState.tournamentStacks = new Map();
+  positions.forEach((position) => {
+    trainingState.tournamentStacks.set(position, STARTING_STACK);
+  });
+  trainingState.tournamentTotalChips = positions.length * STARTING_STACK;
+  trainingState.handsPlayed = 0;
+  trainingState.tournamentFinished = false;
+  trainingState.tournamentResult = "";
+}
+
+function persistTournamentStacks(hand) {
+  if (!trainingState.tournamentStacks) {
+    return;
+  }
+
+  hand.players.forEach((player) => {
+    trainingState.tournamentStacks.set(player.position, player.chips);
+  });
+}
+
+function evaluateTournamentCompletion() {
+  const stacks = trainingState.tournamentStacks;
+  if (!stacks) {
+    return false;
+  }
+
+  const userChips = stacks.get(trainingState.userPosition) || 0;
+  const active = [...stacks.values()].filter((chips) => chips > 0).length;
+
+  if (userChips <= 0) {
+    trainingState.tournamentFinished = true;
+    trainingState.tournamentResult = "Session Lost";
+    return true;
+  }
+
+  if (userChips >= trainingState.tournamentTotalChips || active <= 1) {
+    trainingState.tournamentFinished = true;
+    trainingState.tournamentResult = "Session Won";
+    return true;
+  }
+
+  return false;
+}
+
+function clearTournamentProgress() {
+  trainingState.tournamentStacks = null;
+  trainingState.tournamentTotalChips = 0;
+  trainingState.handsPlayed = 0;
+  trainingState.tournamentFinished = false;
+  trainingState.tournamentResult = "";
+}
+
 function createHand() {
   const positions = POSITIONS_BY_PLAYERS[trainingState.players] || POSITIONS_BY_PLAYERS[9];
   const deck = shuffle(createDeck());
 
+  if (!trainingState.tournamentStacks) {
+    initializeTournament();
+  }
+
   const players = positions.map((position, idx) => ({
+    chips: trainingState.tournamentStacks.get(position) || 0,
+    inHand: (trainingState.tournamentStacks.get(position) || 0) > 0,
     seat: idx + 1,
     position,
     isUser: position === trainingState.userPosition,
-    chips: STARTING_STACK,
-    cards: [deck.pop(), deck.pop()],
-    folded: false,
+    cards: (trainingState.tournamentStacks.get(position) || 0) > 0 ? [deck.pop(), deck.pop()] : [null, null],
+    folded: (trainingState.tournamentStacks.get(position) || 0) <= 0,
+    eliminated: (trainingState.tournamentStacks.get(position) || 0) <= 0,
     streetBet: 0,
     lastAction: "-",
   }));
+
+  const userPlayer = players.find((player) => player.isUser);
+  const userStartChips = userPlayer ? userPlayer.chips : 0;
 
   return {
     deck,
@@ -1128,6 +1342,7 @@ function createHand() {
     pot: 0,
     actionOn: "-",
     finishedByFold: false,
+    userStartChips,
   };
 }
 
@@ -1136,14 +1351,22 @@ function postBlinds(hand) {
   const sb = hand.players[seatMap.get("SB")];
   const bb = hand.players[seatMap.get("BB")];
 
-  const sbPaid = postChips(hand, sb, SMALL_BLIND);
-  const bbPaid = postChips(hand, bb, BIG_BLIND);
+  if (!sb || !bb) {
+    return;
+  }
 
-  sb.lastAction = `Post SB ${sbPaid}`;
-  bb.lastAction = `Post BB ${bbPaid}`;
+  const sbPaid = sb.chips > 0 ? postChips(hand, sb, SMALL_BLIND) : 0;
+  const bbPaid = bb.chips > 0 ? postChips(hand, bb, BIG_BLIND) : 0;
 
-  addLog(`Seat ${sb.seat} posts small blind ${sbPaid}.`);
-  addLog(`Seat ${bb.seat} posts big blind ${bbPaid}.`);
+  sb.lastAction = sbPaid > 0 ? `Post SB ${sbPaid}` : "Out";
+  bb.lastAction = bbPaid > 0 ? `Post BB ${bbPaid}` : "Out";
+
+  if (sbPaid > 0) {
+    addLog(`Seat ${sb.seat} posts small blind ${sbPaid}.`);
+  }
+  if (bbPaid > 0) {
+    addLog(`Seat ${bb.seat} posts big blind ${bbPaid}.`);
+  }
 }
 
 async function playHand(handId) {
@@ -1197,8 +1420,18 @@ async function playHand(handId) {
     const finalUser = getUserPlayer(trainingState.hand);
     const finalEquity = finalUser && !finalUser.folded ? estimateSeatEquity(trainingState.hand, finalUser.seat) : null;
     renderAll(trainingState.hand, finalEquity, "Hand complete");
-    renderSummary(winners);
-    el.prompt.textContent = "Hand complete. Review feedback and click Start Hand to run another hand.";
+    persistTournamentStacks(trainingState.hand);
+    trainingState.handsPlayed += 1;
+    const sessionDone = evaluateTournamentCompletion();
+    renderSummary(trainingState.hand, winners);
+
+    if (sessionDone) {
+      el.prompt.textContent = `${trainingState.tournamentResult}. Click Reset to start a new session.`;
+      el.startButton.disabled = true;
+    } else {
+      el.prompt.textContent = "Hand complete. Click Start Hand to continue the session with current chip stacks.";
+      el.startButton.disabled = false;
+    }
   } catch (error) {
     if (error && error.message === "HAND_CANCELLED") {
       return;
@@ -1210,7 +1443,7 @@ async function playHand(handId) {
     updateActionButtons(true, 0, 0);
     trainingState.waitingForUser = false;
     trainingState.pendingUserDecision = null;
-    el.startButton.disabled = false;
+    el.startButton.disabled = trainingState.tournamentFinished;
   }
 }
 
@@ -1228,10 +1461,12 @@ function renderSelectors() {
   PLAYER_COUNTS.forEach((count) => {
     renderSelectionButton(el.playersGrid, String(count), trainingState.players === count, () => {
       trainingState.players = count;
+      clearTournamentProgress();
       const availablePositions = getActivePositions();
       if (!availablePositions.includes(trainingState.userPosition)) {
         trainingState.userPosition = null;
       }
+      resetTrainingStateVisuals();
       renderSelectors();
     });
   });
@@ -1240,6 +1475,8 @@ function renderSelectors() {
   TABLE_TEMPERATURES.forEach((temperature) => {
     renderSelectionButton(el.temperatureGrid, temperature.label, trainingState.temperature === temperature.key, () => {
       trainingState.temperature = temperature.key;
+      clearTournamentProgress();
+      resetTrainingStateVisuals();
       renderSelectors();
     });
   });
@@ -1248,6 +1485,8 @@ function renderSelectors() {
   getActivePositions().forEach((position) => {
     renderSelectionButton(el.positionGrid, position, trainingState.userPosition === position, () => {
       trainingState.userPosition = position;
+      clearTournamentProgress();
+      resetTrainingStateVisuals();
       renderSelectors();
     });
   });
@@ -1269,8 +1508,10 @@ function resetHand() {
   trainingState.hand = null;
   trainingState.showdownRevealed = false;
   trainingState.decisionLog = [];
+  clearTournamentProgress();
   trainingState.waitingForUser = false;
   trainingState.pendingUserDecision = null;
+  el.startButton.textContent = "Start Hand";
   el.startButton.disabled = false;
   resetTrainingStateVisuals();
 }
@@ -1281,7 +1522,15 @@ function startHand() {
     return;
   }
 
-  resetHand();
+  if (trainingState.tournamentFinished) {
+    el.prompt.textContent = `${trainingState.tournamentResult}. Click Reset to begin a new session.`;
+    return;
+  }
+
+  if (!trainingState.tournamentStacks) {
+    initializeTournament();
+  }
+
   trainingState.handId += 1;
   trainingState.hand = createHand();
   trainingState.showdownRevealed = false;
@@ -1289,7 +1538,8 @@ function startHand() {
 
   el.summary.hidden = true;
   el.startButton.disabled = true;
-  addLog("New hand started.");
+  el.startButton.textContent = "Continue Session";
+  addLog(`Hand ${trainingState.handsPlayed + 1} started.`);
   playHand(trainingState.handId);
 }
 
