@@ -113,10 +113,26 @@
 
         <section class="field-group">
           <h2>Action</h2>
+          <div class="training-bet-sizing" id="training-bet-sizing">
+            <label for="training-bet-size-input" class="training-bet-sizing-label">Bet / Raise To</label>
+            <div class="training-bet-sizing-controls">
+              <input
+                id="training-bet-size-input"
+                class="training-bet-size-input"
+                type="number"
+                min="0"
+                step="10"
+                value="0"
+                disabled
+              />
+              <span id="training-bet-size-range" class="training-bet-size-range">Range: -</span>
+            </div>
+          </div>
           <div id="training-action-buttons" class="training-action-buttons">
             <button id="training-fold-btn" class="select-btn danger" type="button" disabled>Fold</button>
             <button id="training-check-call-btn" class="select-btn" type="button" disabled>Call</button>
             <button id="training-bet-raise-btn" class="select-btn" type="button" disabled>Raise</button>
+            <button id="training-all-in-btn" class="select-btn" type="button" disabled>All In</button>
           </div>
           <p id="training-prompt" class="training-prompt">Start a hand to begin training.</p>
         </section>
