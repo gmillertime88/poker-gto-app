@@ -21,8 +21,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "4.8";
-const BUILD_TIMESTAMP = "2026-03-23 13:02";
+const BUILD_VERSION = "4.9";
+const BUILD_TIMESTAMP = "2026-03-23 13:12";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -84,6 +84,7 @@ const trainingState = {
   userPosition: null,
   baseRows: [],
   thresholds: {},
+  rangesLoaded: false,
   rangeMapsByContext: new Map(),
   handId: 0,
   hand: null,
@@ -1710,6 +1711,7 @@ async function loadRanges() {
 
   trainingState.baseRows = await response.json();
   trainingState.thresholds = buildPositionThresholds(trainingState.baseRows);
+  trainingState.rangesLoaded = true;
   trainingState.rangeMapsByContext.clear();
 }
 
@@ -1830,18 +1832,20 @@ function hookActionButtons() {
 }
 
 async function initTraining() {
-  try {
-    renderBuildTag();
-    await loadRanges();
-    renderSelectors();
-    resetTrainingStateVisuals();
+  renderBuildTag();
+  renderSelectors();
+  resetTrainingStateVisuals();
 
-    el.startButton.addEventListener("click", startHand);
-    el.resetButton.addEventListener("click", resetHand);
-    hookActionButtons();
+  el.startButton.addEventListener("click", startHand);
+  el.resetButton.addEventListener("click", resetHand);
+  hookActionButtons();
+
+  try {
+    await loadRanges();
   } catch (error) {
+    trainingState.rangesLoaded = false;
     console.error(error);
-    setPromptMessage("Unable to initialize Training module.");
+    setPromptMessage("Ranges could not be loaded. Settings are available, but recommendations may be limited until reload succeeds.");
   }
 }
 
