@@ -1233,7 +1233,7 @@ h1 {
 
 .training-bet-sizing-controls {
   display: grid;
-  grid-template-columns: minmax(140px, 180px) 1fr;
+  grid-template-columns: minmax(140px, 180px) minmax(180px, 1fr);
   gap: 10px;
   align-items: center;
 }
@@ -1249,10 +1249,21 @@ h1 {
   font-weight: 700;
 }
 
+.training-bet-size-slider {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
 .training-bet-size-range {
   font-size: 0.86rem;
   font-weight: 700;
   color: var(--text-muted);
+}
+
+.training-bet-size-current {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--text);
 }
 
 .training-prompt {

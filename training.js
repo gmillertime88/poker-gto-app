@@ -21,8 +21,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "4.5";
-const BUILD_TIMESTAMP = "2026-03-23 11:10";
+const BUILD_VERSION = "4.6";
+const BUILD_TIMESTAMP = "2026-03-23 11:16";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -118,7 +118,9 @@ const el = {
   betRaiseBtn: document.getElementById("training-bet-raise-btn"),
   allInBtn: document.getElementById("training-all-in-btn"),
   betSizeInput: document.getElementById("training-bet-size-input"),
+  betSizeSlider: document.getElementById("training-bet-size-slider"),
   betSizeRange: document.getElementById("training-bet-size-range"),
+  betSizeCurrent: document.getElementById("training-bet-size-current"),
   prompt: document.getElementById("training-prompt"),
   log: document.getElementById("training-log"),
   summary: document.getElementById("training-summary"),
@@ -686,7 +688,16 @@ function updateBetSizingControls(disabled = true, minTarget = 0, maxTarget = 0, 
     el.betSizeInput.min = "0";
     el.betSizeInput.max = "0";
     el.betSizeInput.value = "0";
+    if (el.betSizeSlider) {
+      el.betSizeSlider.disabled = true;
+      el.betSizeSlider.min = "0";
+      el.betSizeSlider.max = "0";
+      el.betSizeSlider.value = "0";
+    }
     el.betSizeRange.textContent = "Range: -";
+    if (el.betSizeCurrent) {
+      el.betSizeCurrent.textContent = "Selected: -";
+    }
     return;
   }
 
@@ -695,7 +706,40 @@ function updateBetSizingControls(disabled = true, minTarget = 0, maxTarget = 0, 
   el.betSizeInput.min = String(minTarget);
   el.betSizeInput.max = String(maxTarget);
   el.betSizeInput.value = String(clampedSuggested);
+  if (el.betSizeSlider) {
+    el.betSizeSlider.disabled = false;
+    el.betSizeSlider.min = String(minTarget);
+    el.betSizeSlider.max = String(maxTarget);
+    el.betSizeSlider.value = String(clampedSuggested);
+  }
   el.betSizeRange.textContent = `Range: ${minTarget} - ${maxTarget}`;
+  if (el.betSizeCurrent) {
+    el.betSizeCurrent.textContent = `Selected: ${clampedSuggested}`;
+  }
+}
+
+function syncBetSizeControlsFromSource(value) {
+  if (!el.betSizeInput) {
+    return;
+  }
+
+  const min = Number(el.betSizeInput.min || 0);
+  const max = Number(el.betSizeInput.max || 0);
+  if (!Number.isFinite(min) || !Number.isFinite(max) || max <= 0) {
+    return;
+  }
+
+  const parsed = Number(value);
+  const clamped = Number.isFinite(parsed) ? clampValue(Math.round(parsed), min, max) : min;
+  el.betSizeInput.value = String(clamped);
+
+  if (el.betSizeSlider) {
+    el.betSizeSlider.value = String(clamped);
+  }
+
+  if (el.betSizeCurrent) {
+    el.betSizeCurrent.textContent = `Selected: ${clamped}`;
+  }
 }
 
 function updateActionButtons(disabled = true, toCall = 0, raiseTo = 0, minTarget = 0, maxTarget = 0) {
@@ -1616,12 +1660,11 @@ function renderSelectors() {
   PLAYER_COUNTS.forEach((count) => {
     renderSelectionButton(el.playersGrid, String(count), trainingState.players === count, () => {
       trainingState.players = count;
-      clearTournamentProgress();
+      applySettingsChange();
       const availablePositions = getActivePositions();
       if (!availablePositions.includes(trainingState.userPosition)) {
         trainingState.userPosition = null;
       }
-      resetTrainingStateVisuals();
       renderSelectors();
     });
   });
@@ -1630,8 +1673,7 @@ function renderSelectors() {
   TABLE_TEMPERATURES.forEach((temperature) => {
     renderSelectionButton(el.temperatureGrid, temperature.label, trainingState.temperature === temperature.key, () => {
       trainingState.temperature = temperature.key;
-      clearTournamentProgress();
-      resetTrainingStateVisuals();
+      applySettingsChange();
       renderSelectors();
     });
   });
@@ -1640,11 +1682,24 @@ function renderSelectors() {
   getActivePositions().forEach((position) => {
     renderSelectionButton(el.positionGrid, position, trainingState.userPosition === position, () => {
       trainingState.userPosition = position;
-      clearTournamentProgress();
-      resetTrainingStateVisuals();
+      applySettingsChange();
       renderSelectors();
     });
   });
+}
+
+function applySettingsChange() {
+  trainingState.handId += 1;
+  trainingState.hand = null;
+  trainingState.showdownRevealed = false;
+  trainingState.waitingForUser = false;
+  trainingState.pendingUserDecision = null;
+  clearTournamentProgress();
+  if (el.settingsPanel) {
+    el.settingsPanel.open = true;
+  }
+  el.startButton.disabled = false;
+  resetTrainingStateVisuals();
 }
 
 async function loadRanges() {
@@ -1712,16 +1767,17 @@ function startHand() {
 
 function hookActionButtons() {
   if (el.betSizeInput) {
+    el.betSizeInput.addEventListener("input", () => {
+      syncBetSizeControlsFromSource(el.betSizeInput.value);
+    });
     el.betSizeInput.addEventListener("change", () => {
-      const min = Number(el.betSizeInput.min || 0);
-      const max = Number(el.betSizeInput.max || 0);
-      if (!Number.isFinite(min) || !Number.isFinite(max) || max <= 0) {
-        return;
-      }
+      syncBetSizeControlsFromSource(el.betSizeInput.value);
+    });
+  }
 
-      const parsed = Number(el.betSizeInput.value);
-      const clamped = Number.isFinite(parsed) ? clampValue(Math.round(parsed), min, max) : min;
-      el.betSizeInput.value = String(clamped);
+  if (el.betSizeSlider) {
+    el.betSizeSlider.addEventListener("input", () => {
+      syncBetSizeControlsFromSource(el.betSizeSlider.value);
     });
   }
 
