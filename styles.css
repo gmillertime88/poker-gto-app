@@ -1153,6 +1153,35 @@ h1 {
   overflow-x: auto;
 }
 
+.training-table-wrap {
+  position: relative;
+}
+
+.training-table-wrap::after {
+  content: "";
+  position: sticky;
+  right: 0;
+  top: 0;
+  display: block;
+  width: 20px;
+  height: 100%;
+  margin-left: auto;
+  pointer-events: none;
+  background: linear-gradient(to right, transparent, color-mix(in oklab, var(--surface) 85%, transparent));
+}
+
+.training-table-tools {
+  margin-bottom: 8px;
+}
+
+.training-compact-toggle {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
 .training-controls {
   margin-top: 14px;
   display: grid;
@@ -1223,6 +1252,18 @@ h1 {
 
 .training-table {
   min-width: 860px;
+}
+
+.training-table td.col-seat,
+.training-table th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--surface);
+}
+
+.training-table tr.training-user-row td.col-seat {
+  background: color-mix(in oklab, var(--accent) 12%, transparent);
 }
 
 .training-action-buttons {
@@ -1535,4 +1576,99 @@ h1 {
     min-width: 740px;
   }
 
+  .training-table-wrap::after {
+    width: 14px;
+  }
+
+  .training-table th,
+  .training-table td {
+    padding: 6px 5px;
+    font-size: 0.82rem;
+  }
+
+  .training-table td.col-action {
+    max-width: 180px;
+    overflow-wrap: anywhere;
+  }
+
+}
+
+@media (max-width: 640px) {
+  .training-table {
+    min-width: 0;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+  }
+
+  .training-table-wrap::after {
+    display: none;
+  }
+
+  .training-table thead {
+    display: none;
+  }
+
+  .training-table tbody,
+  .training-table tr,
+  .training-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .training-table tbody tr {
+    box-shadow: none;
+    border: 1px solid var(--table-border);
+    background: var(--surface-soft);
+    border-radius: 10px;
+    padding: 8px;
+  }
+
+  .training-table td {
+    position: relative;
+    padding: 4px 0;
+    border: 0;
+    text-align: left;
+  }
+
+  .training-table td::before {
+    content: attr(data-label);
+    display: inline-block;
+    min-width: 62px;
+    margin-right: 8px;
+    color: var(--muted);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .training-table .results-hand-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .training-table.compact-view .col-status,
+  .training-table.compact-view .col-bet,
+  .training-table.compact-view .col-action {
+    display: none;
+  }
+
+  .training-table td.col-seat,
+  .training-table th:first-child {
+    position: static;
+    background: transparent;
+  }
+}
+
+@media (max-width: 390px) {
+  .training-table .col-status,
+  .training-table .col-bet {
+    display: none;
+  }
+
+  .training-table td::before {
+    min-width: 56px;
+    font-size: 0.7rem;
+  }
 }

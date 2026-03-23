@@ -93,17 +93,23 @@
 
         <section class="field-group">
           <h2>Table</h2>
-          <div class="table-wrap">
-            <table class="odds-table training-table">
+          <div class="training-table-tools">
+            <label class="training-compact-toggle" for="training-compact-toggle">
+              <input id="training-compact-toggle" type="checkbox" />
+              Compact mobile view
+            </label>
+          </div>
+          <div class="table-wrap training-table-wrap">
+            <table class="odds-table training-table" id="training-table">
               <thead>
                 <tr>
                   <th>Seat</th>
-                  <th>Position</th>
+                  <th>Pos</th>
                   <th>Cards</th>
                   <th>Stack</th>
                   <th>Status</th>
                   <th>Bet</th>
-                  <th>Last Action</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody id="training-table-body"></tbody>

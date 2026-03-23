@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "5.4";
-const BUILD_TIMESTAMP = "2026-03-23 14:16";
+const BUILD_VERSION = "5.5";
+const BUILD_TIMESTAMP = "2026-03-23 14:47";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -118,7 +118,9 @@ const el = {
   recommendation: document.getElementById("training-reco"),
   actionOn: document.getElementById("training-action-on"),
   board: document.getElementById("training-board"),
+  table: document.getElementById("training-table"),
   tableBody: document.getElementById("training-table-body"),
+  compactToggle: document.getElementById("training-compact-toggle"),
   foldBtn: document.getElementById("training-fold-btn"),
   checkCallBtn: document.getElementById("training-check-call-btn"),
   betRaiseBtn: document.getElementById("training-bet-raise-btn"),
@@ -134,6 +136,19 @@ const el = {
   summaryDetails: document.getElementById("training-summary-details"),
   buildTag: document.getElementById("training-build-tag"),
 };
+
+function shouldUseMobileCompactByDefault() {
+  return window.matchMedia && window.matchMedia("(max-width: 640px)").matches;
+}
+
+function updateTrainingTableViewMode() {
+  if (!el.table) {
+    return;
+  }
+
+  const compactEnabled = Boolean(el.compactToggle && el.compactToggle.checked);
+  el.table.classList.toggle("compact-view", compactEnabled);
+}
 
 function setPromptMessage(message, recommendation = null) {
   if (!el.prompt) {
@@ -790,29 +805,42 @@ function renderTable(hand) {
     }
 
     const seatCell = document.createElement("td");
+    seatCell.className = "col-seat";
+    seatCell.dataset.label = "Seat";
     seatCell.textContent = player.isUser ? `${player.seat} (You)` : String(player.seat);
 
     const posCell = document.createElement("td");
+    posCell.className = "col-position";
+    posCell.dataset.label = "Pos";
     posCell.textContent = player.position;
 
     const cardsCell = document.createElement("td");
-    cardsCell.className = "results-hand-cell";
+    cardsCell.className = "results-hand-cell col-cards";
+    cardsCell.dataset.label = "Cards";
 
     const showRealCards = player.isUser || trainingState.showdownRevealed;
     cardsCell.appendChild(makeCardToken(player.cards[0], !showRealCards));
     cardsCell.appendChild(makeCardToken(player.cards[1], !showRealCards));
 
     const stackCell = document.createElement("td");
+    stackCell.className = "col-stack";
+    stackCell.dataset.label = "Stack";
     stackCell.textContent = chipsLabel(player.chips);
 
     const statusCell = document.createElement("td");
+    statusCell.className = "col-status";
+    statusCell.dataset.label = "Status";
     statusCell.textContent = player.eliminated ? "Eliminated" : (player.folded ? "Folded" : (isAllIn(player) ? "All-In" : "Active"));
 
     const streetBetCell = document.createElement("td");
+    streetBetCell.className = "col-bet";
+    streetBetCell.dataset.label = "Bet";
     const playerThinking = hand.thinkingSeat === player.seat;
     streetBetCell.textContent = playerThinking ? "Thinking" : String(player.streetBet);
 
     const actionCell = document.createElement("td");
+    actionCell.className = "col-action";
+    actionCell.dataset.label = "Action";
     actionCell.textContent = player.lastAction || "-";
 
     row.appendChild(seatCell);
@@ -1861,6 +1889,11 @@ function hookActionButtons() {
 async function initTraining() {
   renderBuildTag();
   renderSelectors();
+  if (el.compactToggle) {
+    el.compactToggle.checked = shouldUseMobileCompactByDefault();
+    el.compactToggle.addEventListener("change", updateTrainingTableViewMode);
+  }
+  updateTrainingTableViewMode();
   resetTrainingStateVisuals();
 
   el.startButton.addEventListener("click", startHand);
