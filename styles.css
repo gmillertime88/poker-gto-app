@@ -1619,11 +1619,14 @@ h1 {
   .training-table tbody,
   .training-table tr,
   .training-table td {
-    display: block;
     width: 100%;
   }
 
   .training-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    column-gap: 14px;
+    row-gap: 4px;
     box-shadow: none;
     border: 1px solid var(--table-border);
     background: var(--surface-soft);
@@ -1632,8 +1635,13 @@ h1 {
   }
 
   .training-table td {
-    position: relative;
-    padding: 4px 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 6px;
+    width: auto;
+    min-width: 0;
+    padding: 3px 0;
     border: 0;
     text-align: left;
   }
@@ -1650,8 +1658,8 @@ h1 {
 
   .training-mobile-field-label {
     display: inline-block;
-    min-width: 62px;
-    margin-right: 8px;
+    min-width: 0;
+    margin-right: 0;
     color: var(--heading);
     font-size: 0.74rem;
     font-weight: 800;
@@ -1669,6 +1677,31 @@ h1 {
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
+  }
+
+  .training-table td.col-seat,
+  .training-table td.col-position,
+  .training-table td.col-cards {
+    grid-column: 1;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .training-table td.col-stack,
+  .training-table td.col-status,
+  .training-table td.col-bet,
+  .training-table td.col-action {
+    grid-column: 2;
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .training-table td.col-stack .training-mobile-field-value,
+  .training-table td.col-status .training-mobile-field-value,
+  .training-table td.col-bet .training-mobile-field-value,
+  .training-table td.col-action .training-mobile-field-value {
+    text-align: right;
+    overflow-wrap: anywhere;
   }
 
   .training-table.compact-view .col-status,
@@ -1695,7 +1728,10 @@ h1 {
   }
 
   .training-mobile-field-label {
-    min-width: 56px;
     font-size: 0.7rem;
+  }
+
+  .training-table tbody tr {
+    column-gap: 10px;
   }
 }
