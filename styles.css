@@ -1266,6 +1266,14 @@ h1 {
   background: color-mix(in oklab, var(--accent) 12%, transparent);
 }
 
+.training-mobile-field-label {
+  display: none;
+}
+
+.training-mobile-field-value {
+  display: inline;
+}
+
 .training-action-buttons {
   display: grid;
   grid-template-columns: repeat(4, minmax(120px, 1fr));
@@ -1631,21 +1639,36 @@ h1 {
   }
 
   .training-table td::before {
-    content: attr(data-label);
-    display: inline-block;
-    min-width: 62px;
-    margin-right: 8px;
-    color: var(--muted);
-    font-size: 0.74rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
+    content: none;
   }
 
   .training-table .results-hand-cell {
     display: flex;
     align-items: center;
     gap: 8px;
+  }
+
+  .training-mobile-field-label {
+    display: inline-block;
+    min-width: 62px;
+    margin-right: 8px;
+    color: var(--heading);
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .training-mobile-field-value {
+    display: inline;
+    color: var(--text);
+  }
+
+  .training-table td.col-cards .training-mobile-field-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 
   .training-table.compact-view .col-status,
@@ -1668,6 +1691,10 @@ h1 {
   }
 
   .training-table td::before {
+    content: none;
+  }
+
+  .training-mobile-field-label {
     min-width: 56px;
     font-size: 0.7rem;
   }

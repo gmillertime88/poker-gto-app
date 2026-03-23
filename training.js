@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "5.5";
-const BUILD_TIMESTAMP = "2026-03-23 14:47";
+const BUILD_VERSION = "5.6";
+const BUILD_TIMESTAMP = "2026-03-23 14:51";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -798,6 +798,20 @@ function renderTable(hand) {
     return;
   }
 
+  const buildMobileLabel = (labelText) => {
+    const label = document.createElement("span");
+    label.className = "training-mobile-field-label";
+    label.textContent = labelText;
+    return label;
+  };
+
+  const buildMobileValue = (valueText) => {
+    const value = document.createElement("span");
+    value.className = "training-mobile-field-value";
+    value.textContent = valueText;
+    return value;
+  };
+
   hand.players.forEach((player) => {
     const row = document.createElement("tr");
     if (player.isUser) {
@@ -807,41 +821,52 @@ function renderTable(hand) {
     const seatCell = document.createElement("td");
     seatCell.className = "col-seat";
     seatCell.dataset.label = "Seat";
-    seatCell.textContent = player.isUser ? `${player.seat} (You)` : String(player.seat);
+    seatCell.appendChild(buildMobileLabel("Seat"));
+    seatCell.appendChild(buildMobileValue(player.isUser ? `${player.seat} (You)` : String(player.seat)));
 
     const posCell = document.createElement("td");
     posCell.className = "col-position";
     posCell.dataset.label = "Pos";
-    posCell.textContent = player.position;
+    posCell.appendChild(buildMobileLabel("Pos"));
+    posCell.appendChild(buildMobileValue(player.position));
 
     const cardsCell = document.createElement("td");
-    cardsCell.className = "results-hand-cell col-cards";
+    cardsCell.className = "col-cards";
     cardsCell.dataset.label = "Cards";
+    cardsCell.appendChild(buildMobileLabel("Cards"));
+
+    const cardsValue = document.createElement("div");
+    cardsValue.className = "results-hand-cell training-mobile-field-value";
 
     const showRealCards = player.isUser || trainingState.showdownRevealed;
-    cardsCell.appendChild(makeCardToken(player.cards[0], !showRealCards));
-    cardsCell.appendChild(makeCardToken(player.cards[1], !showRealCards));
+    cardsValue.appendChild(makeCardToken(player.cards[0], !showRealCards));
+    cardsValue.appendChild(makeCardToken(player.cards[1], !showRealCards));
+    cardsCell.appendChild(cardsValue);
 
     const stackCell = document.createElement("td");
     stackCell.className = "col-stack";
     stackCell.dataset.label = "Stack";
-    stackCell.textContent = chipsLabel(player.chips);
+    stackCell.appendChild(buildMobileLabel("Stack"));
+    stackCell.appendChild(buildMobileValue(chipsLabel(player.chips)));
 
     const statusCell = document.createElement("td");
     statusCell.className = "col-status";
     statusCell.dataset.label = "Status";
-    statusCell.textContent = player.eliminated ? "Eliminated" : (player.folded ? "Folded" : (isAllIn(player) ? "All-In" : "Active"));
+    statusCell.appendChild(buildMobileLabel("Status"));
+    statusCell.appendChild(buildMobileValue(player.eliminated ? "Eliminated" : (player.folded ? "Folded" : (isAllIn(player) ? "All-In" : "Active"))));
 
     const streetBetCell = document.createElement("td");
     streetBetCell.className = "col-bet";
     streetBetCell.dataset.label = "Bet";
+    streetBetCell.appendChild(buildMobileLabel("Bet"));
     const playerThinking = hand.thinkingSeat === player.seat;
-    streetBetCell.textContent = playerThinking ? "Thinking" : String(player.streetBet);
+    streetBetCell.appendChild(buildMobileValue(playerThinking ? "Thinking" : String(player.streetBet)));
 
     const actionCell = document.createElement("td");
     actionCell.className = "col-action";
     actionCell.dataset.label = "Action";
-    actionCell.textContent = player.lastAction || "-";
+    actionCell.appendChild(buildMobileLabel("Action"));
+    actionCell.appendChild(buildMobileValue(player.lastAction || "-"));
 
     row.appendChild(seatCell);
     row.appendChild(posCell);
