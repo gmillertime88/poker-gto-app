@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "7.4";
-const BUILD_TIMESTAMP = "2026-03-24 14:20";
+const BUILD_VERSION = "7.5";
+const BUILD_TIMESTAMP = "2026-03-24 14:32";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -664,10 +664,11 @@ function getAggressiveTargetBounds(hand, player, toCall) {
   const maxTarget = player.streetBet + player.chips;
   let minTarget;
 
-  if (toCall > 0) {
-    minTarget = hand.currentBet + BIG_BLIND;
+  if (hand.currentBet <= 0) {
+    minTarget = BIG_BLIND;
   } else {
-    minTarget = Math.max(BIG_BLIND, hand.currentBet + BIG_BLIND);
+    const fullRaiseSize = Math.max(BIG_BLIND, hand.lastFullRaiseSize || BIG_BLIND);
+    minTarget = hand.currentBet + fullRaiseSize;
   }
 
   if (minTarget > maxTarget) {
@@ -1167,6 +1168,7 @@ function didFollowRecommendation(recommended, taken) {
 
 function calcRaiseTarget(hand, player) {
   let target;
+  const fullRaiseSize = Math.max(BIG_BLIND, hand.lastFullRaiseSize || BIG_BLIND);
 
   if (hand.street === "preflop") {
     const openSizeBb = Object.prototype.hasOwnProperty.call(OPEN_SIZE_BB, player.position)
@@ -1176,16 +1178,16 @@ function calcRaiseTarget(hand, player) {
     if (hand.currentBet <= BIG_BLIND) {
       target = openTarget;
     } else if (hand.currentStreetRaises <= 1) {
-      target = Math.max(Math.round((hand.currentBet * 2.8) / BIG_BLIND) * BIG_BLIND, hand.currentBet + BIG_BLIND);
+      target = Math.max(Math.round((hand.currentBet * 2.8) / BIG_BLIND) * BIG_BLIND, hand.currentBet + fullRaiseSize);
     } else {
-      target = Math.max(Math.round((hand.currentBet * 2.3) / BIG_BLIND) * BIG_BLIND, hand.currentBet + BIG_BLIND);
+      target = Math.max(Math.round((hand.currentBet * 2.3) / BIG_BLIND) * BIG_BLIND, hand.currentBet + fullRaiseSize);
     }
   } else {
     let fraction = hand.street === "flop" ? 0.7 : 0.8;
     if (hand.currentStreetRaises > 0) {
       fraction = 0.6;
     }
-    const raw = Math.max(hand.pot * fraction, BIG_BLIND * 2, hand.currentBet + BIG_BLIND);
+    const raw = Math.max(hand.pot * fraction, BIG_BLIND * 2, hand.currentBet + fullRaiseSize);
     target = Math.round(raw / BIG_BLIND) * BIG_BLIND;
   }
 
@@ -1298,9 +1300,14 @@ function resetStreetBets(hand) {
   });
   hand.currentBet = 0;
   hand.currentStreetRaises = 0;
+  hand.lastFullRaiseSize = BIG_BLIND;
 }
 
 function revealStreetCards(hand) {
+  if (hand.deck.length > 0) {
+    hand.deck.pop();
+  }
+
   if (hand.street === "flop") {
     hand.board.push(hand.deck.pop(), hand.deck.pop(), hand.deck.pop());
     addLog("Flop dealt.");
@@ -1371,10 +1378,17 @@ function applyAction(hand, player, action) {
   const paid = postChips(hand, player, toPutIn);
 
   if (player.streetBet > prevCurrentBet) {
+    const raiseSize = player.streetBet - prevCurrentBet;
+    const fullRaiseSize = Math.max(BIG_BLIND, hand.lastFullRaiseSize || BIG_BLIND);
+    const reopensAction = raiseSize >= fullRaiseSize;
+
     hand.currentBet = player.streetBet;
     hand.currentStreetRaises += 1;
+    if (reopensAction) {
+      hand.lastFullRaiseSize = raiseSize;
+    }
     player.lastAction = `${actionType === "bet" ? "Bet" : "Raise"} to ${player.streetBet}${player.chips <= 0 ? " (All-In)" : ""}`;
-    return { type: actionType, aggressive: true };
+    return { type: actionType, aggressive: true, reopensAction };
   }
 
   if (toCall > 0) {
@@ -1552,7 +1566,7 @@ async function runBettingRound(hand, handId) {
       break;
     }
 
-    if (result.aggressive) {
+    if (result.reopensAction) {
       pending = new Set(getEligibleSeats(hand, order).filter((seat) => seat !== player.seat));
       continue;
     }
@@ -1585,6 +1599,30 @@ function payoutShowdown(hand) {
 
   const payoutsBySeat = new Map();
   hand.players.forEach((player) => payoutsBySeat.set(player.seat, 0));
+
+  const tableOrder = POSITIONS_BY_PLAYERS[hand.players.length] || POSITION_DISPLAY_ORDER;
+  const buttonIndex = tableOrder.indexOf("D");
+  const positionFromButton = [];
+  for (let i = 1; i <= tableOrder.length; i += 1) {
+    positionFromButton.push(tableOrder[(buttonIndex + i) % tableOrder.length]);
+  }
+
+  const oddChipWinnerOrder = (winners) => {
+    const winnersByPosition = new Map();
+    winners.forEach((winner) => {
+      winnersByPosition.set(winner.position, winner);
+    });
+
+    const ordered = [];
+    positionFromButton.forEach((position) => {
+      const winner = winnersByPosition.get(position);
+      if (winner) {
+        ordered.push(winner);
+      }
+    });
+
+    return ordered.length > 0 ? ordered : winners;
+  };
 
   let previousLevel = 0;
 
@@ -1621,10 +1659,19 @@ function payoutShowdown(hand) {
     const share = Math.floor(sidePot / winners.length);
     const remainder = sidePot - (share * winners.length);
 
-    winners.forEach((winner, index) => {
+    winners.forEach((winner) => {
       const current = payoutsBySeat.get(winner.seat) || 0;
-      payoutsBySeat.set(winner.seat, current + share + (index === 0 ? remainder : 0));
+      payoutsBySeat.set(winner.seat, current + share);
     });
+
+    if (remainder > 0) {
+      const orderedWinners = oddChipWinnerOrder(winners);
+      for (let i = 0; i < remainder; i += 1) {
+        const winner = orderedWinners[i % orderedWinners.length];
+        const current = payoutsBySeat.get(winner.seat) || 0;
+        payoutsBySeat.set(winner.seat, current + 1);
+      }
+    }
   });
 
   const paidWinners = hand.players.filter((player) => (payoutsBySeat.get(player.seat) || 0) > 0);
@@ -1656,11 +1703,17 @@ function buildAdviceLine(item) {
 }
 
 function renderSummary(hand, winners) {
+  const resolvedWinners = Array.isArray(winners) && winners.length > 0
+    ? winners
+    : activePlayers(hand);
+
   const followed = trainingState.decisionLog.filter((item) => item.followed).length;
   const total = trainingState.decisionLog.length;
   const missed = total - followed;
 
-  const winnerText = winners.map((winner) => (winner.isUser ? "You" : `Seat ${winner.seat}`)).join(", ");
+  const winnerText = resolvedWinners.length > 0
+    ? resolvedWinners.map((winner) => (winner.isUser ? "You" : `Seat ${winner.seat}`)).join(", ")
+    : "No winner";
   el.summaryHeadline.textContent = `${winnerText} won the hand.`;
 
   el.summaryDetails.innerHTML = "";
@@ -1683,11 +1736,13 @@ function renderSummary(hand, winners) {
     foldOutcome.textContent = "Outcome driver: hand ended before showdown due to fold pressure and stack leverage.";
     el.summaryDetails.appendChild(foldOutcome);
   } else {
-    const winnerHand = evaluateSevenCards([winners[0].cards[0], winners[0].cards[1]].concat(hand.board));
-    const winnerHandLabel = handCategoryLabel(winnerHand);
-    const showdownNote = document.createElement("p");
-    showdownNote.textContent = `Outcome driver: showdown resolved by best made hand (${winnerHandLabel}).`;
-    el.summaryDetails.appendChild(showdownNote);
+    if (resolvedWinners.length > 0) {
+      const winnerHand = evaluateSevenCards([resolvedWinners[0].cards[0], resolvedWinners[0].cards[1]].concat(hand.board));
+      const winnerHandLabel = handCategoryLabel(winnerHand);
+      const showdownNote = document.createElement("p");
+      showdownNote.textContent = `Outcome driver: showdown resolved by best made hand (${winnerHandLabel}).`;
+      el.summaryDetails.appendChild(showdownNote);
+    }
 
     if (user && !user.folded) {
       const userHandLabel = handCategoryLabel(evaluateSevenCards([user.cards[0], user.cards[1]].concat(hand.board)));
@@ -1808,6 +1863,10 @@ function createHand() {
   const deck = shuffle(createDeck());
 
   if (!trainingState.tournamentStacks) {
+    el.log.innerHTML = "";
+    el.summary.hidden = true;
+    el.summaryHeadline.textContent = "-";
+    el.summaryDetails.innerHTML = "";
     initializeTournament();
   }
 
@@ -1849,6 +1908,7 @@ function createHand() {
     street: "preflop",
     currentBet: BIG_BLIND,
     currentStreetRaises: 0,
+    lastFullRaiseSize: BIG_BLIND,
     pot: 0,
     actionOn: "-",
     thinkingSeat: null,
@@ -1873,6 +1933,12 @@ function postBlinds(hand) {
 
   const sbPaid = sb && sb.chips > 0 ? postChips(hand, sb, SMALL_BLIND) : 0;
   const bbPaid = bb.chips > 0 ? postChips(hand, bb, BIG_BLIND) : 0;
+
+  hand.currentBet = Math.max(
+    sb ? sb.streetBet : 0,
+    bb ? bb.streetBet : 0,
+    0,
+  );
 
   if (sb) {
     sb.lastAction = sbPaid > 0 ? `Post SB ${sbPaid}` : "Out";
