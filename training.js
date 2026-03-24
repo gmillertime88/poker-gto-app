@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "7.3";
-const BUILD_TIMESTAMP = "2026-03-24 14:15";
+const BUILD_VERSION = "7.4";
+const BUILD_TIMESTAMP = "2026-03-24 14:20";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -794,19 +794,13 @@ function updateActionButtons(disabled = true, toCall = 0, raiseTo = 0, minTarget
 function renderBoard(hand) {
   el.board.innerHTML = "";
 
-  if (!hand || hand.board.length === 0) {
-    const empty = document.createElement("span");
-    empty.className = "board-display-empty";
-    empty.textContent = "-";
-    el.board.appendChild(empty);
-    return;
-  }
+  const revealedBoard = hand ? hand.board : [];
 
-  hand.board.forEach((cardInt) => {
+  revealedBoard.forEach((cardInt) => {
     el.board.appendChild(makeCardToken(cardInt));
   });
 
-  const unrevealedCount = Math.max(0, 5 - hand.board.length);
+  const unrevealedCount = Math.max(0, 5 - revealedBoard.length);
   for (let i = 0; i < unrevealedCount; i += 1) {
     el.board.appendChild(makeCardToken(null, true));
   }
