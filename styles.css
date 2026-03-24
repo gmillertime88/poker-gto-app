@@ -1470,10 +1470,18 @@ h1 {
 }
 
 .card-token-hidden {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   letter-spacing: 0.08em;
   font-weight: 700;
   min-width: 2.1em;
-  justify-content: center;
+}
+
+#training-board .card-token-hidden,
+.training-table .card-token-hidden {
+  min-width: 2.65em;
+  min-height: 1.45em;
 }
 
 @media (max-width: 640px) {
