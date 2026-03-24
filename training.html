@@ -68,34 +68,25 @@
           </section>
         </details>
 
-        <section id="training-status" class="result training-status" aria-live="polite">
+        <div class="training-top-controls">
+          <button id="training-start-btn" class="select-btn training-small-btn" type="button">Deal</button>
+          <button id="training-reset-btn" class="select-btn danger training-small-btn" type="button">Reset</button>
+        </div>
+
+        <section id="training-status" class="training-outcome-panel" aria-live="polite">
           <div class="result-row odds-summary-row">
-            <span class="label summary-label">Session: <span id="training-session" class="value">-</span></span>
-          </div>
-          <div class="result-row odds-summary-row">
-            <span class="label summary-label">Street: <span id="training-street" class="value">-</span></span>
-          </div>
-          <div class="result-row odds-summary-row">
-            <span class="label summary-label">Pot: <span id="training-pot" class="value">-</span></span>
-          </div>
-          <div class="result-row odds-summary-row">
-            <span class="label summary-label">Players in Hand: <span id="training-players-in-hand" class="value">-</span></span>
-          </div>
-          <div class="result-row odds-summary-row">
-            <span class="label summary-label">Your Odds: <span id="training-odds" class="value">-</span></span>
-          </div>
-          <div class="result-row odds-summary-row training-reco-row">
             <span class="label summary-label training-status-compact-label">Recommended: <span id="training-reco" class="value training-reco-value">-</span></span>
-          </div>
-          <div class="result-row odds-summary-row">
-            <span class="label summary-label">Action On: <span id="training-action-on" class="value">-</span></span>
           </div>
           <div class="result-row odds-summary-row">
             <span class="label summary-label training-status-compact-label">Hand Result: <span id="training-hand-result" class="value training-hand-result-value">-</span></span>
           </div>
-          <div class="training-status-controls">
-            <button id="training-start-btn" class="select-btn training-small-btn" type="button">Deal</button>
-            <button id="training-reset-btn" class="select-btn danger training-small-btn" type="button">Reset</button>
+          <div class="training-status-hidden" aria-hidden="true">
+            <span id="training-session">-</span>
+            <span id="training-street">-</span>
+            <span id="training-pot">-</span>
+            <span id="training-players-in-hand">-</span>
+            <span id="training-odds">-</span>
+            <span id="training-action-on">-</span>
           </div>
         </section>
 

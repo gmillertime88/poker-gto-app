@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "7.1";
-const BUILD_TIMESTAMP = "2026-03-24 13:45";
+const BUILD_VERSION = "7.2";
+const BUILD_TIMESTAMP = "2026-03-24 14:00";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -925,7 +925,9 @@ function renderTable(hand, userEquity = null) {
 }
 
 function renderStatus(hand, equity = null, recommendation = "-") {
-  el.session.textContent = getSessionStatusText();
+  if (el.session) {
+    el.session.textContent = getSessionStatusText();
+  }
   const handResultText = trainingState.handResultMessage || "-";
   const canQuickApplyRecommendation = Boolean(
     trainingState.waitingForUser
@@ -937,48 +939,68 @@ function renderStatus(hand, equity = null, recommendation = "-") {
   );
 
   if (!hand) {
-    el.street.textContent = "-";
-    el.pot.textContent = "-";
+    if (el.street) {
+      el.street.textContent = "-";
+    }
+    if (el.pot) {
+      el.pot.textContent = "-";
+    }
     if (el.boardPot) {
       el.boardPot.textContent = "-";
     }
     if (el.playersInHand) {
       el.playersInHand.textContent = "-";
     }
-    el.odds.textContent = "-";
-    el.recommendation.textContent = "-";
-    el.recommendation.className = "value training-reco-value";
-    el.recommendation.removeAttribute("role");
-    el.recommendation.removeAttribute("tabindex");
-    el.recommendation.removeAttribute("title");
-    el.actionOn.textContent = "-";
+    if (el.odds) {
+      el.odds.textContent = "-";
+    }
+    if (el.recommendation) {
+      el.recommendation.textContent = "-";
+      el.recommendation.className = "value training-reco-value";
+      el.recommendation.removeAttribute("role");
+      el.recommendation.removeAttribute("tabindex");
+      el.recommendation.removeAttribute("title");
+    }
+    if (el.actionOn) {
+      el.actionOn.textContent = "-";
+    }
     if (el.handResult) {
       el.handResult.textContent = handResultText;
     }
     return;
   }
 
-  el.street.textContent = streetLabel(hand.street);
-  el.pot.textContent = chipsLabel(hand.pot);
+  if (el.street) {
+    el.street.textContent = streetLabel(hand.street);
+  }
+  if (el.pot) {
+    el.pot.textContent = chipsLabel(hand.pot);
+  }
   if (el.boardPot) {
     el.boardPot.textContent = chipsLabel(hand.pot);
   }
   if (el.playersInHand) {
     el.playersInHand.textContent = String(activePlayers(hand).length);
   }
-  el.odds.textContent = equity === null ? "-" : `${(equity * 100).toFixed(1)}%`;
-  el.recommendation.textContent = recommendation;
-  el.recommendation.className = `value training-reco-value ${normalizedAction(recommendation)}${canQuickApplyRecommendation ? " clickable" : ""}`;
-  if (canQuickApplyRecommendation) {
-    el.recommendation.setAttribute("role", "button");
-    el.recommendation.setAttribute("tabindex", "0");
-    el.recommendation.setAttribute("title", "Click to apply recommended action");
-  } else {
-    el.recommendation.removeAttribute("role");
-    el.recommendation.removeAttribute("tabindex");
-    el.recommendation.removeAttribute("title");
+  if (el.odds) {
+    el.odds.textContent = equity === null ? "-" : `${(equity * 100).toFixed(1)}%`;
   }
-  el.actionOn.textContent = hand.actionOn || "-";
+  if (el.recommendation) {
+    el.recommendation.textContent = recommendation;
+    el.recommendation.className = `value training-reco-value ${normalizedAction(recommendation)}${canQuickApplyRecommendation ? " clickable" : ""}`;
+    if (canQuickApplyRecommendation) {
+      el.recommendation.setAttribute("role", "button");
+      el.recommendation.setAttribute("tabindex", "0");
+      el.recommendation.setAttribute("title", "Click to apply recommended action");
+    } else {
+      el.recommendation.removeAttribute("role");
+      el.recommendation.removeAttribute("tabindex");
+      el.recommendation.removeAttribute("title");
+    }
+  }
+  if (el.actionOn) {
+    el.actionOn.textContent = hand.actionOn || "-";
+  }
   if (el.handResult) {
     el.handResult.textContent = handResultText;
   }

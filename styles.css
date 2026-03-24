@@ -1275,16 +1275,23 @@ h1 {
   margin-bottom: 10px;
 }
 
-.training-status {
-  margin-top: 14px;
-  padding-top: 14px;
-}
-
-.training-status-controls {
-  margin-top: 12px;
+.training-top-controls {
+  margin-top: 10px;
   display: flex;
   justify-content: flex-end;
   gap: 6px;
+}
+
+.training-outcome-panel {
+  margin-top: 14px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--surface-soft) 80%, transparent);
+}
+
+.training-status-hidden {
+  display: none;
 }
 
 .training-reco-row {
@@ -1726,7 +1733,7 @@ h1 {
     font-size: 0.76rem;
   }
 
-  .training-status-controls {
+  .training-top-controls {
     margin-top: 10px;
   }
 
