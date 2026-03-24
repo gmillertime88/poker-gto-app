@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "6.5";
-const BUILD_TIMESTAMP = "2026-03-24 08:49";
+const BUILD_VERSION = "6.6";
+const BUILD_TIMESTAMP = "2026-03-24 09:14";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -124,6 +124,7 @@ const el = {
   recommendation: document.getElementById("training-reco"),
   actionOn: document.getElementById("training-action-on"),
   handResult: document.getElementById("training-hand-result"),
+  oddsResultsHeader: document.getElementById("training-odds-results-header"),
   board: document.getElementById("training-board"),
   tableBody: document.getElementById("training-table-body"),
   foldBtn: document.getElementById("training-fold-btn"),
@@ -807,7 +808,15 @@ function renderTable(hand, userEquity = null) {
   el.tableBody.innerHTML = "";
 
   if (!hand) {
+    if (el.oddsResultsHeader) {
+      el.oddsResultsHeader.textContent = "Odds";
+    }
     return;
+  }
+
+  const showResults = Boolean(trainingState.showdownRevealed && hand.board.length === 5);
+  if (el.oddsResultsHeader) {
+    el.oddsResultsHeader.textContent = showResults ? "Results" : "Odds";
   }
 
   const buildMobileLabel = (labelText) => {
@@ -863,10 +872,22 @@ function renderTable(hand, userEquity = null) {
 
     const oddsCell = document.createElement("td");
     oddsCell.className = "col-odds";
-    oddsCell.dataset.label = "Odds";
-    oddsCell.appendChild(buildMobileLabel("Odds:"));
-    const oddsValue = player.isUser && userEquity !== null ? `${(userEquity * 100).toFixed(1)}%` : "-";
-    oddsCell.appendChild(buildMobileValue(oddsValue));
+    oddsCell.dataset.label = showResults ? "Results" : "Odds";
+    oddsCell.appendChild(buildMobileLabel(showResults ? "Results:" : "Odds:"));
+    let oddsOrResultValue = "-";
+
+    if (showResults) {
+      if (player.folded) {
+        oddsOrResultValue = "Folded";
+      } else {
+        const rankVector = evaluateSevenCards([player.cards[0], player.cards[1]].concat(hand.board));
+        oddsOrResultValue = handCategoryLabel(rankVector);
+      }
+    } else if (player.isUser && userEquity !== null) {
+      oddsOrResultValue = `${(userEquity * 100).toFixed(1)}%`;
+    }
+
+    oddsCell.appendChild(buildMobileValue(oddsOrResultValue));
 
     const stackCell = document.createElement("td");
     stackCell.className = "col-stack";
@@ -1886,10 +1907,18 @@ async function playHand(handId) {
     }
 
     const handWinnerText = winners.map((winner) => (winner.isUser ? "You" : `Seat ${winner.seat}`)).join(", ");
-    if (winners.some((winner) => winner.isUser)) {
-      trainingState.handResultMessage = winners.length > 1 ? "Split pot with you in winners." : "You won the hand.";
+    if (trainingState.hand.finishedByFold) {
+      trainingState.handResultMessage = `${handWinnerText} won the hand by fold.`;
     } else {
-      trainingState.handResultMessage = `${handWinnerText} won the hand.`;
+      const winnerRankVector = evaluateSevenCards([winners[0].cards[0], winners[0].cards[1]].concat(trainingState.hand.board));
+      const winnerHandLabel = handCategoryLabel(winnerRankVector).toLowerCase();
+      const article = /^[aeiou]/.test(winnerHandLabel) ? "an" : "a";
+
+      if (winners.length > 1) {
+        trainingState.handResultMessage = `${handWinnerText} split the pot with ${article} ${winnerHandLabel}.`;
+      } else {
+        trainingState.handResultMessage = `${handWinnerText} won the hand with ${article} ${winnerHandLabel}.`;
+      }
     }
 
     const finalUser = getUserPlayer(trainingState.hand);
