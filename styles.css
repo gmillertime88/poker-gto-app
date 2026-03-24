@@ -1254,6 +1254,13 @@ h1 {
   padding-top: 14px;
 }
 
+.training-status-controls {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
 .training-reco-row {
   margin-top: 10px;
   padding-top: 4px;
@@ -1687,6 +1694,10 @@ h1 {
     min-height: 32px;
     padding: 4px 8px;
     font-size: 0.76rem;
+  }
+
+  .training-status-controls {
+    margin-top: 10px;
   }
 
   .training-table-title {
