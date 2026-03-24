@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "6.1";
-const BUILD_TIMESTAMP = "2026-03-23 15:23";
+const BUILD_VERSION = "6.2";
+const BUILD_TIMESTAMP = "2026-03-24 08:05";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -84,7 +84,7 @@ const POSITION_AGGRESSION = {
 const trainingState = {
   players: 6,
   temperature: "normal",
-  userPosition: null,
+  userPosition: "D",
   baseRows: [],
   thresholds: {},
   rangesLoaded: false,
@@ -104,6 +104,9 @@ const trainingState = {
   betSelectionActive: false,
   handResultMessage: "-",
   pendingRecommendationAction: null,
+  pendingAggressiveAction: null,
+  autoDealEnabled: false,
+  autoDealTimerId: null,
 };
 
 const el = {
@@ -123,9 +126,10 @@ const el = {
   board: document.getElementById("training-board"),
   tableBody: document.getElementById("training-table-body"),
   foldBtn: document.getElementById("training-fold-btn"),
-  checkCallBtn: document.getElementById("training-check-call-btn"),
-  betRaiseBtn: document.getElementById("training-bet-raise-btn"),
-  allInBtn: document.getElementById("training-all-in-btn"),
+  checkBtn: document.getElementById("training-check-btn"),
+  callBtn: document.getElementById("training-call-btn"),
+  raiseBtn: document.getElementById("training-raise-btn"),
+  betBtn: document.getElementById("training-bet-btn"),
   betSizeInput: document.getElementById("training-bet-size-input"),
   betSizeSlider: document.getElementById("training-bet-size-slider"),
   betSizeRange: document.getElementById("training-bet-size-range"),
@@ -136,7 +140,17 @@ const el = {
   summaryHeadline: document.getElementById("training-summary-headline"),
   summaryDetails: document.getElementById("training-summary-details"),
   buildTag: document.getElementById("training-build-tag"),
+  autoDealToggle: document.getElementById("training-auto-deal-toggle"),
 };
+
+function clearAutoDealTimer() {
+  if (!trainingState.autoDealTimerId) {
+    return;
+  }
+
+  window.clearTimeout(trainingState.autoDealTimerId);
+  trainingState.autoDealTimerId = null;
+}
 
 function setPromptMessage(message, recommendation = null) {
   if (!el.prompt) {
@@ -627,7 +641,7 @@ function isAllIn(player) {
 }
 
 function chipsLabel(value) {
-  return `${value} chips`;
+  return String(value);
 }
 
 function addLog(text, type = "info") {
@@ -741,26 +755,35 @@ function updateActionButtons(disabled = true, toCall = 0, raiseTo = 0, minTarget
   const actor = player || (trainingState.hand ? getUserPlayer(trainingState.hand) : null);
   const canAggressive = !disabled && Boolean(actor) && actor.chips > 0;
   const showFold = !disabled && toCall > 0;
-  const showCallOrCheck = !disabled;
-  const showBet = canAggressive;
+  const showCheck = !disabled && toCall <= 0;
+  const showCall = !disabled && toCall > 0;
+  const showRaise = canAggressive && toCall > 0;
+  const showBet = canAggressive && toCall <= 0;
+  const canShowSlider = canAggressive && trainingState.betSelectionActive
+    && (trainingState.pendingAggressiveAction === "raise" || trainingState.pendingAggressiveAction === "bet");
   const suggestedAmount = actor ? Math.max(0, raiseTo - actor.streetBet) : 0;
 
   el.foldBtn.hidden = !showFold;
-  el.checkCallBtn.hidden = !showCallOrCheck;
-  el.betRaiseBtn.hidden = !showBet;
+  el.checkBtn.hidden = !showCheck;
+  el.callBtn.hidden = !showCall;
+  el.raiseBtn.hidden = !showRaise;
+  el.betBtn.hidden = !showBet;
 
   el.foldBtn.disabled = !showFold;
-  el.checkCallBtn.disabled = !showCallOrCheck;
-  el.betRaiseBtn.disabled = !showBet;
-  if (el.allInBtn) {
-    el.allInBtn.hidden = true;
-    el.allInBtn.disabled = true;
-  }
+  el.checkBtn.disabled = !showCheck;
+  el.callBtn.disabled = !showCall;
+  el.raiseBtn.disabled = !showRaise;
+  el.betBtn.disabled = !showBet;
 
-  el.checkCallBtn.textContent = toCall > 0 ? `Call ${toCall}` : "Check";
-  el.betRaiseBtn.textContent = trainingState.betSelectionActive ? "Confirm Bet" : "Bet";
+  el.callBtn.textContent = `Call ${toCall}`;
+  el.raiseBtn.textContent = trainingState.betSelectionActive && trainingState.pendingAggressiveAction === "raise"
+    ? "Confirm Raise"
+    : "Raise";
+  el.betBtn.textContent = trainingState.betSelectionActive && trainingState.pendingAggressiveAction === "bet"
+    ? "Confirm Bet"
+    : "Bet";
 
-  updateBetSizingControls(!(showBet && trainingState.betSelectionActive), actor ? actor.chips : 0, suggestedAmount);
+  updateBetSizingControls(!canShowSlider, actor ? actor.chips : 0, suggestedAmount);
 }
 
 function renderBoard(hand) {
@@ -779,7 +802,7 @@ function renderBoard(hand) {
   });
 }
 
-function renderTable(hand) {
+function renderTable(hand, userEquity = null) {
   el.tableBody.innerHTML = "";
 
   if (!hand) {
@@ -836,9 +859,16 @@ function renderTable(hand) {
 
     const stackCell = document.createElement("td");
     stackCell.className = "col-stack";
-    stackCell.dataset.label = "Stack";
-    stackCell.appendChild(buildMobileLabel("Stack"));
+    stackCell.dataset.label = "Chips";
+    stackCell.appendChild(buildMobileLabel("Chips"));
     stackCell.appendChild(buildMobileValue(chipsLabel(player.chips)));
+
+    if (player.isUser) {
+      const userOdds = document.createElement("div");
+      userOdds.className = "training-user-odds";
+      userOdds.textContent = `Odds: ${userEquity === null ? "-" : `${(userEquity * 100).toFixed(1)}%`}`;
+      cardsCell.appendChild(userOdds);
+    }
 
     const statusCell = document.createElement("td");
     statusCell.className = "col-status";
@@ -921,13 +951,14 @@ function renderStatus(hand, equity = null, recommendation = "-") {
 function renderAll(hand, equity = null, recommendation = "-") {
   renderStatus(hand, equity, recommendation);
   renderBoard(hand);
-  renderTable(hand);
+  renderTable(hand, equity);
 }
 
 function postChips(hand, player, amount) {
   const paid = Math.min(amount, player.chips);
   player.chips -= paid;
   player.streetBet += paid;
+  player.handContribution += paid;
   hand.pot += paid;
   return paid;
 }
@@ -1353,6 +1384,7 @@ async function getUserAction(hand, player, toCall, recommendation, equity, recom
     const { minTarget, maxTarget } = getAggressiveTargetBounds(hand, player, toCall);
     const normalizedRecommendation = normalizedAction(recommendationAction);
     trainingState.betSelectionActive = false;
+    trainingState.pendingAggressiveAction = null;
     updateActionButtons(false, toCall, raiseTo, minTarget, maxTarget, player);
 
     trainingState.pendingRecommendationAction = () => {
@@ -1393,6 +1425,7 @@ async function getUserAction(hand, player, toCall, recommendation, equity, recom
       trainingState.pendingUserDecision = null;
       trainingState.pendingRecommendationAction = null;
       trainingState.betSelectionActive = false;
+      trainingState.pendingAggressiveAction = null;
       updateActionButtons(true, 0, 0, 0, 0);
       resolve(action);
     };
@@ -1470,44 +1503,94 @@ async function runBettingRound(hand, handId) {
   updateActionButtons(true, 0, 0, 0, 0);
 }
 
-function evaluateShowdownWinner(hand) {
-  const contenders = activePlayers(hand);
+function payoutShowdown(hand) {
+  const contributions = hand.players
+    .map((player) => player.handContribution)
+    .filter((amount) => amount > 0)
+    .sort((a, b) => a - b);
+  const uniqueLevels = Array.from(new Set(contributions));
 
-  if (contenders.length === 1) {
-    return { winners: [contenders[0]] };
+  if (uniqueLevels.length === 0) {
+    return [];
   }
 
-  let best = null;
-  const winners = [];
+  const rankBySeat = new Map();
+  hand.players.forEach((player) => {
+    if (!player.folded) {
+      rankBySeat.set(player.seat, evaluateSevenCards([player.cards[0], player.cards[1]].concat(hand.board)));
+    }
+  });
 
-  contenders.forEach((player) => {
-    const rankVector = evaluateSevenCards([player.cards[0], player.cards[1]].concat(hand.board));
-    if (!best || compareRankVectors(rankVector, best) > 0) {
-      best = rankVector;
-      winners.length = 0;
-      winners.push(player);
+  const payoutsBySeat = new Map();
+  hand.players.forEach((player) => payoutsBySeat.set(player.seat, 0));
+
+  let previousLevel = 0;
+
+  uniqueLevels.forEach((level) => {
+    const contributors = hand.players.filter((player) => player.handContribution >= level);
+    const sidePot = (level - previousLevel) * contributors.length;
+    previousLevel = level;
+
+    if (sidePot <= 0) {
       return;
     }
 
-    if (compareRankVectors(rankVector, best) === 0) {
-      winners.push(player);
+    const contenders = contributors.filter((player) => !player.folded);
+    if (contenders.length === 0) {
+      return;
     }
+
+    let bestRank = null;
+    let winners = [];
+
+    contenders.forEach((player) => {
+      const rankVector = rankBySeat.get(player.seat);
+      if (!bestRank || compareRankVectors(rankVector, bestRank) > 0) {
+        bestRank = rankVector;
+        winners = [player];
+        return;
+      }
+
+      if (compareRankVectors(rankVector, bestRank) === 0) {
+        winners.push(player);
+      }
+    });
+
+    const share = Math.floor(sidePot / winners.length);
+    const remainder = sidePot - (share * winners.length);
+
+    winners.forEach((winner, index) => {
+      const current = payoutsBySeat.get(winner.seat) || 0;
+      payoutsBySeat.set(winner.seat, current + share + (index === 0 ? remainder : 0));
+    });
   });
 
-  return { winners };
-}
-
-function payoutShowdown(hand) {
-  const { winners } = evaluateShowdownWinner(hand);
-  const share = Math.floor(hand.pot / winners.length);
-  const remainder = hand.pot - (share * winners.length);
-
-  winners.forEach((winner, index) => {
-    winner.chips += share + (index === 0 ? remainder : 0);
+  const paidWinners = hand.players.filter((player) => (payoutsBySeat.get(player.seat) || 0) > 0);
+  paidWinners.forEach((winner) => {
+    winner.chips += payoutsBySeat.get(winner.seat) || 0;
   });
 
   hand.pot = 0;
-  return winners;
+  return paidWinners;
+}
+
+function buildAdviceLine(item) {
+  const recommended = normalizedAction(item.recommendation);
+  const taken = normalizedAction(item.action);
+
+  if (recommended === "fold" && taken !== "fold") {
+    return `${item.street}: prioritize discipline in negative-EV spots and release marginal hands earlier.`;
+  }
+
+  if ((recommended === "raise" || recommended === "bet") && !(taken === "raise" || taken === "bet")) {
+    return `${item.street}: look for more value or pressure when your equity supports aggressive action.`;
+  }
+
+  if ((recommended === "call" || recommended === "check") && (taken === "raise" || taken === "bet")) {
+    return `${item.street}: avoid over-aggression when pot odds and equity favor pot control.`;
+  }
+
+  return `${item.street}: align decisions more tightly with equity and pot-odds thresholds.`;
 }
 
 function renderSummary(hand, winners) {
@@ -1555,6 +1638,16 @@ function renderSummary(hand, winners) {
   const score = document.createElement("p");
   score.textContent = `Decision quality: followed ${followed} of ${total} recommendations (${missed} deviations).`;
   el.summaryDetails.appendChild(score);
+
+  const missedItems = trainingState.decisionLog.filter((item) => !item.followed);
+  const advice = document.createElement("p");
+  if (missedItems.length === 0) {
+    advice.textContent = "Advice: strong strategic discipline this hand. Keep applying pressure in high-equity spots and preserve chips in marginal spots.";
+  } else {
+    const adviceLines = missedItems.slice(0, 3).map(buildAdviceLine).join(" ");
+    advice.textContent = `Advice: ${adviceLines}`;
+  }
+  el.summaryDetails.appendChild(advice);
 
   trainingState.decisionLog.forEach((item, idx) => {
     const row = document.createElement("p");
@@ -1676,6 +1769,7 @@ function createHand() {
       folded: false,
       eliminated: false,
       streetBet: 0,
+      handContribution: 0,
       lastAction: "-",
     };
   });
@@ -1769,11 +1863,12 @@ async function playHand(handId) {
       return;
     }
 
+    trainingState.showdownRevealed = true;
+
     let winners;
     if (trainingState.hand.finishedByFold) {
       winners = activePlayers(trainingState.hand);
     } else {
-      trainingState.showdownRevealed = true;
       winners = payoutShowdown(trainingState.hand);
       const winnerText = winners.map((winner) => (winner.isUser ? "You" : `Seat ${winner.seat}`)).join(", ");
       addLog(`Showdown complete. Winner: ${winnerText}.`, "raise");
@@ -1795,10 +1890,22 @@ async function playHand(handId) {
     renderSummary(trainingState.hand, winners);
 
     if (sessionDone) {
+      clearAutoDealTimer();
       setPromptMessage(`${trainingState.tournamentResult}. Click Reset to start a new session.`);
       el.startButton.disabled = true;
     } else {
-      setPromptMessage("Hand complete. Click Deal to continue the session with current chip stacks.");
+      clearAutoDealTimer();
+      if (trainingState.autoDealEnabled) {
+        setPromptMessage("Hand complete. Auto-deal is on. Next hand starts in 10 seconds.");
+        trainingState.autoDealTimerId = window.setTimeout(() => {
+          trainingState.autoDealTimerId = null;
+          if (!trainingState.tournamentFinished && !trainingState.waitingForUser) {
+            startHand();
+          }
+        }, 10000);
+      } else {
+        setPromptMessage("Hand complete. Click Deal to continue the session with current chip stacks.");
+      }
       el.startButton.disabled = false;
     }
   } catch (error) {
@@ -1814,6 +1921,7 @@ async function playHand(handId) {
     trainingState.pendingUserDecision = null;
     trainingState.pendingRecommendationAction = null;
     trainingState.betSelectionActive = false;
+    trainingState.pendingAggressiveAction = null;
     el.startButton.disabled = trainingState.tournamentFinished;
   }
 }
@@ -1861,6 +1969,7 @@ function renderSelectors() {
 }
 
 function applySettingsChange() {
+  clearAutoDealTimer();
   trainingState.handId += 1;
   trainingState.hand = null;
   trainingState.showdownRevealed = false;
@@ -1868,10 +1977,8 @@ function applySettingsChange() {
   trainingState.pendingUserDecision = null;
   trainingState.pendingRecommendationAction = null;
   trainingState.betSelectionActive = false;
+  trainingState.pendingAggressiveAction = null;
   clearTournamentProgress();
-  if (el.settingsPanel) {
-    el.settingsPanel.open = true;
-  }
   el.startButton.disabled = false;
   resetTrainingStateVisuals();
 }
@@ -1889,6 +1996,7 @@ async function loadRanges() {
 }
 
 function resetHand() {
+  clearAutoDealTimer();
   trainingState.handId += 1;
   trainingState.hand = null;
   trainingState.showdownRevealed = false;
@@ -1898,15 +2006,15 @@ function resetHand() {
   trainingState.pendingUserDecision = null;
   trainingState.pendingRecommendationAction = null;
   trainingState.betSelectionActive = false;
+  trainingState.pendingAggressiveAction = null;
   el.startButton.textContent = "Deal";
   el.startButton.disabled = false;
-  if (el.settingsPanel) {
-    el.settingsPanel.open = true;
-  }
   resetTrainingStateVisuals();
 }
 
 function startHand() {
+  clearAutoDealTimer();
+
   if (!trainingState.userPosition) {
     setPromptMessage("Select your position before starting a hand.");
     return;
@@ -1978,18 +2086,27 @@ function hookActionButtons() {
     }
   });
 
-  el.checkCallBtn.addEventListener("click", () => {
+  el.checkBtn.addEventListener("click", () => {
     if (!trainingState.pendingUserDecision || !trainingState.hand) {
       return;
     }
 
-    const user = getUserPlayer(trainingState.hand);
-    const toCall = Math.max(0, trainingState.hand.currentBet - user.streetBet);
     trainingState.betSelectionActive = false;
-    trainingState.pendingUserDecision(toCall > 0 ? "call" : "check");
+    trainingState.pendingAggressiveAction = null;
+    trainingState.pendingUserDecision("check");
   });
 
-  el.betRaiseBtn.addEventListener("click", () => {
+  el.callBtn.addEventListener("click", () => {
+    if (!trainingState.pendingUserDecision || !trainingState.hand) {
+      return;
+    }
+
+    trainingState.betSelectionActive = false;
+    trainingState.pendingAggressiveAction = null;
+    trainingState.pendingUserDecision("call");
+  });
+
+  const handleAggressiveButton = (actionType) => {
     if (!trainingState.pendingUserDecision || !trainingState.hand) {
       return;
     }
@@ -1998,8 +2115,9 @@ function hookActionButtons() {
     const toCall = Math.max(0, trainingState.hand.currentBet - user.streetBet);
     const fallbackTarget = calcRaiseTarget(trainingState.hand, user);
 
-    if (!trainingState.betSelectionActive) {
+    if (!trainingState.betSelectionActive || trainingState.pendingAggressiveAction !== actionType) {
       trainingState.betSelectionActive = true;
+      trainingState.pendingAggressiveAction = actionType;
       updateActionButtons(false, toCall, fallbackTarget, 0, 0, user);
       return;
     }
@@ -2007,31 +2125,29 @@ function hookActionButtons() {
     const selectedAmount = readSelectedAggressiveTarget(0, user.chips, Math.max(0, fallbackTarget - user.streetBet));
     const targetBet = user.streetBet + selectedAmount;
     trainingState.pendingUserDecision({
-      type: toCall > 0 ? "raise" : "bet",
+      type: actionType,
       targetBet,
     });
-  });
+  };
 
-  if (el.allInBtn) {
-    el.allInBtn.addEventListener("click", () => {
-      if (!trainingState.pendingUserDecision || !trainingState.hand) {
-        return;
-      }
-
-      const user = getUserPlayer(trainingState.hand);
-      const toCall = Math.max(0, trainingState.hand.currentBet - user.streetBet);
-      trainingState.pendingUserDecision({
-        type: toCall > 0 ? "raise" : "bet",
-        allIn: true,
-      });
-    });
-  }
+  el.raiseBtn.addEventListener("click", () => handleAggressiveButton("raise"));
+  el.betBtn.addEventListener("click", () => handleAggressiveButton("bet"));
 }
 
 async function initTraining() {
   renderBuildTag();
   renderSelectors();
   resetTrainingStateVisuals();
+
+  if (el.autoDealToggle) {
+    el.autoDealToggle.checked = trainingState.autoDealEnabled;
+    el.autoDealToggle.addEventListener("change", () => {
+      trainingState.autoDealEnabled = Boolean(el.autoDealToggle.checked);
+      if (!trainingState.autoDealEnabled) {
+        clearAutoDealTimer();
+      }
+    });
+  }
 
   el.startButton.addEventListener("click", startHand);
   el.resetButton.addEventListener("click", resetHand);

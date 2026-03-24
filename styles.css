@@ -1177,6 +1177,43 @@ h1 {
   gap: 8px;
 }
 
+.training-controls-inline {
+  margin-top: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.training-small-btn {
+  min-height: 34px;
+  padding: 4px 10px;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.training-table-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.training-table-title {
+  margin: 0;
+  font-size: 1.32rem;
+  font-weight: 900;
+}
+
+.training-checkbox-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
 .training-settings {
   margin-top: 12px;
   border: 1px solid var(--border);
@@ -1290,7 +1327,7 @@ h1 {
 
 .training-action-buttons {
   display: grid;
-  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  grid-template-columns: repeat(5, minmax(90px, 1fr));
   gap: 8px;
 }
 
@@ -1331,6 +1368,16 @@ h1 {
 .training-bet-size-slider {
   width: 100%;
   accent-color: var(--accent);
+}
+
+.training-bet-size-slider::-webkit-slider-thumb {
+  width: 24px;
+  height: 24px;
+}
+
+.training-bet-size-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
 }
 
 .training-bet-size-range {
@@ -1411,6 +1458,13 @@ h1 {
 
 .training-user-row {
   background: color-mix(in oklab, var(--accent) 12%, transparent);
+}
+
+.training-user-odds {
+  margin-top: 5px;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: color-mix(in oklab, var(--accent) 75%, var(--text));
 }
 
 .card-token-hidden {
@@ -1586,7 +1640,27 @@ h1 {
   }
 
   .training-action-buttons {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .training-small-btn {
+    min-height: 32px;
+    padding: 4px 8px;
+    font-size: 0.76rem;
+  }
+
+  .training-table-title {
+    font-size: 1.2rem;
+  }
+
+  .training-bet-size-slider::-webkit-slider-thumb {
+    width: 30px;
+    height: 30px;
+  }
+
+  .training-bet-size-slider::-moz-range-thumb {
+    width: 30px;
+    height: 30px;
   }
 
   .training-bet-sizing-controls {
@@ -1658,7 +1732,7 @@ h1 {
     padding: 3px 0;
     border: 0;
     text-align: left;
-    font-size: 1.23rem;
+    font-size: 1.05rem;
   }
 
   .training-table td::before {
@@ -1676,22 +1750,29 @@ h1 {
     min-width: 0;
     margin-right: 0;
     color: var(--heading);
-    font-size: 1.11rem;
+    font-size: 0.94rem;
     font-weight: 800;
     letter-spacing: 0.02em;
     text-transform: uppercase;
+    white-space: nowrap;
   }
 
   .training-mobile-field-value {
     display: inline;
     color: var(--text);
+    white-space: nowrap;
   }
 
   .training-table td.col-cards .training-mobile-field-value {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
+  }
+
+  .training-user-odds {
+    margin-top: 3px;
+    font-size: 0.78rem;
   }
 
   .training-table td.col-seat,
@@ -1766,7 +1847,7 @@ h1 {
   }
 
   .training-mobile-field-label {
-    font-size: 1.05rem;
+    font-size: 0.88rem;
   }
 
   .training-table tbody tr {

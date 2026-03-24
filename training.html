@@ -41,7 +41,7 @@
 
         <p class="subtitle">Set the table context, then play a running session where chip stacks carry over each hand.</p>
 
-        <details id="training-settings-panel" class="training-settings" open>
+        <details id="training-settings-panel" class="training-settings">
           <summary class="training-settings-summary">Session Settings</summary>
 
           <section class="field-group">
@@ -58,12 +58,15 @@
             <h2>Your Position <span class="required-asterisk" aria-hidden="true">*</span></h2>
             <div id="training-position-grid" class="button-grid"></div>
           </section>
-        </details>
 
-        <section class="training-controls">
-          <button id="training-start-btn" class="select-btn" type="button">Deal</button>
-          <button id="training-reset-btn" class="select-btn danger" type="button">Reset</button>
-        </section>
+          <section class="field-group">
+            <h2>Automation</h2>
+            <label class="training-checkbox-option" for="training-auto-deal-toggle">
+              <input id="training-auto-deal-toggle" type="checkbox" />
+              <span>Auto deal next hand after 10 seconds</span>
+            </label>
+          </section>
+        </details>
 
         <section id="training-status" class="result training-status" aria-live="polite">
           <div class="result-row odds-summary-row">
@@ -124,15 +127,22 @@
           </div>
           <div id="training-action-buttons" class="training-action-buttons">
             <button id="training-fold-btn" class="select-btn danger" type="button" disabled>Fold</button>
-            <button id="training-check-call-btn" class="select-btn" type="button" disabled>Check</button>
-            <button id="training-bet-raise-btn" class="select-btn" type="button" disabled>Bet</button>
-            <button id="training-all-in-btn" class="select-btn" type="button" disabled>All In</button>
+            <button id="training-check-btn" class="select-btn" type="button" disabled>Check</button>
+            <button id="training-call-btn" class="select-btn" type="button" disabled>Call</button>
+            <button id="training-raise-btn" class="select-btn" type="button" disabled>Raise</button>
+            <button id="training-bet-btn" class="select-btn" type="button" disabled>Bet</button>
           </div>
           <p id="training-prompt" class="training-prompt">Start a hand to begin training.</p>
         </section>
 
         <section class="field-group">
-          <h2>Table</h2>
+          <div class="training-table-heading">
+            <h2 class="training-table-title">Table</h2>
+            <div class="training-controls training-controls-inline">
+              <button id="training-start-btn" class="select-btn training-small-btn" type="button">Deal</button>
+              <button id="training-reset-btn" class="select-btn danger training-small-btn" type="button">Reset</button>
+            </div>
+          </div>
           <div class="table-wrap training-table-wrap">
             <table class="odds-table training-table" id="training-table">
               <thead>
@@ -140,7 +150,7 @@
                   <th>Seat</th>
                   <th>Pos</th>
                   <th>Cards</th>
-                  <th>Stack</th>
+                  <th>Chips</th>
                   <th>Status</th>
                   <th>Bet</th>
                   <th>Action</th>
