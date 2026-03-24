@@ -13,8 +13,8 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "6.7";
-const BUILD_TIMESTAMP = "2026-03-24 09:37";
+const BUILD_VERSION = "6.8";
+const BUILD_TIMESTAMP = "2026-03-24 09:42";
 const WHEEL_REPEAT_COUNT = 3;
 const WHEEL_SCROLL_DEBOUNCE_MS = 90;
 
@@ -439,6 +439,95 @@ function renderBoardGrid() {
     wrapper.appendChild(label);
     wrapper.appendChild(cardWheel);
     oddsElements.boardGrid.appendChild(wrapper);
+  }
+
+  const controlsWrap = document.createElement("div");
+  controlsWrap.className = "board-slot board-random-controls";
+
+  const controlsLabel = document.createElement("span");
+  controlsLabel.className = "board-slot-label";
+  controlsLabel.textContent = "Random Board";
+  controlsWrap.appendChild(controlsLabel);
+
+  const randomFlopBtn = document.createElement("button");
+  randomFlopBtn.type = "button";
+  randomFlopBtn.className = "select-btn board-random-btn";
+  randomFlopBtn.textContent = "Random Flop";
+  randomFlopBtn.addEventListener("click", () => {
+    randomizeStreet("flop");
+    refreshCardSelectionUI();
+    handleCalculateOdds();
+  });
+  controlsWrap.appendChild(randomFlopBtn);
+
+  const randomTurnBtn = document.createElement("button");
+  randomTurnBtn.type = "button";
+  randomTurnBtn.className = "select-btn board-random-btn";
+  randomTurnBtn.textContent = "Random Turn";
+  randomTurnBtn.addEventListener("click", () => {
+    randomizeStreet("turn");
+    refreshCardSelectionUI();
+    handleCalculateOdds();
+  });
+  controlsWrap.appendChild(randomTurnBtn);
+
+  const randomRiverBtn = document.createElement("button");
+  randomRiverBtn.type = "button";
+  randomRiverBtn.className = "select-btn board-random-btn";
+  randomRiverBtn.textContent = "Random River";
+  randomRiverBtn.addEventListener("click", () => {
+    randomizeStreet("river");
+    refreshCardSelectionUI();
+    handleCalculateOdds();
+  });
+  controlsWrap.appendChild(randomRiverBtn);
+
+  oddsElements.boardGrid.appendChild(controlsWrap);
+}
+
+function buildAvailableDeckInts() {
+  const used = collectUsedCards();
+  const available = [];
+
+  for (let cardInt = 0; cardInt < 52; cardInt += 1) {
+    const { rankText, suitKey } = cardIntToDisplayParts(cardInt);
+    const key = makeCardKey(rankText, suitKey);
+    if (!used.has(key)) {
+      available.push(cardInt);
+    }
+  }
+
+  return available;
+}
+
+function drawRandomAvailableCard() {
+  const available = buildAvailableDeckInts();
+  if (!available.length) {
+    return null;
+  }
+
+  const randomIndex = Math.floor(Math.random() * available.length);
+  const selectedInt = available[randomIndex];
+  const { rankText, suitKey } = cardIntToDisplayParts(selectedInt);
+  return { rank: rankText, suit: suitKey };
+}
+
+function randomizeStreet(street) {
+  const ensureFlop = street === "flop" || street === "turn" || street === "river";
+  const ensureTurn = street === "turn" || street === "river";
+
+  if (ensureFlop) {
+    for (let i = 0; i < 3; i += 1) {
+      oddsState.board[i] = drawRandomAvailableCard();
+    }
+  }
+
+  if (ensureTurn) {
+    oddsState.board[3] = drawRandomAvailableCard();
+  }
+
+  if (street === "river") {
+    oddsState.board[4] = drawRandomAvailableCard();
   }
 }
 
