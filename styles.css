@@ -1216,10 +1216,35 @@ h1 {
   margin-bottom: 8px;
 }
 
+.training-board-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.training-board-title {
+  margin: 0;
+  font-size: 1.36rem;
+  color: var(--heading);
+}
+
+.training-board-pot-indicator {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--heading);
+}
+
 .training-table-title {
   margin: 0;
-  font-size: 1.32rem;
+  font-size: 1.42rem;
   font-weight: 900;
+}
+
+.training-hand-log-title {
+  font-size: 1.36rem;
+  color: var(--heading);
 }
 
 .training-checkbox-option {
@@ -1241,6 +1266,7 @@ h1 {
 .training-settings-summary {
   cursor: pointer;
   font-weight: 700;
+  font-size: 1.2rem;
   color: var(--heading);
   margin-bottom: 6px;
 }
@@ -1266,10 +1292,14 @@ h1 {
   padding-top: 4px;
 }
 
+.training-status-compact-label {
+  font-size: 0.9rem;
+}
+
 .training-reco-value {
   display: inline-block;
   margin-left: 6px;
-  font-size: 1.06rem;
+  font-size: 0.96rem;
   font-weight: 800;
   letter-spacing: 0.01em;
   color: #e2e8f0;
@@ -1316,7 +1346,7 @@ h1 {
   margin-left: 6px;
   padding: 4px 10px;
   border-radius: 9px;
-  font-size: 1.14rem;
+  font-size: 0.98rem;
   font-weight: 900;
   letter-spacing: 0.01em;
   color: color-mix(in oklab, var(--accent) 70%, var(--text));
@@ -1701,7 +1731,21 @@ h1 {
   }
 
   .training-table-title {
+    font-size: 1.28rem;
+  }
+
+  .training-board-title,
+  .training-hand-log-title,
+  .training-settings-summary {
     font-size: 1.2rem;
+  }
+
+  .training-status-compact-label {
+    font-size: 0.86rem;
+  }
+
+  .training-board-pot-indicator {
+    font-size: 0.84rem;
   }
 
   .training-bet-size-slider::-webkit-slider-thumb {

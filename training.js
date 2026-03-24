@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "7.0";
-const BUILD_TIMESTAMP = "2026-03-24 13:34";
+const BUILD_VERSION = "7.1";
+const BUILD_TIMESTAMP = "2026-03-24 13:45";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -105,7 +105,7 @@ const trainingState = {
   handResultMessage: "-",
   pendingRecommendationAction: null,
   pendingAggressiveAction: null,
-  autoDealEnabled: false,
+  autoDealEnabled: true,
   autoDealTimerId: null,
 };
 
@@ -124,6 +124,7 @@ const el = {
   recommendation: document.getElementById("training-reco"),
   actionOn: document.getElementById("training-action-on"),
   handResult: document.getElementById("training-hand-result"),
+  boardPot: document.getElementById("training-board-pot"),
   oddsResultsHeader: document.getElementById("training-odds-results-header"),
   board: document.getElementById("training-board"),
   tableBody: document.getElementById("training-table-body"),
@@ -585,14 +586,11 @@ function getSessionStatusText() {
     return "Not started";
   }
 
-  const userChips = trainingState.tournamentStacks.get(trainingState.userSeat) || 0;
-  const activePlayers = Array.from(trainingState.tournamentStacks.values()).filter((chips) => chips > 0).length;
-
   if (trainingState.tournamentFinished) {
-    return `${trainingState.tournamentResult} | You: ${userChips}/${trainingState.tournamentTotalChips}`;
+    return trainingState.tournamentResult;
   }
 
-  return `Hand ${trainingState.handsPlayed + 1} | You: ${userChips}/${trainingState.tournamentTotalChips} | Players Left: ${activePlayers}`;
+  return `Hand ${trainingState.handsPlayed + 1}`;
 }
 
 function positionToSeatMap(players) {
@@ -941,6 +939,9 @@ function renderStatus(hand, equity = null, recommendation = "-") {
   if (!hand) {
     el.street.textContent = "-";
     el.pot.textContent = "-";
+    if (el.boardPot) {
+      el.boardPot.textContent = "-";
+    }
     if (el.playersInHand) {
       el.playersInHand.textContent = "-";
     }
@@ -959,6 +960,9 @@ function renderStatus(hand, equity = null, recommendation = "-") {
 
   el.street.textContent = streetLabel(hand.street);
   el.pot.textContent = chipsLabel(hand.pot);
+  if (el.boardPot) {
+    el.boardPot.textContent = chipsLabel(hand.pot);
+  }
   if (el.playersInHand) {
     el.playersInHand.textContent = String(activePlayers(hand).length);
   }

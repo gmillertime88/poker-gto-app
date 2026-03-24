@@ -62,7 +62,7 @@
           <section class="field-group">
             <h2>Automation</h2>
             <label class="training-checkbox-option" for="training-auto-deal-toggle">
-              <input id="training-auto-deal-toggle" type="checkbox" />
+              <input id="training-auto-deal-toggle" type="checkbox" checked />
               <span>Auto deal next hand after 10 seconds</span>
             </label>
           </section>
@@ -85,13 +85,13 @@
             <span class="label summary-label">Your Odds: <span id="training-odds" class="value">-</span></span>
           </div>
           <div class="result-row odds-summary-row training-reco-row">
-            <span class="label summary-label">Recommended: <span id="training-reco" class="value training-reco-value">-</span></span>
+            <span class="label summary-label training-status-compact-label">Recommended: <span id="training-reco" class="value training-reco-value">-</span></span>
           </div>
           <div class="result-row odds-summary-row">
             <span class="label summary-label">Action On: <span id="training-action-on" class="value">-</span></span>
           </div>
           <div class="result-row odds-summary-row">
-            <span class="label summary-label">Hand Result: <span id="training-hand-result" class="value training-hand-result-value">-</span></span>
+            <span class="label summary-label training-status-compact-label">Hand Result: <span id="training-hand-result" class="value training-hand-result-value">-</span></span>
           </div>
           <div class="training-status-controls">
             <button id="training-start-btn" class="select-btn training-small-btn" type="button">Deal</button>
@@ -100,7 +100,10 @@
         </section>
 
         <section class="field-group">
-          <h2>Board</h2>
+          <div class="training-board-heading">
+            <h2 class="training-board-title">Board Cards</h2>
+            <span class="training-board-pot-indicator">Pot: <span id="training-board-pot">-</span></span>
+          </div>
           <div id="training-board" class="board-display"></div>
         </section>
 
@@ -168,7 +171,7 @@
         </section>
 
         <section class="field-group">
-          <h2>Hand Log</h2>
+          <h2 class="training-hand-log-title">Hand Log</h2>
           <div id="training-log" class="training-log"></div>
         </section>
 
