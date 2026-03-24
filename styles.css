@@ -1194,6 +1194,10 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 2px;
 }
 
 .training-small-btn {
@@ -1341,6 +1345,12 @@ h1 {
   display: grid;
   grid-template-columns: repeat(5, minmax(90px, 1fr));
   gap: 8px;
+}
+
+.training-action-buttons-inline {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: nowrap;
 }
 
 .training-bet-sizing {
@@ -1665,6 +1675,12 @@ h1 {
 
   .training-action-buttons {
     grid-template-columns: repeat(2, minmax(120px, 1fr));
+  }
+
+  .training-action-buttons-inline {
+    display: inline-flex;
+    gap: 6px;
+    flex-wrap: nowrap;
   }
 
   .training-small-btn {
