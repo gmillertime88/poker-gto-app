@@ -1371,13 +1371,13 @@ h1 {
 }
 
 .training-bet-size-slider::-webkit-slider-thumb {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
 }
 
 .training-bet-size-slider::-moz-range-thumb {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
 }
 
 .training-bet-size-range {
@@ -1460,16 +1460,20 @@ h1 {
   background: color-mix(in oklab, var(--accent) 12%, transparent);
 }
 
-.training-user-odds {
-  margin-top: 5px;
-  font-size: 0.84rem;
-  font-weight: 800;
-  color: color-mix(in oklab, var(--accent) 75%, var(--text));
+.training-table tbody tr.training-folded-row {
+  border-color: color-mix(in oklab, var(--danger) 52%, var(--table-border));
+  background: color-mix(in oklab, var(--danger) 14%, var(--surface-soft));
+}
+
+.training-table tr.training-folded-row td.col-seat {
+  background: color-mix(in oklab, var(--danger) 14%, var(--surface));
 }
 
 .card-token-hidden {
   letter-spacing: 0.08em;
   font-weight: 700;
+  min-width: 2.1em;
+  justify-content: center;
 }
 
 @media (max-width: 640px) {
@@ -1654,13 +1658,13 @@ h1 {
   }
 
   .training-bet-size-slider::-webkit-slider-thumb {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
   }
 
   .training-bet-size-slider::-moz-range-thumb {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
   }
 
   .training-bet-sizing-controls {
@@ -1770,14 +1774,10 @@ h1 {
     flex-wrap: wrap;
   }
 
-  .training-user-odds {
-    margin-top: 3px;
-    font-size: 0.78rem;
-  }
-
   .training-table td.col-seat,
   .training-table td.col-position,
-  .training-table td.col-cards {
+  .training-table td.col-cards,
+  .training-table td.col-odds {
     grid-column: 1;
     justify-content: flex-start;
     text-align: left;
@@ -1793,6 +1793,10 @@ h1 {
 
   .training-table td.col-cards {
     grid-row: 3;
+  }
+
+  .training-table td.col-odds {
+    grid-row: 4;
   }
 
   .training-table td.col-stack,

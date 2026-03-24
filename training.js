@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "6.2";
-const BUILD_TIMESTAMP = "2026-03-24 08:05";
+const BUILD_VERSION = "6.3";
+const BUILD_TIMESTAMP = "2026-03-24 08:28";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -119,6 +119,7 @@ const el = {
   session: document.getElementById("training-session"),
   street: document.getElementById("training-street"),
   pot: document.getElementById("training-pot"),
+  playersInHand: document.getElementById("training-players-in-hand"),
   odds: document.getElementById("training-odds"),
   recommendation: document.getElementById("training-reco"),
   actionOn: document.getElementById("training-action-on"),
@@ -828,6 +829,9 @@ function renderTable(hand, userEquity = null) {
     if (player.isUser) {
       row.className = "training-user-row";
     }
+    if (player.folded) {
+      row.classList.add("training-folded-row");
+    }
     if (hand.pendingSeat === player.seat) {
       row.classList.add("training-pending-row");
     }
@@ -857,18 +861,18 @@ function renderTable(hand, userEquity = null) {
     cardsValue.appendChild(makeCardToken(player.cards[1], !showRealCards));
     cardsCell.appendChild(cardsValue);
 
+    const oddsCell = document.createElement("td");
+    oddsCell.className = "col-odds";
+    oddsCell.dataset.label = "Odds";
+    oddsCell.appendChild(buildMobileLabel("Odds:"));
+    const oddsValue = player.isUser && userEquity !== null ? `${(userEquity * 100).toFixed(1)}%` : "-";
+    oddsCell.appendChild(buildMobileValue(oddsValue));
+
     const stackCell = document.createElement("td");
     stackCell.className = "col-stack";
     stackCell.dataset.label = "Chips";
     stackCell.appendChild(buildMobileLabel("Chips"));
     stackCell.appendChild(buildMobileValue(chipsLabel(player.chips)));
-
-    if (player.isUser) {
-      const userOdds = document.createElement("div");
-      userOdds.className = "training-user-odds";
-      userOdds.textContent = `Odds: ${userEquity === null ? "-" : `${(userEquity * 100).toFixed(1)}%`}`;
-      cardsCell.appendChild(userOdds);
-    }
 
     const statusCell = document.createElement("td");
     statusCell.className = "col-status";
@@ -892,6 +896,7 @@ function renderTable(hand, userEquity = null) {
     row.appendChild(seatCell);
     row.appendChild(posCell);
     row.appendChild(cardsCell);
+    row.appendChild(oddsCell);
     row.appendChild(stackCell);
     row.appendChild(statusCell);
     row.appendChild(streetBetCell);
@@ -915,6 +920,9 @@ function renderStatus(hand, equity = null, recommendation = "-") {
   if (!hand) {
     el.street.textContent = "-";
     el.pot.textContent = "-";
+    if (el.playersInHand) {
+      el.playersInHand.textContent = "-";
+    }
     el.odds.textContent = "-";
     el.recommendation.textContent = "-";
     el.recommendation.className = "value training-reco-value";
@@ -930,6 +938,9 @@ function renderStatus(hand, equity = null, recommendation = "-") {
 
   el.street.textContent = streetLabel(hand.street);
   el.pot.textContent = chipsLabel(hand.pot);
+  if (el.playersInHand) {
+    el.playersInHand.textContent = String(activePlayers(hand).length);
+  }
   el.odds.textContent = equity === null ? "-" : `${(equity * 100).toFixed(1)}%`;
   el.recommendation.textContent = recommendation;
   el.recommendation.className = `value training-reco-value ${normalizedAction(recommendation)}${canQuickApplyRecommendation ? " clickable" : ""}`;
