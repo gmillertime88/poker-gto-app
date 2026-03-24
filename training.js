@@ -24,18 +24,19 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "7.2";
-const BUILD_TIMESTAMP = "2026-03-24 14:00";
+const BUILD_VERSION = "7.3";
+const BUILD_TIMESTAMP = "2026-03-24 14:15";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
 const STARTING_STACK = 1000;
 const NPC_ACTION_DELAY_RANGE_MS = {
-  conservative: [5000, 5000],
-  normal: [5000, 5000],
-  aggressive: [5000, 5000],
+  conservative: [2200, 5000],
+  normal: [900, 5000],
+  aggressive: [350, 5000],
 };
 const STREETS = ["preflop", "flop", "turn", "river"];
+const CARD_BACK_IMAGE_PATH = "images/Card.png";
 
 const OPEN_SIZE_BB = {
   UTG: 2.2,
@@ -330,13 +331,17 @@ function makeCardToken(cardInt, hidden = false) {
   const token = document.createElement("span");
   token.className = `card-token${hidden ? " card-token-hidden" : ""}`;
 
-  if (cardInt === null || cardInt === undefined) {
-    token.textContent = "--";
+  if (hidden) {
+    const backImage = document.createElement("img");
+    backImage.className = "card-token-back-image";
+    backImage.src = CARD_BACK_IMAGE_PATH;
+    backImage.alt = "Hidden card";
+    token.appendChild(backImage);
     return token;
   }
 
-  if (hidden) {
-    token.textContent = "??";
+  if (cardInt === null || cardInt === undefined) {
+    token.textContent = "--";
     return token;
   }
 
@@ -800,6 +805,11 @@ function renderBoard(hand) {
   hand.board.forEach((cardInt) => {
     el.board.appendChild(makeCardToken(cardInt));
   });
+
+  const unrevealedCount = Math.max(0, 5 - hand.board.length);
+  for (let i = 0; i < unrevealedCount; i += 1) {
+    el.board.appendChild(makeCardToken(null, true));
+  }
 }
 
 function renderTable(hand, userEquity = null) {

@@ -1409,7 +1409,7 @@ h1 {
   display: block;
   margin-bottom: 6px;
   font-size: 0.9rem;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--text-muted);
 }
 
@@ -1448,20 +1448,20 @@ h1 {
 
 .training-bet-size-range {
   font-size: 0.86rem;
-  font-weight: 700;
+  font-weight: 400;
   color: var(--text-muted);
 }
 
 .training-bet-size-current {
   font-size: 0.86rem;
-  font-weight: 800;
+  font-weight: 400;
   color: var(--text);
 }
 
 .training-prompt {
   margin: 10px 0 0;
   font-size: 1.02rem;
-  font-weight: 800;
+  font-weight: 400;
   line-height: 1.35;
 }
 
@@ -1544,10 +1544,23 @@ h1 {
   min-width: 2.1em;
 }
 
+.card-token-back-image {
+  display: block;
+  width: 1.2em;
+  height: 1.7em;
+  object-fit: contain;
+}
+
 #training-board .card-token-hidden,
 .training-table .card-token-hidden {
   min-width: 2.65em;
   min-height: 1.45em;
+}
+
+#training-board .card-token-back-image,
+.training-table .card-token-back-image {
+  width: 1.35em;
+  height: 1.95em;
 }
 
 @media (max-width: 640px) {
