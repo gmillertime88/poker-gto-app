@@ -8,8 +8,8 @@ const TABLE_TEMPERATURES = [
   { key: "aggressive", label: "Aggressive" },
 ];
 
-const BUILD_VERSION = "6.3";
-const BUILD_TIMESTAMP = "2026-03-24 08:28";
+const BUILD_VERSION = "6.4";
+const BUILD_TIMESTAMP = "2026-03-24 08:36";
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
@@ -87,7 +87,7 @@ const numToRank = Object.fromEntries(Object.entries(rankToNum).map(([rank, value
 const state = {
   players: 9,
   temperature: "normal",
-  position: null,
+  position: "D",
   card1: null,
   card2: null,
   suited: null,
