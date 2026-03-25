@@ -2095,10 +2095,18 @@ h1 {
   .training-table td.col-action {
     grid-column: 2;
     justify-content: flex-start;
-    align-items: flex-start;
-    flex-direction: column;
+    align-items: baseline;
+    flex-direction: row;
     text-align: left;
-    gap: 2px;
+    gap: 6px;
+  }
+
+  .training-table td.col-stack .training-mobile-field-label,
+  .training-table td.col-status .training-mobile-field-label,
+  .training-table td.col-bet .training-mobile-field-label,
+  .training-table td.col-action .training-mobile-field-label {
+    min-width: 64px;
+    text-align: left;
   }
 
   .training-table td.col-stack {

@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "8.3";
-const BUILD_TIMESTAMP = "2026-03-25 14:52";
+const BUILD_VERSION = "8.4";
+const BUILD_TIMESTAMP = "2026-03-25 15:08";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -316,12 +316,14 @@ function getActiveBaseRows() {
 }
 
 function getRangeMap() {
-  const cacheKey = `${trainingState.gameType}`;
+  const cacheKey = `${trainingState.gameType}-${trainingState.players}-${trainingState.temperature}`;
   if (trainingState.rangeMapsByContext.has(cacheKey)) {
     return trainingState.rangeMapsByContext.get(cacheKey);
   }
 
-  const map = buildDirectRangeMap(getActiveBaseRows());
+  const baseRows = getActiveBaseRows();
+  const thresholds = buildPositionThresholds(baseRows);
+  const map = buildRangeMapForContext(baseRows, trainingState.players, thresholds);
   trainingState.rangeMapsByContext.set(cacheKey, map);
   return map;
 }

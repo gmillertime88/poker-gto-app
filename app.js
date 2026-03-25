@@ -15,8 +15,8 @@ const DEFAULT_RANGE_FILE = "ranges.json";
 const CASH_RANGE_FILE = "Supporting Materials/cash_ranges_app_compatible.json";
 const TOURNAMENT_RANGE_FILE = "Supporting Materials/tournament_ranges_app_compatible.json";
 
-const BUILD_VERSION = "8.3";
-const BUILD_TIMESTAMP = "2026-03-25 14:52";
+const BUILD_VERSION = "8.4";
+const BUILD_TIMESTAMP = "2026-03-25 15:08";
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
@@ -288,12 +288,14 @@ function getActiveBaseRows() {
  * first access to avoid repeated recomputation.
  */
 function getRangeMapForSelectedPlayers() {
-  const contextKey = `${state.gameType}`;
+  const contextKey = `${state.gameType}-${state.players}-${state.temperature}`;
   if (state.rangeMapsByContext.has(contextKey)) {
     return state.rangeMapsByContext.get(contextKey);
   }
 
-  const map = buildDirectRangeMap(getActiveBaseRows());
+  const baseRows = getActiveBaseRows();
+  const thresholds = buildPositionThresholds(baseRows);
+  const map = buildRangeMapForPlayers(baseRows, state.players, thresholds);
   state.rangeMapsByContext.set(contextKey, map);
   return map;
 }
