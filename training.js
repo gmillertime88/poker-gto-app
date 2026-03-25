@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "8.0";
-const BUILD_TIMESTAMP = "2026-03-25 08:54";
+const BUILD_VERSION = "8.1";
+const BUILD_TIMESTAMP = "2026-03-25 14:39";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -950,7 +950,7 @@ function renderTable(hand, userEquity = null) {
     const oddsCell = document.createElement("td");
     oddsCell.className = "col-odds";
     oddsCell.dataset.label = showResults ? "Results" : "Odds";
-    oddsCell.appendChild(buildMobileLabel(showResults ? "Results:" : "Odds:"));
+    oddsCell.appendChild(buildMobileLabel(showResults ? "Results" : "Odds"));
     let oddsOrResultValue = "-";
 
     if (showResults) {
