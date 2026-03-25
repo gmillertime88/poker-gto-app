@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "8.2";
-const BUILD_TIMESTAMP = "2026-03-25 14:42";
+const BUILD_VERSION = "8.3";
+const BUILD_TIMESTAMP = "2026-03-25 14:52";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -42,6 +42,9 @@ const NPC_ACTION_DELAY_RANGE_MS = {
 };
 const STREETS = ["preflop", "flop", "turn", "river"];
 const CARD_BACK_IMAGE_PATH = "images/Card.png";
+const DEFAULT_RANGE_FILE = "ranges.json";
+const CASH_RANGE_FILE = "Supporting Materials/cash_ranges_app_compatible.json";
+const TOURNAMENT_RANGE_FILE = "Supporting Materials/tournament_ranges_app_compatible.json";
 
 const OPEN_SIZE_BB = {
   UTG: 2.2,
@@ -92,7 +95,10 @@ const trainingState = {
   temperature: "normal",
   userPosition: "D",
   gameType: "tournament",
-  baseRows: [],
+  baseRowsByGameType: {
+    cash: [],
+    tournament: [],
+  },
   thresholds: {},
   rangesLoaded: false,
   rangeMapsByContext: new Map(),
@@ -292,13 +298,30 @@ function buildRangeMapForContext(baseRows, players, thresholds) {
   return rangeMap;
 }
 
+function buildDirectRangeMap(baseRows) {
+  const rangeMap = new Map();
+  baseRows.forEach((row) => {
+    rangeMap.set(tableKey(row.card1, row.card2, row.suited), row);
+  });
+  return rangeMap;
+}
+
+function getActiveBaseRows() {
+  const selected = trainingState.baseRowsByGameType[trainingState.gameType];
+  if (Array.isArray(selected) && selected.length > 0) {
+    return selected;
+  }
+
+  return trainingState.baseRowsByGameType.tournament;
+}
+
 function getRangeMap() {
-  const cacheKey = `${trainingState.players}-${trainingState.temperature}`;
+  const cacheKey = `${trainingState.gameType}`;
   if (trainingState.rangeMapsByContext.has(cacheKey)) {
     return trainingState.rangeMapsByContext.get(cacheKey);
   }
 
-  const map = buildRangeMapForContext(trainingState.baseRows, trainingState.players, trainingState.thresholds);
+  const map = buildDirectRangeMap(getActiveBaseRows());
   trainingState.rangeMapsByContext.set(cacheKey, map);
   return map;
 }
@@ -2209,13 +2232,40 @@ function applySettingsChange() {
 }
 
 async function loadRanges() {
-  const response = await fetch("ranges.json");
-  if (!response.ok) {
-    throw new Error("Unable to load ranges.json");
+  const loadRangeFile = async (filePath) => {
+    const response = await fetch(encodeURI(filePath));
+    if (!response.ok) {
+      throw new Error(`Unable to load ${filePath}`);
+    }
+
+    const rows = await response.json();
+    if (!Array.isArray(rows) || rows.length === 0) {
+      throw new Error(`Range file is empty or invalid: ${filePath}`);
+    }
+
+    return rows;
+  };
+
+  const fallbackRows = await loadRangeFile(DEFAULT_RANGE_FILE);
+
+  let cashRows = fallbackRows;
+  let tournamentRows = fallbackRows;
+
+  try {
+    cashRows = await loadRangeFile(CASH_RANGE_FILE);
+  } catch (error) {
+    console.warn("Cash ranges file unavailable, using default ranges.json", error);
   }
 
-  trainingState.baseRows = await response.json();
-  trainingState.thresholds = buildPositionThresholds(trainingState.baseRows);
+  try {
+    tournamentRows = await loadRangeFile(TOURNAMENT_RANGE_FILE);
+  } catch (error) {
+    console.warn("Tournament ranges file unavailable, using default ranges.json", error);
+  }
+
+  trainingState.baseRowsByGameType.cash = cashRows;
+  trainingState.baseRowsByGameType.tournament = tournamentRows;
+  trainingState.thresholds = buildPositionThresholds(getActiveBaseRows());
   trainingState.rangesLoaded = true;
   trainingState.rangeMapsByContext.clear();
 }

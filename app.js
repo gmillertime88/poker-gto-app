@@ -7,9 +7,16 @@ const TABLE_TEMPERATURES = [
   { key: "normal", label: "Normal" },
   { key: "aggressive", label: "Aggressive" },
 ];
+const GAME_TYPES = [
+  { key: "tournament", label: "Tournament" },
+  { key: "cash", label: "Cash Game" },
+];
+const DEFAULT_RANGE_FILE = "ranges.json";
+const CASH_RANGE_FILE = "Supporting Materials/cash_ranges_app_compatible.json";
+const TOURNAMENT_RANGE_FILE = "Supporting Materials/tournament_ranges_app_compatible.json";
 
-const BUILD_VERSION = "8.2";
-const BUILD_TIMESTAMP = "2026-03-25 14:42";
+const BUILD_VERSION = "8.3";
+const BUILD_TIMESTAMP = "2026-03-25 14:52";
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
@@ -87,12 +94,16 @@ const numToRank = Object.fromEntries(Object.entries(rankToNum).map(([rank, value
 const state = {
   players: 9,
   temperature: "normal",
+  gameType: "tournament",
   position: "D",
   card1: null,
   card2: null,
   suited: null,
   rangeMapsByContext: new Map(),
-  baseRows: [],
+  baseRowsByGameType: {
+    cash: [],
+    tournament: [],
+  },
   thresholds: {},
 };
 
@@ -102,6 +113,7 @@ const state = {
 const elements = {
   playersGrid: document.getElementById("players-grid"),
   temperatureGrid: document.getElementById("temperature-grid"),
+  gameTypeGrid: document.getElementById("ranges-game-type-grid"),
   settingsPanel: document.getElementById("ranges-settings-panel") || null,
   settingsOpenButton: document.getElementById("ranges-settings-open-btn"),
   settingsCloseButton: document.getElementById("ranges-settings-close-btn"),
@@ -254,17 +266,34 @@ function buildRangeMapForPlayers(baseRows, players, thresholds) {
   return rangeMap;
 }
 
+function buildDirectRangeMap(baseRows) {
+  const rangeMap = new Map();
+  baseRows.forEach((row) => {
+    rangeMap.set(tableKey(row.card1, row.card2, row.suited), row);
+  });
+  return rangeMap;
+}
+
+function getActiveBaseRows() {
+  const selected = state.baseRowsByGameType[state.gameType];
+  if (Array.isArray(selected) && selected.length > 0) {
+    return selected;
+  }
+
+  return state.baseRowsByGameType.tournament;
+}
+
 /**
  * Returns the current context range map from cache, building and caching it on
  * first access to avoid repeated recomputation.
  */
 function getRangeMapForSelectedPlayers() {
-  const contextKey = `${state.players}-${state.temperature}`;
+  const contextKey = `${state.gameType}`;
   if (state.rangeMapsByContext.has(contextKey)) {
     return state.rangeMapsByContext.get(contextKey);
   }
 
-  const map = buildRangeMapForPlayers(state.baseRows, state.players, state.thresholds);
+  const map = buildDirectRangeMap(getActiveBaseRows());
   state.rangeMapsByContext.set(contextKey, map);
   return map;
 }
@@ -346,6 +375,18 @@ function renderSelections() {
       () => setSelectionValue("temperature", temperature.key)
     );
   });
+
+  if (elements.gameTypeGrid) {
+    elements.gameTypeGrid.innerHTML = "";
+    GAME_TYPES.forEach((gameType) => {
+      renderButton(
+        elements.gameTypeGrid,
+        gameType.label,
+        state.gameType === gameType.key,
+        () => setSelectionValue("gameType", gameType.key)
+      );
+    });
+  }
 
   const activePositions = getActivePositions();
 
@@ -461,13 +502,40 @@ function updateResult() {
  * Loads baseline range data from disk and prepares derived threshold metadata.
  */
 async function loadRangeTable() {
-  const response = await fetch("ranges.json");
-  if (!response.ok) {
-    throw new Error("Unable to load ranges.json");
+  const loadRangeFile = async (filePath) => {
+    const response = await fetch(encodeURI(filePath));
+    if (!response.ok) {
+      throw new Error(`Unable to load ${filePath}`);
+    }
+
+    const rows = await response.json();
+    if (!Array.isArray(rows) || rows.length === 0) {
+      throw new Error(`Range file is empty or invalid: ${filePath}`);
+    }
+
+    return rows;
+  };
+
+  const fallbackRows = await loadRangeFile(DEFAULT_RANGE_FILE);
+
+  let cashRows = fallbackRows;
+  let tournamentRows = fallbackRows;
+
+  try {
+    cashRows = await loadRangeFile(CASH_RANGE_FILE);
+  } catch (error) {
+    console.warn("Cash ranges file unavailable, using default ranges.json", error);
   }
 
-  state.baseRows = await response.json();
-  state.thresholds = buildPositionThresholds(state.baseRows);
+  try {
+    tournamentRows = await loadRangeFile(TOURNAMENT_RANGE_FILE);
+  } catch (error) {
+    console.warn("Tournament ranges file unavailable, using default ranges.json", error);
+  }
+
+  state.baseRowsByGameType.cash = cashRows;
+  state.baseRowsByGameType.tournament = tournamentRows;
+  state.thresholds = buildPositionThresholds(getActiveBaseRows());
   state.rangeMapsByContext.clear();
 }
 
