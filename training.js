@@ -5,6 +5,11 @@ const TABLE_TEMPERATURES = [
   { key: "aggressive", label: "Aggressive" },
 ];
 
+const GAME_TYPES = [
+  { key: "tournament", label: "Tournament" },
+  { key: "cash", label: "Cash Game" },
+];
+
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 const POSITIONS_BY_PLAYERS = {
   2: ["D", "BB"],
@@ -24,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "8.1";
-const BUILD_TIMESTAMP = "2026-03-25 14:39";
+const BUILD_VERSION = "8.2";
+const BUILD_TIMESTAMP = "2026-03-25 14:42";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -86,6 +91,7 @@ const trainingState = {
   players: 6,
   temperature: "normal",
   userPosition: "D",
+  gameType: "tournament",
   baseRows: [],
   thresholds: {},
   rangesLoaded: false,
@@ -118,6 +124,7 @@ const el = {
   settingsOpenButton: document.getElementById("training-settings-open-btn"),
   settingsCloseButton: document.getElementById("training-settings-close-btn"),
   positionGrid: document.getElementById("training-position-grid"),
+  gameTypeGrid: document.getElementById("training-game-type-grid"),
   startButton: document.getElementById("training-start-btn"),
   resetButton: document.getElementById("training-reset-btn"),
   session: document.getElementById("training-session"),
@@ -2173,6 +2180,17 @@ function renderSelectors() {
       renderSelectors();
     });
   });
+
+  if (el.gameTypeGrid) {
+    el.gameTypeGrid.innerHTML = "";
+    GAME_TYPES.forEach((gameType) => {
+      renderSelectionButton(el.gameTypeGrid, gameType.label, trainingState.gameType === gameType.key, () => {
+        trainingState.gameType = gameType.key;
+        applySettingsChange();
+        renderSelectors();
+      });
+    });
+  }
 }
 
 function applySettingsChange() {
