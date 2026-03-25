@@ -1059,7 +1059,12 @@ h1 {
   gap: 9px;
 }
 
-#training-board .card-token,
+#training-board .card-token {
+  gap: 3px;
+  padding: 4px 11px;
+  font-size: 1.54rem;
+}
+
 .training-table .card-token {
   gap: 2px;
   padding: 3px 9px;
@@ -1258,9 +1263,13 @@ h1 {
 }
 
 .training-board-pot-indicator {
-  font-size: 0.92rem;
+  font-size: 1.38rem;
   font-weight: 800;
-  color: var(--heading);
+  color: #14532d;
+}
+
+#training-board-pot {
+  color: #14532d;
 }
 
 .training-table-title {
@@ -1386,6 +1395,22 @@ h1 {
 
 .training-status-hidden {
   display: none;
+}
+
+.training-action-status {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+[data-theme="light"] .training-action-status {
+  background: #ffffff;
+}
+
+.training-action-status .label {
+  color: #1f2937;
 }
 
 .training-reco-row {
@@ -1693,10 +1718,20 @@ h1 {
   min-height: 1.45em;
 }
 
+#training-board .card-token-hidden {
+  min-width: 3.31em;
+  min-height: 1.81em;
+}
+
 #training-board .card-token-back-image,
 .training-table .card-token-back-image {
   width: 1.35em;
   height: 1.95em;
+}
+
+#training-board .card-token-back-image {
+  width: 1.69em;
+  height: 2.44em;
 }
 
 @media (max-width: 640px) {
@@ -1901,7 +1936,7 @@ h1 {
   }
 
   .training-board-pot-indicator {
-    font-size: 0.84rem;
+    font-size: 1.18rem;
   }
 
   .training-bet-size-slider::-webkit-slider-thumb {

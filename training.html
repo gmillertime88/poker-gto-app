@@ -42,9 +42,6 @@
             </details>
           </div>
         </div>
-
-        <p class="subtitle">Set the table context, then play a running session where chip stacks carry over each hand.</p>
-
         <details id="training-settings-panel" class="training-settings training-settings-overlay">
           <summary class="training-settings-summary">Session Settings</summary>
 
@@ -84,23 +81,6 @@
           <button id="training-reset-btn" class="select-btn danger training-small-btn" type="button">Reset</button>
         </div>
 
-        <section id="training-status" class="training-outcome-panel" aria-live="polite">
-          <div class="result-row odds-summary-row">
-            <span class="label summary-label training-status-compact-label">Recommended: <span id="training-reco" class="value training-reco-value">-</span></span>
-          </div>
-          <div class="result-row odds-summary-row">
-            <span class="label summary-label training-status-compact-label">Hand Result: <span id="training-hand-result" class="value training-hand-result-value">-</span></span>
-          </div>
-          <div class="training-status-hidden" aria-hidden="true">
-            <span id="training-session">-</span>
-            <span id="training-street">-</span>
-            <span id="training-pot">-</span>
-            <span id="training-players-in-hand">-</span>
-            <span id="training-odds">-</span>
-            <span id="training-action-on">-</span>
-          </div>
-        </section>
-
         <section class="field-group">
           <div class="training-board-heading">
             <h2 class="training-board-title">Board Cards</h2>
@@ -111,6 +91,22 @@
 
         <section class="field-group">
           <h2>Action</h2>
+          <div class="training-action-status" aria-live="polite">
+            <div class="result-row odds-summary-row">
+              <span class="label summary-label training-status-compact-label">Recommendation: <span id="training-reco" class="value training-reco-value">-</span></span>
+            </div>
+            <div class="result-row odds-summary-row">
+              <span class="label summary-label training-status-compact-label">Hand Result: <span id="training-hand-result" class="value training-hand-result-value">-</span></span>
+            </div>
+            <div class="training-status-hidden" aria-hidden="true">
+              <span id="training-session">-</span>
+              <span id="training-street">-</span>
+              <span id="training-pot">-</span>
+              <span id="training-players-in-hand">-</span>
+              <span id="training-odds">-</span>
+              <span id="training-action-on">-</span>
+            </div>
+          </div>
           <div class="training-bet-sizing" id="training-bet-sizing">
             <label for="training-bet-size-input" class="training-bet-sizing-label">Bet Amount</label>
             <div class="training-bet-sizing-controls">
