@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "7.5";
-const BUILD_TIMESTAMP = "2026-03-24 14:32";
+const BUILD_VERSION = "7.6";
+const BUILD_TIMESTAMP = "2026-03-25 07:56";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -108,12 +108,15 @@ const trainingState = {
   pendingAggressiveAction: null,
   autoDealEnabled: true,
   autoDealTimerId: null,
+  sessionReviewEntries: [],
 };
 
 const el = {
   playersGrid: document.getElementById("training-players-grid"),
   temperatureGrid: document.getElementById("training-temperature-grid"),
   settingsPanel: document.getElementById("training-settings-panel") || null,
+  settingsOpenButton: document.getElementById("training-settings-open-btn"),
+  settingsCloseButton: document.getElementById("training-settings-close-btn"),
   positionGrid: document.getElementById("training-position-grid"),
   startButton: document.getElementById("training-start-btn"),
   resetButton: document.getElementById("training-reset-btn"),
@@ -143,6 +146,7 @@ const el = {
   summary: document.getElementById("training-summary"),
   summaryHeadline: document.getElementById("training-summary-headline"),
   summaryDetails: document.getElementById("training-summary-details"),
+  sessionLogBody: document.getElementById("training-session-log-body"),
   buildTag: document.getElementById("training-build-tag"),
   autoDealToggle: document.getElementById("training-auto-deal-toggle"),
 };
@@ -654,6 +658,47 @@ function addLog(text, type = "info") {
   row.className = `training-log-entry ${type}`;
   row.textContent = text;
   el.log.prepend(row);
+}
+
+function clearSessionReviewLog() {
+  trainingState.sessionReviewEntries = [];
+  if (!el.sessionLogBody) {
+    return;
+  }
+  el.sessionLogBody.innerHTML = "No completed hands yet in this session.";
+}
+
+function appendSessionReviewEntry(hand, winners) {
+  if (!el.sessionLogBody || !el.summaryDetails || !el.summaryHeadline) {
+    return;
+  }
+
+  const winnerText = winners.length > 0
+    ? winners.map((winner) => (winner.isUser ? "You" : `Seat ${winner.seat}`)).join(", ")
+    : "No winner";
+
+  const entry = document.createElement("article");
+  entry.className = "training-session-log-entry";
+
+  const title = document.createElement("h3");
+  title.className = "training-session-log-title";
+  title.textContent = `Hand ${trainingState.handsPlayed} - ${winnerText}`;
+  entry.appendChild(title);
+
+  const meta = document.createElement("p");
+  meta.className = "training-session-log-meta";
+  meta.textContent = el.summaryHeadline.textContent || "Summary";
+  entry.appendChild(meta);
+
+  const details = document.createElement("div");
+  details.className = "training-session-log-details";
+  details.innerHTML = el.summaryDetails.innerHTML;
+  entry.appendChild(details);
+
+  if (el.sessionLogBody.textContent && el.sessionLogBody.textContent.includes("No completed hands yet")) {
+    el.sessionLogBody.innerHTML = "";
+  }
+  el.sessionLogBody.prepend(entry);
 }
 
 function clampValue(value, min, max) {
@@ -1600,26 +1645,20 @@ function payoutShowdown(hand) {
   const payoutsBySeat = new Map();
   hand.players.forEach((player) => payoutsBySeat.set(player.seat, 0));
 
-  const tableOrder = POSITIONS_BY_PLAYERS[hand.players.length] || POSITION_DISPLAY_ORDER;
-  const buttonIndex = tableOrder.indexOf("D");
-  const positionFromButton = [];
-  for (let i = 1; i <= tableOrder.length; i += 1) {
-    positionFromButton.push(tableOrder[(buttonIndex + i) % tableOrder.length]);
-  }
+  const buttonSeatIndex = hand.players.findIndex((player) => player.position === "D");
+  const firstSeatIndex = buttonSeatIndex >= 0 ? (buttonSeatIndex + 1) % hand.players.length : 0;
 
   const oddChipWinnerOrder = (winners) => {
-    const winnersByPosition = new Map();
-    winners.forEach((winner) => {
-      winnersByPosition.set(winner.position, winner);
-    });
-
+    const winnerSeats = new Set(winners.map((winner) => winner.seat));
     const ordered = [];
-    positionFromButton.forEach((position) => {
-      const winner = winnersByPosition.get(position);
-      if (winner) {
-        ordered.push(winner);
+
+    for (let i = 0; i < hand.players.length; i += 1) {
+      const seatIndex = (firstSeatIndex + i) % hand.players.length;
+      const seatPlayer = hand.players[seatIndex];
+      if (winnerSeats.has(seatPlayer.seat)) {
+        ordered.push(seatPlayer);
       }
-    });
+    }
 
     return ordered.length > 0 ? ordered : winners;
   };
@@ -1780,6 +1819,7 @@ function renderSummary(hand, winners) {
   }
 
   el.summary.hidden = false;
+  appendSessionReviewEntry(hand, resolvedWinners);
 }
 
 function setInitialPrompt() {
@@ -1793,6 +1833,7 @@ function resetTrainingStateVisuals() {
   el.summary.hidden = true;
   el.summaryHeadline.textContent = "-";
   el.summaryDetails.innerHTML = "";
+  clearSessionReviewLog();
   trainingState.handResultMessage = "-";
   setInitialPrompt();
 }
@@ -1867,6 +1908,7 @@ function createHand() {
     el.summary.hidden = true;
     el.summaryHeadline.textContent = "-";
     el.summaryDetails.innerHTML = "";
+    clearSessionReviewLog();
     initializeTournament();
   }
 
@@ -2172,8 +2214,6 @@ function startHand() {
   trainingState.showdownRevealed = false;
   trainingState.decisionLog = [];
   trainingState.handResultMessage = "Hand in progress";
-
-  el.summary.hidden = true;
   el.startButton.disabled = true;
   el.startButton.textContent = "Deal";
   if (el.settingsPanel) {
@@ -2274,6 +2314,32 @@ async function initTraining() {
   renderBuildTag();
   renderSelectors();
   resetTrainingStateVisuals();
+
+  if (el.settingsOpenButton && el.settingsPanel) {
+    el.settingsOpenButton.addEventListener("click", () => {
+      el.settingsPanel.open = true;
+    });
+  }
+
+  if (el.settingsCloseButton && el.settingsPanel) {
+    el.settingsCloseButton.addEventListener("click", () => {
+      el.settingsPanel.open = false;
+    });
+  }
+
+  if (el.settingsPanel) {
+    el.settingsPanel.addEventListener("click", (event) => {
+      if (event.target === el.settingsPanel) {
+        el.settingsPanel.open = false;
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && el.settingsPanel.open) {
+        el.settingsPanel.open = false;
+      }
+    });
+  }
 
   if (el.autoDealToggle) {
     el.autoDealToggle.checked = trainingState.autoDealEnabled;

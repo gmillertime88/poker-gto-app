@@ -17,55 +17,66 @@
             </a>
           </div>
           <h1 class="page-title">MillerTime Poker Training</h1>
-          <details class="hamburger-menu">
-            <summary class="hamburger-trigger" aria-label="Open menu">
-              <span></span>
-              <span></span>
-              <span></span>
-            </summary>
-            <div class="hamburger-panel">
-              <div class="theme-control menu-theme-control">
-                <span class="theme-label">Dark</span>
-                <label class="theme-switch" for="theme-toggle-training" aria-label="Toggle light mode">
-                  <input id="theme-toggle-training" type="checkbox" data-theme-toggle />
-                  <span class="theme-slider"></span>
-                </label>
-                <span class="theme-label">Light</span>
+          <div class="top-nav-actions">
+            <button id="training-settings-open-btn" class="training-settings-trigger" type="button" aria-label="Open session settings">&#9881;</button>
+            <details class="hamburger-menu">
+              <summary class="hamburger-trigger" aria-label="Open menu">
+                <span></span>
+                <span></span>
+                <span></span>
+              </summary>
+              <div class="hamburger-panel">
+                <div class="theme-control menu-theme-control">
+                  <span class="theme-label">Dark</span>
+                  <label class="theme-switch" for="theme-toggle-training" aria-label="Toggle light mode">
+                    <input id="theme-toggle-training" type="checkbox" data-theme-toggle />
+                    <span class="theme-slider"></span>
+                  </label>
+                  <span class="theme-label">Light</span>
+                </div>
+                <a class="nav-link menu-nav-link" href="ranges.html">Go to Ranges</a>
+                <a class="nav-link menu-nav-link" href="odds.html">Go to Odds</a>
+                <a class="nav-link menu-nav-link" href="training.html" aria-current="page">Go to Training</a>
+                <a class="nav-link menu-nav-link" href="#training-session-log-section">Session Review Log</a>
               </div>
-              <a class="nav-link menu-nav-link" href="ranges.html">Go to Ranges</a>
-              <a class="nav-link menu-nav-link" href="odds.html">Go to Odds</a>
-              <a class="nav-link menu-nav-link" href="training.html" aria-current="page">Go to Training</a>
-            </div>
-          </details>
+            </details>
+          </div>
         </div>
 
         <p class="subtitle">Set the table context, then play a running session where chip stacks carry over each hand.</p>
 
-        <details id="training-settings-panel" class="training-settings">
+        <details id="training-settings-panel" class="training-settings training-settings-overlay">
           <summary class="training-settings-summary">Session Settings</summary>
 
-          <section class="field-group">
-            <h2>Players <span class="required-asterisk" aria-hidden="true">*</span></h2>
-            <div id="training-players-grid" class="button-grid players-grid"></div>
-          </section>
+          <div class="training-settings-dialog" role="dialog" aria-modal="true" aria-label="Session Settings">
+            <div class="training-settings-dialog-header">
+              <h2 class="training-settings-dialog-title">Session Settings</h2>
+              <button id="training-settings-close-btn" class="training-settings-close" type="button" aria-label="Close settings">X</button>
+            </div>
 
-          <section class="field-group">
-            <h2>Table Temperature <span class="required-asterisk" aria-hidden="true">*</span></h2>
-            <div id="training-temperature-grid" class="button-grid temperature-grid"></div>
-          </section>
+            <section class="field-group">
+              <h2>Players <span class="required-asterisk" aria-hidden="true">*</span></h2>
+              <div id="training-players-grid" class="button-grid players-grid"></div>
+            </section>
 
-          <section class="field-group">
-            <h2>Your Position <span class="required-asterisk" aria-hidden="true">*</span></h2>
-            <div id="training-position-grid" class="button-grid"></div>
-          </section>
+            <section class="field-group">
+              <h2>Table Temperature <span class="required-asterisk" aria-hidden="true">*</span></h2>
+              <div id="training-temperature-grid" class="button-grid temperature-grid"></div>
+            </section>
 
-          <section class="field-group">
-            <h2>Automation</h2>
-            <label class="training-checkbox-option" for="training-auto-deal-toggle">
-              <input id="training-auto-deal-toggle" type="checkbox" checked />
-              <span>Auto deal next hand after 10 seconds</span>
-            </label>
-          </section>
+            <section class="field-group">
+              <h2>Your Position <span class="required-asterisk" aria-hidden="true">*</span></h2>
+              <div id="training-position-grid" class="button-grid"></div>
+            </section>
+
+            <section class="field-group">
+              <h2>Automation</h2>
+              <label class="training-checkbox-option" for="training-auto-deal-toggle">
+                <input id="training-auto-deal-toggle" type="checkbox" checked />
+                <span>Auto deal next hand after 10 seconds</span>
+              </label>
+            </section>
+          </div>
         </details>
 
         <div class="training-top-controls">
@@ -171,6 +182,11 @@
             <span class="label summary-label">Summary: <span id="training-summary-headline" class="value">-</span></span>
           </div>
           <div id="training-summary-details" class="training-summary-details"></div>
+        </section>
+
+        <section id="training-session-log-section" class="field-group">
+          <h2 class="training-hand-log-title">Session Review Log</h2>
+          <div id="training-session-log-body" class="training-session-log">No completed hands yet in this session.</div>
         </section>
 
         <div class="build-tag-wrap">
