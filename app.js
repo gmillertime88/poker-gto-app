@@ -8,8 +8,8 @@ const TABLE_TEMPERATURES = [
   { key: "aggressive", label: "Aggressive" },
 ];
 
-const BUILD_VERSION = "7.8";
-const BUILD_TIMESTAMP = "2026-03-25 08:29";
+const BUILD_VERSION = "7.9";
+const BUILD_TIMESTAMP = "2026-03-25 08:50";
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
@@ -102,6 +102,9 @@ const state = {
 const elements = {
   playersGrid: document.getElementById("players-grid"),
   temperatureGrid: document.getElementById("temperature-grid"),
+  settingsPanel: document.getElementById("ranges-settings-panel") || null,
+  settingsOpenButton: document.getElementById("ranges-settings-open-btn"),
+  settingsCloseButton: document.getElementById("ranges-settings-close-btn"),
   positionGrid: document.getElementById("position-grid"),
   card1Grid: document.getElementById("card1-grid"),
   card2Grid: document.getElementById("card2-grid"),
@@ -475,6 +478,33 @@ async function loadRangeTable() {
 async function init() {
   try {
     renderBuildTag();
+
+    if (elements.settingsOpenButton && elements.settingsPanel) {
+      elements.settingsOpenButton.addEventListener("click", () => {
+        elements.settingsPanel.open = true;
+      });
+    }
+
+    if (elements.settingsCloseButton && elements.settingsPanel) {
+      elements.settingsCloseButton.addEventListener("click", () => {
+        elements.settingsPanel.open = false;
+      });
+    }
+
+    if (elements.settingsPanel) {
+      elements.settingsPanel.addEventListener("click", (event) => {
+        if (event.target === elements.settingsPanel) {
+          elements.settingsPanel.open = false;
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && elements.settingsPanel.open) {
+          elements.settingsPanel.open = false;
+        }
+      });
+    }
+
     await loadRangeTable();
     renderSelections();
     updateResult();

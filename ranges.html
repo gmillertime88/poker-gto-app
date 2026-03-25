@@ -17,41 +17,51 @@
             </a>
           </div>
           <h1 class="page-title">MillerTime Poker GTO-Ranges</h1>
-          <details class="hamburger-menu">
-            <summary class="hamburger-trigger" aria-label="Open menu">
-              <span></span>
-              <span></span>
-              <span></span>
-            </summary>
-            <div class="hamburger-panel">
-              <div class="theme-control menu-theme-control">
-                <span class="theme-label">Dark</span>
-                <label class="theme-switch" for="theme-toggle-ranges" aria-label="Toggle light mode">
-                  <input id="theme-toggle-ranges" type="checkbox" data-theme-toggle />
-                  <span class="theme-slider"></span>
-                </label>
-                <span class="theme-label">Light</span>
+          <div class="top-nav-actions">
+            <button id="ranges-settings-open-btn" class="training-settings-trigger" type="button" aria-label="Open range settings">&#9881;</button>
+            <details class="hamburger-menu">
+              <summary class="hamburger-trigger" aria-label="Open menu">
+                <span></span>
+                <span></span>
+                <span></span>
+              </summary>
+              <div class="hamburger-panel">
+                <div class="theme-control menu-theme-control">
+                  <span class="theme-label">Dark</span>
+                  <label class="theme-switch" for="theme-toggle-ranges" aria-label="Toggle light mode">
+                    <input id="theme-toggle-ranges" type="checkbox" data-theme-toggle />
+                    <span class="theme-slider"></span>
+                  </label>
+                  <span class="theme-label">Light</span>
+                </div>
+                <a class="nav-link menu-nav-link" href="ranges.html" aria-current="page">Go to Ranges</a>
+                <a class="nav-link menu-nav-link" href="odds.html">Go to Odds</a>
+                <a class="nav-link menu-nav-link" href="training.html">Go to Training</a>
               </div>
-              <a class="nav-link menu-nav-link" href="ranges.html" aria-current="page">Go to Ranges</a>
-              <a class="nav-link menu-nav-link" href="odds.html">Go to Odds</a>
-              <a class="nav-link menu-nav-link" href="training.html">Go to Training</a>
-            </div>
-          </details>
+            </details>
+          </div>
         </div>
 
         <p class="subtitle">Select your position and hand to get the recommended first-in action.</p>
 
-        <details id="ranges-settings-panel" class="training-settings">
+        <details id="ranges-settings-panel" class="training-settings training-settings-overlay">
           <summary class="training-settings-summary">Range Settings</summary>
 
-          <div class="field-group">
-            <h2>Players <span class="required-asterisk" aria-hidden="true">*</span></h2>
-            <div id="players-grid" class="button-grid players-grid scroll-selector ranges-scroll-selector"></div>
-          </div>
+          <div class="training-settings-dialog" role="dialog" aria-modal="true" aria-label="Range Settings">
+            <div class="training-settings-dialog-header">
+              <h2 class="training-settings-dialog-title">Range Settings</h2>
+              <button id="ranges-settings-close-btn" class="training-settings-close" type="button" aria-label="Close settings">X</button>
+            </div>
 
-          <div class="field-group">
-            <h2>Table Temperature <span class="required-asterisk" aria-hidden="true">*</span></h2>
-            <div id="temperature-grid" class="button-grid temperature-grid scroll-selector ranges-scroll-selector"></div>
+            <div class="field-group">
+              <h2>Players <span class="required-asterisk" aria-hidden="true">*</span></h2>
+              <div id="players-grid" class="button-grid players-grid scroll-selector ranges-scroll-selector"></div>
+            </div>
+
+            <div class="field-group">
+              <h2>Table Temperature <span class="required-asterisk" aria-hidden="true">*</span></h2>
+              <div id="temperature-grid" class="button-grid temperature-grid scroll-selector ranges-scroll-selector"></div>
+            </div>
           </div>
         </details>
 
