@@ -1556,13 +1556,13 @@ h1 {
 }
 
 .training-bet-size-slider::-webkit-slider-thumb {
-  width: 30px;
-  height: 30px;
+  width: 45px;
+  height: 45px;
 }
 
 .training-bet-size-slider::-moz-range-thumb {
-  width: 30px;
-  height: 30px;
+  width: 45px;
+  height: 45px;
 }
 
 .training-bet-size-range {
@@ -1940,13 +1940,13 @@ h1 {
   }
 
   .training-bet-size-slider::-webkit-slider-thumb {
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
   }
 
   .training-bet-size-slider::-moz-range-thumb {
-    width: 40px;
-    height: 40px;
+    width: 60px;
+    height: 60px;
   }
 
   .training-bet-sizing-controls {

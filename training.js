@@ -24,8 +24,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "7.9";
-const BUILD_TIMESTAMP = "2026-03-25 08:50";
+const BUILD_VERSION = "8.0";
+const BUILD_TIMESTAMP = "2026-03-25 08:54";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -139,6 +139,7 @@ const el = {
   betBtn: document.getElementById("training-bet-btn"),
   betSizeInput: document.getElementById("training-bet-size-input"),
   betSizeSlider: document.getElementById("training-bet-size-slider"),
+  betSizeTicks: document.getElementById("training-bet-size-ticks"),
   betSizeRange: document.getElementById("training-bet-size-range"),
   betSizeCurrent: document.getElementById("training-bet-size-current"),
   prompt: document.getElementById("training-prompt"),
@@ -733,6 +734,32 @@ function readSelectedAggressiveTarget(minTarget, maxTarget, fallbackTarget) {
   return clampValue(Math.round(value), 0, maxTarget);
 }
 
+function renderBetSizeTicks(maxTarget = 0) {
+  if (!el.betSizeTicks) {
+    return;
+  }
+
+  el.betSizeTicks.innerHTML = "";
+
+  if (!Number.isFinite(maxTarget) || maxTarget <= 0) {
+    return;
+  }
+
+  const uniqueValues = new Set();
+  const divisions = 5;
+  for (let i = 0; i <= divisions; i += 1) {
+    uniqueValues.add(Math.round((maxTarget * i) / divisions));
+  }
+
+  Array.from(uniqueValues)
+    .sort((a, b) => a - b)
+    .forEach((value) => {
+      const option = document.createElement("option");
+      option.value = String(value);
+      el.betSizeTicks.appendChild(option);
+    });
+}
+
 function updateBetSizingControls(disabled = true, maxTarget = 0, suggestedTarget = 0) {
   if (!el.betSizeInput || !el.betSizeRange) {
     return;
@@ -744,6 +771,7 @@ function updateBetSizingControls(disabled = true, maxTarget = 0, suggestedTarget
   }
 
   if (disabled || maxTarget <= 0) {
+    renderBetSizeTicks(0);
     el.betSizeInput.disabled = true;
     el.betSizeInput.min = "0";
     el.betSizeInput.max = "0";
@@ -762,6 +790,7 @@ function updateBetSizingControls(disabled = true, maxTarget = 0, suggestedTarget
   }
 
   const clampedSuggested = clampValue(Math.round(suggestedTarget), 0, maxTarget);
+  renderBetSizeTicks(maxTarget);
   el.betSizeInput.disabled = false;
   el.betSizeInput.min = "0";
   el.betSizeInput.max = String(maxTarget);
