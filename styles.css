@@ -1476,6 +1476,8 @@ h1 {
   padding: 0;
   border: 0;
   background: transparent;
+  border-radius: 0;
+}
 
 .training-reset-btn {
   width: 54px;
@@ -1492,8 +1494,6 @@ h1 {
   height: 100%;
   object-fit: cover;
   border-radius: 50%;
-}
-  border-radius: 0;
 }
 
 .training-reco-value.clickable {
