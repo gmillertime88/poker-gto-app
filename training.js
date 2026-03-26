@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "8.9";
-const BUILD_TIMESTAMP = "2026-03-26 09:28";
+const BUILD_VERSION = "9.0";
+const BUILD_TIMESTAMP = "2026-03-26 09:31";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -1477,11 +1477,11 @@ function recommendationReason(hand, player, toCall, equity, recommendation) {
       return `Pre-Flop Model Value: ${modelValue}. Range-driven preflop plan from ${player.position}.`;
     }
 
-    if (base === "Raise") {
+    if (modelValue === "Raise") {
       return `Pre-Flop Model Value: ${modelValue}. Strong range from ${player.position}; continue aggressively unless facing very large pressure.`;
     }
 
-    if (base === "Call") {
+    if (modelValue === "Call") {
       return `Pre-Flop Model Value: ${modelValue}. Marginal continue hand from ${player.position}; call performs better than raising.`;
     }
 
