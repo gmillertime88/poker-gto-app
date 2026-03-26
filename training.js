@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "8.7";
-const BUILD_TIMESTAMP = "2026-03-26 09:00";
+const BUILD_VERSION = "8.8";
+const BUILD_TIMESTAMP = "2026-03-26 09:21";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -319,14 +319,19 @@ function getActiveBaseRows() {
 }
 
 function getRangeMap() {
-  const cacheKey = `${trainingState.gameType}-${trainingState.players}-${trainingState.temperature}`;
+  return getRangeMapForPlayers(trainingState.players);
+}
+
+function getRangeMapForPlayers(playersCount) {
+  const safePlayers = Number.isFinite(playersCount) ? Math.max(2, Math.min(9, Math.round(playersCount))) : trainingState.players;
+  const cacheKey = `${trainingState.gameType}-${safePlayers}-${trainingState.temperature}`;
   if (trainingState.rangeMapsByContext.has(cacheKey)) {
     return trainingState.rangeMapsByContext.get(cacheKey);
   }
 
   const baseRows = getActiveBaseRows();
   const thresholds = buildPositionThresholds(baseRows);
-  const map = buildRangeMapForContext(baseRows, trainingState.players, thresholds);
+  const map = buildRangeMapForContext(baseRows, safePlayers, thresholds);
   trainingState.rangeMapsByContext.set(cacheKey, map);
   return map;
 }
@@ -561,10 +566,11 @@ function normalizedHoleFromInts(cardA, cardB) {
   return { card1: high, card2: low, suited };
 }
 
-function getPreflopRecommendation(player) {
+function getPreflopRecommendation(player, hand = null) {
   const hole = normalizedHoleFromInts(player.cards[0], player.cards[1]);
   const key = tableKey(hole.card1, hole.card2, hole.suited);
-  const row = getRangeMap().get(key);
+  const effectivePlayers = hand ? activePlayers(hand).length : trainingState.players;
+  const row = getRangeMapForPlayers(effectivePlayers).get(key);
   if (!row) {
     return "Fold";
   }
@@ -1329,7 +1335,7 @@ function estimateSeatEquity(hand, seat, trials = 900) {
 
 function recommendationForSituation(hand, player, toCall, equity) {
   if (hand.street === "preflop") {
-    const preflop = getPreflopRecommendation(player);
+    const preflop = getPreflopRecommendation(player, hand);
     if (toCall <= 0) {
       return preflop === "Raise" ? "Raise" : "Check";
     }
@@ -1432,20 +1438,36 @@ function recommendationText(hand, player, recommendation, toCall) {
 
 function recommendationReason(hand, player, toCall, equity, recommendation) {
   if (hand.street === "preflop") {
-    const base = getPreflopRecommendation(player);
+    const base = getPreflopRecommendation(player, hand);
+    const modelValue = String(base || "Fold");
+    const modelAction = normalizedAction(modelValue);
+    const recommendedAction = normalizedAction(recommendation);
+
+    if (modelAction !== recommendedAction) {
+      if (toCall <= 0 && modelAction === "call" && recommendedAction === "check") {
+        return `Pre-Flop Model Value: ${modelValue}. Adjusted to Check because there is no bet to call.`;
+      }
+
+      if (modelAction === "raise" && recommendedAction === "call") {
+        return `Pre-Flop Model Value: ${modelValue}. Adjusted to Call due to heavy preflop pressure (${hand.currentBet} chips to continue) where pot control is preferred.`;
+      }
+
+      return `Pre-Flop Model Value: ${modelValue}. Adjusted to ${recommendation} based on current preflop action state (to call ${toCall}, current bet ${hand.currentBet}).`;
+    }
+
     if (toCall <= 0) {
-      return `Range-driven preflop plan from ${player.position}: ${base}.`;
+      return `Pre-Flop Model Value: ${modelValue}. Range-driven preflop plan from ${player.position}.`;
     }
 
     if (base === "Raise") {
-      return `Strong range from ${player.position}; continue aggressively unless facing very large pressure.`;
+      return `Pre-Flop Model Value: ${modelValue}. Strong range from ${player.position}; continue aggressively unless facing very large pressure.`;
     }
 
     if (base === "Call") {
-      return `Marginal continue hand from ${player.position}; call performs better than raising.`;
+      return `Pre-Flop Model Value: ${modelValue}. Marginal continue hand from ${player.position}; call performs better than raising.`;
     }
 
-    return `Out-of-range continue from ${player.position}; folding preserves chips.`;
+    return `Pre-Flop Model Value: ${modelValue}. Out-of-range continue from ${player.position}; folding preserves chips.`;
   }
 
   const potOdds = toCall / Math.max(1, (hand.pot + toCall));
