@@ -1241,9 +1241,9 @@ h1 {
 }
 
 .training-deal-btn {
-  width: calc(1.54rem + 8px);
-  height: calc(1.54rem + 8px);
-  min-height: calc(1.54rem + 8px);
+  width: 54px;
+  height: 54px;
+  min-height: 54px;
   padding: 0;
   border-radius: 999px;
   overflow: hidden;
@@ -2054,6 +2054,13 @@ h1 {
     min-height: 32px;
     padding: 4px 8px;
     font-size: 0.76rem;
+  }
+
+  .training-deal-btn {
+    width: 54px;
+    height: 54px;
+    min-height: 54px;
+    padding: 0;
   }
 
   .training-top-controls {
