@@ -1631,6 +1631,16 @@ h1 {
   line-height: 1.35;
 }
 
+.summary-breakdown-title {
+  margin-top: 8px;
+  font-weight: 800;
+  color: var(--heading);
+}
+
+.summary-breakdown-line {
+  margin-top: 4px;
+}
+
 .training-session-log {
   border: 1px solid var(--border);
   border-radius: 12px;

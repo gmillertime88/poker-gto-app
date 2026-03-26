@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "8.6";
-const BUILD_TIMESTAMP = "2026-03-26 08:47";
+const BUILD_VERSION = "8.7";
+const BUILD_TIMESTAMP = "2026-03-26 09:00";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -1809,9 +1809,15 @@ function payoutShowdown(hand) {
     .filter((amount) => amount > 0)
     .sort((a, b) => a - b);
   const uniqueLevels = Array.from(new Set(contributions));
+  const payoutsBySeat = new Map();
+  hand.players.forEach((player) => payoutsBySeat.set(player.seat, 0));
 
   if (uniqueLevels.length === 0) {
-    return [];
+    return {
+      paidWinners: [],
+      payoutsBySeat,
+      sidePotResults: [],
+    };
   }
 
   const rankBySeat = new Map();
@@ -1821,8 +1827,7 @@ function payoutShowdown(hand) {
     }
   });
 
-  const payoutsBySeat = new Map();
-  hand.players.forEach((player) => payoutsBySeat.set(player.seat, 0));
+  const sidePotResults = [];
 
   const buttonSeatIndex = hand.players.findIndex((player) => player.position === "D");
   const firstSeatIndex = buttonSeatIndex >= 0 ? (buttonSeatIndex + 1) % hand.players.length : 0;
@@ -1890,6 +1895,11 @@ function payoutShowdown(hand) {
         payoutsBySeat.set(winner.seat, current + 1);
       }
     }
+
+    sidePotResults.push({
+      amount: sidePot,
+      winnerSeats: winners.map((winner) => winner.seat),
+    });
   });
 
   const paidWinners = hand.players.filter((player) => (payoutsBySeat.get(player.seat) || 0) > 0);
@@ -1899,7 +1909,11 @@ function payoutShowdown(hand) {
   });
 
   hand.pot = 0;
-  return paidWinners;
+  return {
+    paidWinners,
+    payoutsBySeat,
+    sidePotResults,
+  };
 }
 
 function buildAdviceLine(item) {
@@ -1968,6 +1982,48 @@ function renderSummary(hand, winners) {
       const userShowdown = document.createElement("p");
       userShowdown.textContent = `Your showdown hand: ${userHandLabel}.`;
       el.summaryDetails.appendChild(userShowdown);
+    }
+
+    const breakdownHeading = document.createElement("p");
+    breakdownHeading.className = "summary-breakdown-title";
+    breakdownHeading.textContent = "Showdown Breakdown:";
+    el.summaryDetails.appendChild(breakdownHeading);
+
+    const sidePotResults = Array.isArray(hand.showdownSidePotResults) ? hand.showdownSidePotResults : [];
+    if (sidePotResults.length > 0) {
+      sidePotResults.forEach((pot, idx) => {
+        const winnerText = (pot.winnerSeats || [])
+          .map((seat) => (seat === trainingState.userSeat ? "You" : `Seat ${seat}`))
+          .join(", ");
+
+        const line = document.createElement("p");
+        line.className = "summary-breakdown-line";
+        line.textContent = `Pot ${idx + 1}: ${pot.amount} chips -> ${winnerText || "No winner"}`;
+        el.summaryDetails.appendChild(line);
+      });
+    } else {
+      const noPot = document.createElement("p");
+      noPot.className = "summary-breakdown-line";
+      noPot.textContent = "Pot details unavailable for this showdown.";
+      el.summaryDetails.appendChild(noPot);
+    }
+
+    const payoutMap = hand.showdownPayouts instanceof Map ? hand.showdownPayouts : new Map();
+    const payoutRows = hand.players
+      .map((player) => ({
+        player,
+        payout: payoutMap.get(player.seat) || 0,
+      }))
+      .filter((item) => item.payout > 0)
+      .sort((a, b) => b.payout - a.payout);
+
+    if (payoutRows.length > 0) {
+      payoutRows.forEach((item) => {
+        const payoutLine = document.createElement("p");
+        payoutLine.className = "summary-breakdown-line";
+        payoutLine.textContent = `${item.player.isUser ? "You" : `Seat ${item.player.seat}`}: +${item.payout}`;
+        el.summaryDetails.appendChild(payoutLine);
+      });
     }
   }
 
@@ -2137,6 +2193,8 @@ function createHand() {
     thinkingSeat: null,
     pendingSeat: null,
     finishedByFold: false,
+    showdownPayouts: null,
+    showdownSidePotResults: [],
     userStartChips,
   };
 }
@@ -2221,9 +2279,20 @@ async function playHand(handId) {
     if (trainingState.hand.finishedByFold) {
       winners = activePlayers(trainingState.hand);
     } else {
-      winners = payoutShowdown(trainingState.hand);
+      const showdown = payoutShowdown(trainingState.hand);
+      winners = showdown.paidWinners;
+
+      const payoutPairs = winners.map((winner) => {
+        const payout = showdown.payoutsBySeat.get(winner.seat) || 0;
+        const seatText = winner.isUser ? "You" : `Seat ${winner.seat}`;
+        return `${seatText} +${payout}`;
+      });
+
       const winnerText = winners.map((winner) => (winner.isUser ? "You" : `Seat ${winner.seat}`)).join(", ");
-      addLog(`Showdown complete. Winner: ${winnerText}.`, "raise");
+      addLog(`Showdown complete. Winners: ${winnerText}. Payouts: ${payoutPairs.join(" | ")}.`, "raise");
+
+      trainingState.hand.showdownPayouts = showdown.payoutsBySeat;
+      trainingState.hand.showdownSidePotResults = showdown.sidePotResults;
     }
 
     const handWinnerText = winners.map((winner) => (winner.isUser ? "You" : `Seat ${winner.seat}`)).join(", ");
@@ -2234,8 +2303,17 @@ async function playHand(handId) {
       const winnerHandLabel = handCategoryLabel(winnerRankVector).toLowerCase();
       const article = /^[aeiou]/.test(winnerHandLabel) ? "an" : "a";
 
-      if (winners.length > 1) {
+      const payoutMap = trainingState.hand.showdownPayouts || new Map();
+      const payoutValues = winners.map((winner) => payoutMap.get(winner.seat) || 0);
+      const equalSplit = payoutValues.length > 1 && payoutValues.every((amount) => amount === payoutValues[0]);
+
+      if (winners.length > 1 && equalSplit) {
         trainingState.handResultMessage = `${handWinnerText} split the pot with ${article} ${winnerHandLabel}.`;
+      } else if (winners.length > 1) {
+        const payoutText = winners
+          .map((winner) => `${winner.isUser ? "You" : `Seat ${winner.seat}`} +${payoutMap.get(winner.seat) || 0}`)
+          .join(", ");
+        trainingState.handResultMessage = `${handWinnerText} won side pots with ${article} ${winnerHandLabel}. Payouts: ${payoutText}.`;
       } else {
         trainingState.handResultMessage = `${handWinnerText} won the hand with ${article} ${winnerHandLabel}.`;
       }
