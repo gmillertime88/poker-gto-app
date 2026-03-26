@@ -2120,11 +2120,12 @@ h1 {
     align-items: flex-start;
     justify-content: flex-start;
     gap: 6px;
+    width: 100%;
   }
 
   .training-top-controls {
     align-self: flex-start;
-    margin-left: 4px;
+    margin-left: auto;
   }
 
   .training-bet-size-slider::-webkit-slider-thumb {
