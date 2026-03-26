@@ -2116,23 +2116,25 @@ h1 {
   }
 
   .training-board-row {
-    flex-direction: column;
+    flex-direction: row;
     align-items: flex-start;
-    gap: 10px;
+    justify-content: flex-start;
+    gap: 6px;
   }
 
   .training-top-controls {
-    align-self: center;
+    align-self: flex-start;
+    margin-left: 4px;
   }
 
   .training-bet-size-slider::-webkit-slider-thumb {
-    width: 60px;
-    height: 60px;
+    width: 30px;
+    height: 30px;
   }
 
   .training-bet-size-slider::-moz-range-thumb {
-    width: 60px;
-    height: 60px;
+    width: 30px;
+    height: 30px;
   }
 
   .training-bet-sizing-controls {
