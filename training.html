@@ -19,6 +19,7 @@
           <h1 class="page-title">MillerTime Poker Training</h1>
           <div class="top-nav-actions">
             <button id="training-settings-open-btn" class="training-settings-trigger" type="button" aria-label="Open session settings">&#9881;</button>
+            <button id="training-chip-log-toggle-btn" class="training-settings-trigger" type="button" aria-label="Show chip tracking log" aria-pressed="false">$</button>
             <details class="hamburger-menu">
               <summary class="hamburger-trigger" aria-label="Open menu">
                 <span></span>
@@ -99,6 +100,9 @@
           <div class="training-action-status" aria-live="polite">
             <div class="result-row odds-summary-row">
               <span class="label summary-label training-status-compact-label">Recommendation: <span id="training-reco" class="value training-reco-value">-</span></span>
+            </div>
+            <div class="result-row odds-summary-row">
+              <span class="label summary-label training-status-compact-label">Analysis: <span id="training-reco-analysis" class="value training-reco-analysis-value">-</span></span>
             </div>
             <div class="result-row odds-summary-row">
               <span class="label summary-label training-status-compact-label">Hand Result: <span id="training-hand-result" class="value training-hand-result-value">-</span></span>
@@ -190,6 +194,14 @@
         <section id="training-session-log-section" class="field-group">
           <h2 class="training-hand-log-title">Session Review Log</h2>
           <div id="training-session-log-body" class="training-session-log">No completed hands yet in this session.</div>
+        </section>
+
+        <section id="training-chip-log-section" class="field-group training-chip-log-section" hidden>
+          <div class="training-chip-log-heading">
+            <h2 class="training-hand-log-title">Chip Tracking Log</h2>
+            <button id="training-chip-log-close-btn" class="training-chip-log-close" type="button" aria-label="Hide chip tracking log">Hide</button>
+          </div>
+          <div id="training-chip-log" class="training-chip-log">Session chip tracking will appear here.</div>
         </section>
 
         <div class="build-tag-wrap">

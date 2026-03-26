@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "8.4";
-const BUILD_TIMESTAMP = "2026-03-25 15:08";
+const BUILD_VERSION = "8.5";
+const BUILD_TIMESTAMP = "2026-03-26 08:24";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -121,6 +121,8 @@ const trainingState = {
   autoDealEnabled: true,
   autoDealTimerId: null,
   sessionReviewEntries: [],
+  chipLogEntries: [],
+  chipLogVisible: false,
 };
 
 const el = {
@@ -129,6 +131,10 @@ const el = {
   settingsPanel: document.getElementById("training-settings-panel") || null,
   settingsOpenButton: document.getElementById("training-settings-open-btn"),
   settingsCloseButton: document.getElementById("training-settings-close-btn"),
+  chipLogToggleButton: document.getElementById("training-chip-log-toggle-btn"),
+  chipLogCloseButton: document.getElementById("training-chip-log-close-btn"),
+  chipLogSection: document.getElementById("training-chip-log-section"),
+  chipLogBody: document.getElementById("training-chip-log"),
   positionGrid: document.getElementById("training-position-grid"),
   gameTypeGrid: document.getElementById("training-game-type-grid"),
   startButton: document.getElementById("training-start-btn"),
@@ -139,6 +145,7 @@ const el = {
   playersInHand: document.getElementById("training-players-in-hand"),
   odds: document.getElementById("training-odds"),
   recommendation: document.getElementById("training-reco"),
+  recommendationAnalysis: document.getElementById("training-reco-analysis"),
   actionOn: document.getElementById("training-action-on"),
   handResult: document.getElementById("training-hand-result"),
   boardPot: document.getElementById("training-board-pot"),
@@ -686,6 +693,101 @@ function chipsLabel(value) {
   return String(value);
 }
 
+function seatDisplayName(seat) {
+  if (seat === trainingState.userSeat) {
+    return "You";
+  }
+  return `Seat ${seat}`;
+}
+
+function chipDeltaText(delta) {
+  return `${delta >= 0 ? "+" : ""}${delta}`;
+}
+
+function pushChipLogEntry(seat, before, after, reason, type = "change") {
+  const delta = after - before;
+  trainingState.chipLogEntries.unshift({
+    seat,
+    before,
+    after,
+    delta,
+    reason,
+    type,
+  });
+  renderChipTrackingLog();
+}
+
+function renderChipTrackingLog() {
+  if (!el.chipLogBody) {
+    return;
+  }
+
+  if (!trainingState.chipLogEntries.length) {
+    el.chipLogBody.textContent = "Session chip tracking will appear here.";
+    return;
+  }
+
+  el.chipLogBody.innerHTML = "";
+  trainingState.chipLogEntries.forEach((entry) => {
+    const row = document.createElement("div");
+    row.className = `training-chip-log-entry ${entry.delta > 0 ? "plus" : (entry.delta < 0 ? "minus" : "start")}`;
+
+    const headline = document.createElement("p");
+    headline.className = "training-chip-log-entry-headline";
+    headline.textContent = `${seatDisplayName(entry.seat)}: ${chipsLabel(entry.before)} -> ${chipsLabel(entry.after)} (${chipDeltaText(entry.delta)})`;
+
+    const detail = document.createElement("p");
+    detail.className = "training-chip-log-entry-detail";
+    detail.textContent = entry.reason;
+
+    row.appendChild(headline);
+    row.appendChild(detail);
+    el.chipLogBody.appendChild(row);
+  });
+}
+
+function setChipLogVisibility(visible) {
+  trainingState.chipLogVisible = Boolean(visible);
+
+  if (el.chipLogSection) {
+    el.chipLogSection.hidden = !trainingState.chipLogVisible;
+  }
+
+  if (el.chipLogToggleButton) {
+    el.chipLogToggleButton.setAttribute("aria-pressed", trainingState.chipLogVisible ? "true" : "false");
+  }
+}
+
+function initializeChipTrackingSession() {
+  const positions = POSITIONS_BY_PLAYERS[trainingState.players] || POSITIONS_BY_PLAYERS[9];
+  const startingUserSeat = Math.max(1, positions.indexOf(trainingState.userPosition) + 1);
+
+  trainingState.userSeat = startingUserSeat;
+  trainingState.chipLogEntries = [];
+  for (let seat = 1; seat <= positions.length; seat += 1) {
+    pushChipLogEntry(seat, STARTING_STACK, STARTING_STACK, `Session start stack: ${STARTING_STACK}`, "start");
+  }
+}
+
+function trackChipDebit(player, amount, reason) {
+  const before = player.chips;
+  const paid = Math.min(amount, player.chips);
+  const after = before - paid;
+  if (paid > 0) {
+    pushChipLogEntry(player.seat, before, after, reason, "change");
+  }
+  return paid;
+}
+
+function trackChipCredit(player, amount, reason) {
+  const before = player.chips;
+  const after = before + Math.max(0, amount);
+  if (amount > 0) {
+    pushChipLogEntry(player.seat, before, after, reason, "change");
+  }
+  player.chips = after;
+}
+
 function addLog(text, type = "info") {
   const row = document.createElement("div");
   row.className = `training-log-entry ${type}`;
@@ -1035,7 +1137,7 @@ function renderTable(hand, userEquity = null) {
   });
 }
 
-function renderStatus(hand, equity = null, recommendation = "-") {
+function renderStatus(hand, equity = null, recommendation = "-", analysis = "-") {
   if (el.session) {
     el.session.textContent = getSessionStatusText();
   }
@@ -1071,6 +1173,9 @@ function renderStatus(hand, equity = null, recommendation = "-") {
       el.recommendation.removeAttribute("role");
       el.recommendation.removeAttribute("tabindex");
       el.recommendation.removeAttribute("title");
+    }
+    if (el.recommendationAnalysis) {
+      el.recommendationAnalysis.textContent = "-";
     }
     if (el.actionOn) {
       el.actionOn.textContent = "-";
@@ -1109,6 +1214,9 @@ function renderStatus(hand, equity = null, recommendation = "-") {
       el.recommendation.removeAttribute("title");
     }
   }
+  if (el.recommendationAnalysis) {
+    el.recommendationAnalysis.textContent = analysis || "-";
+  }
   if (el.actionOn) {
     el.actionOn.textContent = hand.actionOn || "-";
   }
@@ -1117,14 +1225,14 @@ function renderStatus(hand, equity = null, recommendation = "-") {
   }
 }
 
-function renderAll(hand, equity = null, recommendation = "-") {
-  renderStatus(hand, equity, recommendation);
+function renderAll(hand, equity = null, recommendation = "-", analysis = "-") {
+  renderStatus(hand, equity, recommendation, analysis);
   renderBoard(hand);
   renderTable(hand, equity);
 }
 
-function postChips(hand, player, amount) {
-  const paid = Math.min(amount, player.chips);
+function postChips(hand, player, amount, reason = "Committed chips") {
+  const paid = trackChipDebit(player, amount, reason);
   player.chips -= paid;
   player.streetBet += paid;
   player.handContribution += paid;
@@ -1394,7 +1502,7 @@ function settleIfSinglePlayer(hand) {
   }
 
   const winner = contenders[0];
-  winner.chips += hand.pot;
+  trackChipCredit(winner, hand.pot, `Won pot uncontested (${hand.pot})`);
   addLog(`${winner.isUser ? "You" : `Seat ${winner.seat}`} wins ${hand.pot} chips (all others folded).`, "raise");
   hand.pot = 0;
   return true;
@@ -1461,7 +1569,7 @@ function applyAction(hand, player, action) {
   }
 
   if (actionType === "call") {
-    const paid = postChips(hand, player, toCall);
+    const paid = postChips(hand, player, toCall, "Call");
     if (player.chips <= 0) {
       player.lastAction = `Call ${paid} (All-In)`;
     } else {
@@ -1481,7 +1589,7 @@ function applyAction(hand, player, action) {
   }
 
   const toPutIn = Math.max(0, targetBet - player.streetBet);
-  const paid = postChips(hand, player, toPutIn);
+  const paid = postChips(hand, player, toPutIn, actionType === "bet" ? "Bet" : "Raise");
 
   if (player.streetBet > prevCurrentBet) {
     const raiseSize = player.streetBet - prevCurrentBet;
@@ -1647,7 +1755,7 @@ async function runBettingRound(hand, handId) {
     hand.actionOn = player.isUser ? "You" : `Seat ${player.seat}`;
     hand.thinkingSeat = player.isUser ? null : player.seat;
     hand.pendingSeat = player.seat;
-    renderAll(hand, userEquity, player.isUser ? recommendationTextValue : "-");
+    renderAll(hand, userEquity, player.isUser ? recommendationTextValue : "-", player.isUser ? reason : "-");
 
     let action;
 
@@ -1666,7 +1774,7 @@ async function runBettingRound(hand, handId) {
 
     const updatedUser = getUserPlayer(hand);
     const updatedUserEquity = updatedUser && !updatedUser.folded ? estimateSeatEquity(hand, updatedUser.seat) : null;
-    renderAll(hand, updatedUserEquity, "-");
+    renderAll(hand, updatedUserEquity, "-", "-");
 
     if (!canContinueHand(hand)) {
       break;
@@ -1776,7 +1884,8 @@ function payoutShowdown(hand) {
 
   const paidWinners = hand.players.filter((player) => (payoutsBySeat.get(player.seat) || 0) > 0);
   paidWinners.forEach((winner) => {
-    winner.chips += payoutsBySeat.get(winner.seat) || 0;
+    const payout = payoutsBySeat.get(winner.seat) || 0;
+    trackChipCredit(winner, payout, `Showdown payout (${payout})`);
   });
 
   hand.pot = 0;
@@ -1914,6 +2023,7 @@ function initializeTournament() {
   trainingState.tournamentFinished = false;
   trainingState.tournamentResult = "";
   trainingState.handResultMessage = "-";
+  initializeChipTrackingSession();
 }
 
 function persistTournamentStacks(hand) {
@@ -2034,8 +2144,8 @@ function postBlinds(hand) {
     return;
   }
 
-  const sbPaid = sb && sb.chips > 0 ? postChips(hand, sb, SMALL_BLIND) : 0;
-  const bbPaid = bb.chips > 0 ? postChips(hand, bb, BIG_BLIND) : 0;
+  const sbPaid = sb && sb.chips > 0 ? postChips(hand, sb, SMALL_BLIND, "Posted small blind") : 0;
+  const bbPaid = bb.chips > 0 ? postChips(hand, bb, BIG_BLIND, "Posted big blind") : 0;
 
   hand.currentBet = Math.max(
     sb ? sb.streetBet : 0,
@@ -2061,7 +2171,7 @@ async function playHand(handId) {
     const hand = trainingState.hand;
     postBlinds(hand);
     const user = getUserPlayer(hand);
-    renderAll(hand, user ? estimateSeatEquity(hand, user.seat) : null, "-");
+    renderAll(hand, user ? estimateSeatEquity(hand, user.seat) : null, "-", "-");
 
     for (let streetIndex = 0; streetIndex < STREETS.length; streetIndex += 1) {
       hand.street = STREETS[streetIndex];
@@ -2079,7 +2189,8 @@ async function playHand(handId) {
       const equity = estimateSeatEquity(hand, actingUser.seat);
       const recommendation = recommendationForSituation(hand, actingUser, 0, equity);
       const recommendationTextValue = recommendationText(hand, actingUser, recommendation, 0);
-      renderAll(hand, equity, recommendationTextValue);
+      const reason = recommendationReason(hand, actingUser, 0, equity, recommendation);
+      renderAll(hand, equity, recommendationTextValue, reason);
       addLog(`${streetLabel(hand.street)} started. User equity ${(equity * 100).toFixed(1)}%. Recommendation: ${recommendationTextValue}.`);
 
       await runBettingRound(hand, handId);
@@ -2122,7 +2233,7 @@ async function playHand(handId) {
 
     const finalUser = getUserPlayer(trainingState.hand);
     const finalEquity = finalUser && !finalUser.folded ? estimateSeatEquity(trainingState.hand, finalUser.seat) : null;
-    renderAll(trainingState.hand, finalEquity, "Hand complete");
+    renderAll(trainingState.hand, finalEquity, "Hand complete", "Review the hand log and summary for street-by-street rationale.");
     persistTournamentStacks(trainingState.hand);
     trainingState.handsPlayed += 1;
     const sessionDone = evaluateTournamentCompletion();
@@ -2229,6 +2340,7 @@ function applySettingsChange() {
   trainingState.betSelectionActive = false;
   trainingState.pendingAggressiveAction = null;
   clearTournamentProgress();
+  initializeChipTrackingSession();
   el.startButton.disabled = false;
   resetTrainingStateVisuals();
 }
@@ -2279,6 +2391,7 @@ function resetHand() {
   trainingState.showdownRevealed = false;
   trainingState.decisionLog = [];
   clearTournamentProgress();
+  initializeTournament();
   trainingState.waitingForUser = false;
   trainingState.pendingUserDecision = null;
   trainingState.pendingRecommendationAction = null;
@@ -2426,6 +2539,18 @@ async function initTraining() {
     });
   }
 
+  if (el.chipLogToggleButton) {
+    el.chipLogToggleButton.addEventListener("click", () => {
+      setChipLogVisibility(!trainingState.chipLogVisible);
+    });
+  }
+
+  if (el.chipLogCloseButton) {
+    el.chipLogCloseButton.addEventListener("click", () => {
+      setChipLogVisibility(false);
+    });
+  }
+
   if (el.settingsPanel) {
     el.settingsPanel.addEventListener("click", (event) => {
       if (event.target === el.settingsPanel) {
@@ -2456,6 +2581,8 @@ async function initTraining() {
 
   try {
     await loadRanges();
+    initializeChipTrackingSession();
+    setChipLogVisibility(false);
   } catch (error) {
     trainingState.rangesLoaded = false;
     console.error(error);

@@ -1467,6 +1467,24 @@ h1 {
   outline: none;
 }
 
+.training-reco-analysis-value {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 4px 10px;
+  border-radius: 9px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #1f2937;
+  background: color-mix(in oklab, #0ea5e9 14%, white);
+  border: 1px solid color-mix(in oklab, #0ea5e9 35%, var(--border));
+}
+
+[data-theme="light"] .training-reco-analysis-value {
+  color: #0f172a;
+  background: color-mix(in oklab, #0ea5e9 12%, white);
+}
+
 .training-hand-result-value {
   display: inline-block;
   margin-left: 6px;
@@ -1643,6 +1661,77 @@ h1 {
   padding: 10px;
   display: grid;
   gap: 8px;
+}
+
+.training-chip-log-section {
+  margin-top: 8px;
+}
+
+.training-chip-log-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.training-chip-log-close {
+  border: 1px solid var(--border);
+  background: var(--panel-soft);
+  color: var(--text);
+  border-radius: 8px;
+  min-height: 30px;
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.training-chip-log-close:hover {
+  border-color: var(--accent);
+}
+
+.training-chip-log {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-soft);
+  min-height: 90px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+.training-chip-log-entry {
+  border: 1px solid var(--table-border);
+  background: color-mix(in oklab, var(--panel-soft) 75%, transparent);
+  border-radius: 10px;
+  padding: 7px 9px;
+}
+
+.training-chip-log-entry.plus {
+  border-color: color-mix(in oklab, var(--success) 50%, var(--table-border));
+}
+
+.training-chip-log-entry.minus {
+  border-color: color-mix(in oklab, var(--danger) 50%, var(--table-border));
+}
+
+.training-chip-log-entry.start {
+  border-color: color-mix(in oklab, var(--accent) 48%, var(--table-border));
+}
+
+.training-chip-log-entry-headline {
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.training-chip-log-entry-detail {
+  margin: 3px 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 
 .training-session-log-entry {
