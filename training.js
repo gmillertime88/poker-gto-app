@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "9.8";
-const BUILD_TIMESTAMP = "2026-03-26 14:08";
+const BUILD_VERSION = "9.9";
+const BUILD_TIMESTAMP = "2026-03-26 14:33";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -135,7 +135,7 @@ const el = {
   positionGrid: document.getElementById("training-position-grid"),
   gameTypeGrid: document.getElementById("training-game-type-grid"),
   startButton: document.getElementById("training-start-btn"),
-  resetButton: document.getElementById("training-reset-btn"),
+  resetButton: document.getElementById("training-settings-reset-btn"),
   session: document.getElementById("training-session"),
   street: document.getElementById("training-street"),
   pot: document.getElementById("training-pot"),
@@ -2697,7 +2697,14 @@ async function initTraining() {
   }
 
   el.startButton.addEventListener("click", startHand);
-  el.resetButton.addEventListener("click", resetHand);
+  if (el.resetButton) {
+    el.resetButton.addEventListener("click", () => {
+      resetHand();
+      if (el.settingsPanel) {
+        el.settingsPanel.open = false;
+      }
+    });
+  }
   hookActionButtons();
 
   try {
