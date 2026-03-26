@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "8.8";
-const BUILD_TIMESTAMP = "2026-03-26 09:21";
+const BUILD_VERSION = "8.9";
+const BUILD_TIMESTAMP = "2026-03-26 09:28";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -571,6 +571,16 @@ function getPreflopRecommendation(player, hand = null) {
   const key = tableKey(hole.card1, hole.card2, hole.suited);
   const effectivePlayers = hand ? activePlayers(hand).length : trainingState.players;
   const row = getRangeMapForPlayers(effectivePlayers).get(key);
+  if (!row) {
+    return "Fold";
+  }
+  return row[player.position] || "Fold";
+}
+
+function getPreflopModelValue(player) {
+  const hole = normalizedHoleFromInts(player.cards[0], player.cards[1]);
+  const key = tableKey(hole.card1, hole.card2, hole.suited);
+  const row = buildDirectRangeMap(getActiveBaseRows()).get(key);
   if (!row) {
     return "Fold";
   }
@@ -1438,10 +1448,18 @@ function recommendationText(hand, player, recommendation, toCall) {
 
 function recommendationReason(hand, player, toCall, equity, recommendation) {
   if (hand.street === "preflop") {
-    const base = getPreflopRecommendation(player, hand);
-    const modelValue = String(base || "Fold");
+    const modelBase = getPreflopModelValue(player);
+    const adjustedBase = getPreflopRecommendation(player, hand);
+    const modelValue = String(modelBase || "Fold");
     const modelAction = normalizedAction(modelValue);
+    const adjustedAction = normalizedAction(adjustedBase);
     const recommendedAction = normalizedAction(recommendation);
+    const effectivePlayers = hand ? activePlayers(hand).length : trainingState.players;
+    const contextAdjusted = modelAction !== adjustedAction;
+
+    if (contextAdjusted && adjustedAction === recommendedAction) {
+      return `Pre-Flop Model Value: ${modelValue}. Adjusted to ${adjustedBase} for current live context (${effectivePlayers} players still active pre-flop at ${trainingState.temperature} temperature).`;
+    }
 
     if (modelAction !== recommendedAction) {
       if (toCall <= 0 && modelAction === "call" && recommendedAction === "check") {
@@ -1452,7 +1470,7 @@ function recommendationReason(hand, player, toCall, equity, recommendation) {
         return `Pre-Flop Model Value: ${modelValue}. Adjusted to Call due to heavy preflop pressure (${hand.currentBet} chips to continue) where pot control is preferred.`;
       }
 
-      return `Pre-Flop Model Value: ${modelValue}. Adjusted to ${recommendation} based on current preflop action state (to call ${toCall}, current bet ${hand.currentBet}).`;
+      return `Pre-Flop Model Value: ${modelValue}. Adjusted to ${recommendation} based on current preflop action state (to call ${toCall}, current bet ${hand.currentBet}, ${effectivePlayers} active players).`;
     }
 
     if (toCall <= 0) {
