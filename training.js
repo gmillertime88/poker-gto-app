@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "9.1";
-const BUILD_TIMESTAMP = "2026-03-26 10:19";
+const BUILD_VERSION = "9.2";
+const BUILD_TIMESTAMP = "2026-03-26 10:27";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -42,6 +42,7 @@ const NPC_ACTION_DELAY_RANGE_MS = {
 };
 const STREETS = ["preflop", "flop", "turn", "river"];
 const CARD_BACK_IMAGE_PATH = "images/Card.png";
+const DEAL_BUTTON_IMAGE_PATH = "images/deal.png";
 const DEFAULT_RANGE_FILE = "ranges.json";
 const CASH_RANGE_FILE = "Supporting Materials/cash_ranges_app_compatible.json";
 const TOURNAMENT_RANGE_FILE = "Supporting Materials/tournament_ranges_app_compatible.json";
@@ -208,6 +209,16 @@ function renderBuildTag() {
   }
 
   el.buildTag.textContent = `v${BUILD_VERSION} • ${BUILD_TIMESTAMP}`;
+}
+
+function renderDealButtonIcon() {
+  if (!el.startButton) {
+    return;
+  }
+
+  el.startButton.innerHTML = `<img src="${DEAL_BUTTON_IMAGE_PATH}" alt="Deal" class="training-deal-icon" />`;
+  el.startButton.setAttribute("aria-label", "Deal");
+  el.startButton.setAttribute("title", "Deal");
 }
 
 function tableKey(card1, card2, suited) {
@@ -2518,7 +2529,7 @@ function resetHand() {
   trainingState.pendingRecommendationAction = null;
   trainingState.betSelectionActive = false;
   trainingState.pendingAggressiveAction = null;
-  el.startButton.textContent = "Deal";
+  renderDealButtonIcon();
   el.startButton.disabled = false;
   resetTrainingStateVisuals();
 }
@@ -2548,7 +2559,7 @@ function startHand() {
   trainingState.decisionLog = [];
   trainingState.handResultMessage = "Hand in progress";
   el.startButton.disabled = true;
-  el.startButton.textContent = "Deal";
+  renderDealButtonIcon();
   if (el.settingsPanel) {
     el.settingsPanel.open = false;
   }
@@ -2645,6 +2656,7 @@ function hookActionButtons() {
 
 async function initTraining() {
   renderBuildTag();
+  renderDealButtonIcon();
   renderSelectors();
   resetTrainingStateVisuals();
 
