@@ -81,22 +81,28 @@
           </div>
         </details>
 
-        <div class="training-top-controls">
-          <button id="training-start-btn" class="select-btn training-small-btn" type="button">Deal</button>
-          <button id="training-reset-btn" class="select-btn danger training-small-btn" type="button">Reset</button>
-        </div>
-
         <section class="field-group">
           <div class="training-board-heading">
-            <h2 class="training-board-title">Board Cards</h2>
-            <span class="training-board-pot-indicator">Pot: <span id="training-board-pot">-</span></span>
+            <h2 class="training-board-title">Community Cards</h2>
           </div>
-          <div id="training-board" class="board-display"></div>
+          <div class="training-board-row">
+            <div id="training-board" class="board-display"></div>
+            <div class="training-top-controls">
+              <button id="training-start-btn" class="select-btn training-small-btn training-deal-btn" type="button" aria-label="Deal" title="Deal">
+                <img src="images/Deal.png" alt="Deal" class="training-deal-icon" />
+              </button>
+              <button id="training-reset-btn" class="select-btn danger training-small-btn" type="button">Reset</button>
+            </div>
+          </div>
         </section>
 
         <section class="field-group">
           <h2>Action</h2>
           <div class="training-action-status" aria-live="polite">
+            <div class="result-row odds-summary-row">
+              <span class="label summary-label training-status-label-text">Pot:</span>
+              <span id="training-pot" class="value training-status-value">-</span>
+            </div>
             <div class="result-row odds-summary-row">
               <span class="label summary-label training-status-label-text">Recommendation:</span>
               <span id="training-reco" class="value training-status-value training-reco-value">-</span>
@@ -112,7 +118,6 @@
             <div class="training-status-hidden" aria-hidden="true">
               <span id="training-session">-</span>
               <span id="training-street">-</span>
-              <span id="training-pot">-</span>
               <span id="training-players-in-hand">-</span>
               <span id="training-odds">-</span>
               <span id="training-action-on">-</span>
