@@ -94,7 +94,9 @@
                 </button>
                 <span class="training-deal-label">Deal</span>
               </div>
-              <button id="training-reset-btn" class="select-btn danger training-small-btn" type="button">Reset</button>
+              <button id="training-reset-btn" class="select-btn danger training-small-btn training-reset-btn" type="button" aria-label="Reset" title="Reset">
+                <img src="images/reset.png" alt="Reset" class="training-reset-icon" />
+              </button>
             </div>
           </div>
         </section>
@@ -189,7 +191,7 @@
           </div>
         </section>
 
-        <details id="training-hand-info-section" class="field-group training-info-panel" open>
+        <details id="training-hand-info-section" class="field-group training-info-panel">
           <summary class="training-info-summary">Hand Information</summary>
           <div class="training-info-content">
             <div id="training-log" class="training-log"></div>
@@ -203,14 +205,14 @@
           </div>
         </details>
 
-        <details id="training-session-log-section" class="field-group training-info-panel" open>
+        <details id="training-session-log-section" class="field-group training-info-panel">
           <summary class="training-info-summary">Session Information</summary>
           <div class="training-info-content">
             <div id="training-session-log-body" class="training-session-log">No completed hands yet in this session.</div>
           </div>
         </details>
 
-        <details id="training-chip-log-section" class="field-group training-info-panel training-chip-log-section" open>
+        <details id="training-chip-log-section" class="field-group training-info-panel training-chip-log-section">
           <summary class="training-info-summary">Chip Information</summary>
           <div class="training-info-content">
             <div id="training-chip-log" class="training-chip-log">Session chip tracking will appear here.</div>
