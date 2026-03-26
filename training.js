@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "8.5";
-const BUILD_TIMESTAMP = "2026-03-26 08:24";
+const BUILD_VERSION = "8.6";
+const BUILD_TIMESTAMP = "2026-03-26 08:47";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -121,8 +121,7 @@ const trainingState = {
   autoDealEnabled: true,
   autoDealTimerId: null,
   sessionReviewEntries: [],
-  chipLogEntries: [],
-  chipLogVisible: false,
+  chipLogBySeat: new Map(),
 };
 
 const el = {
@@ -131,9 +130,6 @@ const el = {
   settingsPanel: document.getElementById("training-settings-panel") || null,
   settingsOpenButton: document.getElementById("training-settings-open-btn"),
   settingsCloseButton: document.getElementById("training-settings-close-btn"),
-  chipLogToggleButton: document.getElementById("training-chip-log-toggle-btn"),
-  chipLogCloseButton: document.getElementById("training-chip-log-close-btn"),
-  chipLogSection: document.getElementById("training-chip-log-section"),
   chipLogBody: document.getElementById("training-chip-log"),
   positionGrid: document.getElementById("training-position-grid"),
   gameTypeGrid: document.getElementById("training-game-type-grid"),
@@ -704,15 +700,18 @@ function chipDeltaText(delta) {
   return `${delta >= 0 ? "+" : ""}${delta}`;
 }
 
-function pushChipLogEntry(seat, before, after, reason, type = "change") {
+function pushChipLogEntry(seat, before, after, reason) {
   const delta = after - before;
-  trainingState.chipLogEntries.unshift({
+  if (!trainingState.chipLogBySeat.has(seat)) {
+    trainingState.chipLogBySeat.set(seat, []);
+  }
+
+  trainingState.chipLogBySeat.get(seat).push({
     seat,
     before,
     after,
     delta,
     reason,
-    type,
   });
   renderChipTrackingLog();
 }
@@ -722,40 +721,51 @@ function renderChipTrackingLog() {
     return;
   }
 
-  if (!trainingState.chipLogEntries.length) {
+  if (!trainingState.chipLogBySeat.size) {
     el.chipLogBody.textContent = "Session chip tracking will appear here.";
     return;
   }
 
   el.chipLogBody.innerHTML = "";
-  trainingState.chipLogEntries.forEach((entry) => {
-    const row = document.createElement("div");
-    row.className = `training-chip-log-entry ${entry.delta > 0 ? "plus" : (entry.delta < 0 ? "minus" : "start")}`;
+  const seats = Array.from(trainingState.chipLogBySeat.keys()).sort((a, b) => a - b);
+  seats.forEach((seat) => {
+    const entries = trainingState.chipLogBySeat.get(seat) || [];
+    const latest = entries.length ? entries[entries.length - 1] : null;
 
-    const headline = document.createElement("p");
-    headline.className = "training-chip-log-entry-headline";
-    headline.textContent = `${seatDisplayName(entry.seat)}: ${chipsLabel(entry.before)} -> ${chipsLabel(entry.after)} (${chipDeltaText(entry.delta)})`;
+    const playerBlock = document.createElement("article");
+    playerBlock.className = "training-chip-player-block";
 
-    const detail = document.createElement("p");
-    detail.className = "training-chip-log-entry-detail";
-    detail.textContent = entry.reason;
+    const heading = document.createElement("h3");
+    heading.className = "training-chip-player-heading";
+    heading.textContent = `${seatDisplayName(seat)} - Current: ${latest ? chipsLabel(latest.after) : "-"}`;
 
-    row.appendChild(headline);
-    row.appendChild(detail);
-    el.chipLogBody.appendChild(row);
+    const history = document.createElement("div");
+    history.className = "training-chip-player-history";
+
+    entries
+      .slice()
+      .reverse()
+      .forEach((entry) => {
+        const row = document.createElement("div");
+        row.className = `training-chip-log-entry ${entry.delta > 0 ? "plus" : (entry.delta < 0 ? "minus" : "start")}`;
+
+        const headline = document.createElement("p");
+        headline.className = "training-chip-log-entry-headline";
+        headline.textContent = `${chipsLabel(entry.before)} -> ${chipsLabel(entry.after)} (${chipDeltaText(entry.delta)})`;
+
+        const detail = document.createElement("p");
+        detail.className = "training-chip-log-entry-detail";
+        detail.textContent = entry.reason;
+
+        row.appendChild(headline);
+        row.appendChild(detail);
+        history.appendChild(row);
+      });
+
+    playerBlock.appendChild(heading);
+    playerBlock.appendChild(history);
+    el.chipLogBody.appendChild(playerBlock);
   });
-}
-
-function setChipLogVisibility(visible) {
-  trainingState.chipLogVisible = Boolean(visible);
-
-  if (el.chipLogSection) {
-    el.chipLogSection.hidden = !trainingState.chipLogVisible;
-  }
-
-  if (el.chipLogToggleButton) {
-    el.chipLogToggleButton.setAttribute("aria-pressed", trainingState.chipLogVisible ? "true" : "false");
-  }
 }
 
 function initializeChipTrackingSession() {
@@ -763,9 +773,9 @@ function initializeChipTrackingSession() {
   const startingUserSeat = Math.max(1, positions.indexOf(trainingState.userPosition) + 1);
 
   trainingState.userSeat = startingUserSeat;
-  trainingState.chipLogEntries = [];
+  trainingState.chipLogBySeat = new Map();
   for (let seat = 1; seat <= positions.length; seat += 1) {
-    pushChipLogEntry(seat, STARTING_STACK, STARTING_STACK, `Session start stack: ${STARTING_STACK}`, "start");
+    pushChipLogEntry(seat, STARTING_STACK, STARTING_STACK, `Session start stack: ${STARTING_STACK}`);
   }
 }
 
@@ -774,7 +784,7 @@ function trackChipDebit(player, amount, reason) {
   const paid = Math.min(amount, player.chips);
   const after = before - paid;
   if (paid > 0) {
-    pushChipLogEntry(player.seat, before, after, reason, "change");
+    pushChipLogEntry(player.seat, before, after, reason);
   }
   return paid;
 }
@@ -783,7 +793,7 @@ function trackChipCredit(player, amount, reason) {
   const before = player.chips;
   const after = before + Math.max(0, amount);
   if (amount > 0) {
-    pushChipLogEntry(player.seat, before, after, reason, "change");
+    pushChipLogEntry(player.seat, before, after, reason);
   }
   player.chips = after;
 }
@@ -1169,7 +1179,7 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
     }
     if (el.recommendation) {
       el.recommendation.textContent = "-";
-      el.recommendation.className = "value training-reco-value";
+      el.recommendation.className = "value training-status-value training-reco-value";
       el.recommendation.removeAttribute("role");
       el.recommendation.removeAttribute("tabindex");
       el.recommendation.removeAttribute("title");
@@ -1203,7 +1213,7 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
   }
   if (el.recommendation) {
     el.recommendation.textContent = recommendation;
-    el.recommendation.className = `value training-reco-value ${normalizedAction(recommendation)}${canQuickApplyRecommendation ? " clickable" : ""}`;
+    el.recommendation.className = `value training-status-value training-reco-value ${normalizedAction(recommendation)}${canQuickApplyRecommendation ? " clickable" : ""}`;
     if (canQuickApplyRecommendation) {
       el.recommendation.setAttribute("role", "button");
       el.recommendation.setAttribute("tabindex", "0");
@@ -2539,18 +2549,6 @@ async function initTraining() {
     });
   }
 
-  if (el.chipLogToggleButton) {
-    el.chipLogToggleButton.addEventListener("click", () => {
-      setChipLogVisibility(!trainingState.chipLogVisible);
-    });
-  }
-
-  if (el.chipLogCloseButton) {
-    el.chipLogCloseButton.addEventListener("click", () => {
-      setChipLogVisibility(false);
-    });
-  }
-
   if (el.settingsPanel) {
     el.settingsPanel.addEventListener("click", (event) => {
       if (event.target === el.settingsPanel) {
@@ -2582,7 +2580,6 @@ async function initTraining() {
   try {
     await loadRanges();
     initializeChipTrackingSession();
-    setChipLogVisibility(false);
   } catch (error) {
     trainingState.rangesLoaded = false;
     console.error(error);

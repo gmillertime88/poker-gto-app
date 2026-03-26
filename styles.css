@@ -1413,89 +1413,69 @@ h1 {
   color: #1f2937;
 }
 
-.training-reco-row {
-  margin-top: 10px;
-  padding-top: 4px;
+.training-action-status .odds-summary-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 6px;
 }
 
-.training-status-compact-label {
+.training-action-status .odds-summary-row:last-child {
+  margin-bottom: 0;
+}
+
+.training-status-label-text {
   font-size: 0.9rem;
+  min-width: 120px;
+  flex: 0 0 120px;
+}
+
+.training-status-value {
+  display: block;
+  flex: 1 1 auto;
+  text-align: left;
+  font-size: 0.94rem;
+  font-weight: 400;
+  line-height: 1.35;
+  color: #111827;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .training-reco-value {
-  display: inline-block;
-  margin-left: 6px;
-  font-size: 0.96rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  color: #e2e8f0;
-  background: color-mix(in oklab, var(--accent) 20%, transparent);
-  border: 1px solid color-mix(in oklab, var(--accent) 50%, var(--border));
-  border-radius: 8px;
-  padding: 3px 8px;
-}
-
-[data-theme="light"] .training-reco-value {
-  color: #0f172a;
-  background: color-mix(in oklab, var(--accent) 24%, white);
-}
-
-.training-reco-value.raise,
-.training-reco-value.bet {
-  color: #166534;
-}
-
-.training-reco-value.call,
-.training-reco-value.check {
-  color: #92400e;
-}
-
-.training-reco-value.fold {
-  color: #b91c1c;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
 }
 
 .training-reco-value.clickable {
   cursor: pointer;
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--accent) 55%, transparent);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
 .training-reco-value.clickable:hover,
 .training-reco-value.clickable:focus-visible {
-  background: color-mix(in oklab, var(--accent) 30%, transparent);
+  color: #0f172a;
   outline: none;
 }
 
 .training-reco-analysis-value {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 4px 10px;
-  border-radius: 9px;
-  font-size: 0.88rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: #1f2937;
-  background: color-mix(in oklab, #0ea5e9 14%, white);
-  border: 1px solid color-mix(in oklab, #0ea5e9 35%, var(--border));
-}
-
-[data-theme="light"] .training-reco-analysis-value {
-  color: #0f172a;
-  background: color-mix(in oklab, #0ea5e9 12%, white);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
 }
 
 .training-hand-result-value {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 4px 10px;
-  border-radius: 9px;
-  font-size: 0.98rem;
-  font-weight: 900;
-  letter-spacing: 0.01em;
-  color: color-mix(in oklab, var(--accent) 70%, var(--text));
-  background: color-mix(in oklab, var(--accent) 18%, transparent);
-  border: 1px solid color-mix(in oklab, var(--accent) 48%, var(--border));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  border-radius: 0;
 }
 
 .training-table {
@@ -1667,27 +1647,39 @@ h1 {
   margin-top: 8px;
 }
 
-.training-chip-log-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.training-chip-log-close {
+.training-info-panel {
   border: 1px solid var(--border);
-  background: var(--panel-soft);
-  color: var(--text);
-  border-radius: 8px;
-  min-height: 30px;
-  padding: 4px 10px;
-  font-size: 0.76rem;
-  font-weight: 700;
-  cursor: pointer;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--surface-soft) 90%, transparent);
+  padding: 0;
 }
 
-.training-chip-log-close:hover {
-  border-color: var(--accent);
+.training-info-summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 10px 12px;
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--heading);
+}
+
+.training-info-summary::-webkit-details-marker {
+  display: none;
+}
+
+.training-info-summary::after {
+  content: "+";
+  float: right;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.training-info-panel[open] > .training-info-summary::after {
+  content: "-";
+}
+
+.training-info-content {
+  padding: 0 10px 10px;
 }
 
 .training-chip-log {
@@ -1698,6 +1690,25 @@ h1 {
   max-height: 300px;
   overflow-y: auto;
   padding: 8px;
+  display: grid;
+  gap: 10px;
+}
+
+.training-chip-player-block {
+  border: 1px solid var(--table-border);
+  border-radius: 10px;
+  padding: 8px;
+  background: color-mix(in oklab, var(--panel-soft) 70%, transparent);
+}
+
+.training-chip-player-heading {
+  margin: 0 0 6px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--heading);
+}
+
+.training-chip-player-history {
   display: grid;
   gap: 6px;
 }
