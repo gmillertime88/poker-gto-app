@@ -105,34 +105,6 @@
               <span id="training-action-on">-</span>
             </div>
           </div>
-          <div class="training-bet-sizing" id="training-bet-sizing">
-            <label for="training-bet-size-input" class="training-bet-sizing-label">Bet Amount</label>
-            <div class="training-bet-sizing-controls">
-              <input
-                id="training-bet-size-input"
-                class="training-bet-size-input"
-                type="number"
-                min="0"
-                step="10"
-                value="0"
-                disabled
-              />
-              <input
-                id="training-bet-size-slider"
-                class="training-bet-size-slider"
-                type="range"
-                min="0"
-                max="0"
-                step="10"
-                value="0"
-                list="training-bet-size-ticks"
-                disabled
-              />
-              <datalist id="training-bet-size-ticks"></datalist>
-              <span id="training-bet-size-range" class="training-bet-size-range">Range: -</span>
-              <span id="training-bet-size-current" class="training-bet-size-current">Selected: -</span>
-            </div>
-          </div>
         </section>
 
         <section class="field-group">
@@ -146,6 +118,35 @@
                 <button id="training-start-btn" class="select-btn training-small-btn training-deal-btn" type="button" aria-label="Deal" title="Deal">DEAL</button>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section class="field-group training-bet-sizing-section" id="training-bet-sizing" hidden>
+          <label for="training-bet-size-input" class="training-bet-sizing-label">Bet Amount</label>
+          <div class="training-bet-sizing-controls">
+            <input
+              id="training-bet-size-input"
+              class="training-bet-size-input"
+              type="number"
+              min="0"
+              step="10"
+              value="0"
+              disabled
+            />
+            <input
+              id="training-bet-size-slider"
+              class="training-bet-size-slider"
+              type="range"
+              min="0"
+              max="0"
+              step="10"
+              value="0"
+              list="training-bet-size-ticks"
+              disabled
+            />
+            <datalist id="training-bet-size-ticks"></datalist>
+            <span id="training-bet-size-range" class="training-bet-size-range">Range: -</span>
+            <span id="training-bet-size-current" class="training-bet-size-current">Selected: -</span>
           </div>
         </section>
 

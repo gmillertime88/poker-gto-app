@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "10.6";
-const BUILD_TIMESTAMP = "2026-03-27 08:48";
+const BUILD_VERSION = "10.7";
+const BUILD_TIMESTAMP = "2026-03-27 09:09";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -166,6 +166,9 @@ const el = {
   summary: document.getElementById("training-summary"),
   summaryHeadline: document.getElementById("training-summary-headline"),
   summaryDetails: document.getElementById("training-summary-details"),
+  handInfoSection: document.getElementById("training-hand-info-section"),
+  sessionInfoSection: document.getElementById("training-session-log-section"),
+  chipInfoSection: document.getElementById("training-chip-log-section"),
   sessionLogBody: document.getElementById("training-session-log-body"),
   buildTag: document.getElementById("training-build-tag"),
   autoDealToggle: document.getElementById("training-auto-deal-toggle"),
@@ -850,39 +853,74 @@ function renderChipTrackingLog() {
     const entries = trainingState.chipLogBySeat.get(seat) || [];
     const latest = entries.length ? entries[entries.length - 1] : null;
 
-    const playerBlock = document.createElement("article");
-    playerBlock.className = "training-chip-player-block";
+    const playerLedger = document.createElement("details");
+    playerLedger.className = "training-chip-player-ledger";
 
-    const heading = document.createElement("h3");
-    heading.className = "training-chip-player-heading";
-    heading.textContent = `${seatDisplayName(seat)} - Current: ${latest ? chipsLabel(latest.after) : "-"}`;
+    const summary = document.createElement("summary");
+    summary.className = "training-chip-player-summary";
 
-    const history = document.createElement("div");
-    history.className = "training-chip-player-history";
+    const summaryName = document.createElement("span");
+    summaryName.className = "training-chip-player-name";
+    summaryName.textContent = seat === trainingState.userSeat ? `You (Seat ${seat})` : `Seat ${seat}`;
+
+    const summaryBalance = document.createElement("span");
+    summaryBalance.className = "training-chip-player-balance";
+    summaryBalance.textContent = `Balance ${latest ? chipsLabel(latest.after) : "-"}`;
+
+    summary.appendChild(summaryName);
+    summary.appendChild(summaryBalance);
+    playerLedger.appendChild(summary);
+
+    const ledgerTable = document.createElement("div");
+    ledgerTable.className = "training-chip-ledger";
+
+    const headerRow = document.createElement("div");
+    headerRow.className = "training-chip-ledger-row training-chip-ledger-row-header";
+    ["Txn", "Reason", "Debit", "Credit", "Balance"].forEach((label) => {
+      const cell = document.createElement("span");
+      cell.className = "training-chip-ledger-cell";
+      cell.textContent = label;
+      headerRow.appendChild(cell);
+    });
+    ledgerTable.appendChild(headerRow);
 
     entries
       .slice()
       .reverse()
-      .forEach((entry) => {
+      .forEach((entry, index) => {
         const row = document.createElement("div");
-        row.className = `training-chip-log-entry ${entry.delta > 0 ? "plus" : (entry.delta < 0 ? "minus" : "start")}`;
+        row.className = `training-chip-ledger-row ${entry.delta > 0 ? "credit" : (entry.delta < 0 ? "debit" : "neutral")}`;
 
-        const headline = document.createElement("p");
-        headline.className = "training-chip-log-entry-headline";
-        headline.textContent = `${chipsLabel(entry.before)} -> ${chipsLabel(entry.after)} (${chipDeltaText(entry.delta)})`;
+        const txnCell = document.createElement("span");
+        txnCell.className = "training-chip-ledger-cell";
+        txnCell.textContent = String(entries.length - index);
 
-        const detail = document.createElement("p");
-        detail.className = "training-chip-log-entry-detail";
-        detail.textContent = entry.reason;
+        const reasonCell = document.createElement("span");
+        reasonCell.className = "training-chip-ledger-cell training-chip-ledger-reason";
+        reasonCell.textContent = entry.reason;
 
-        row.appendChild(headline);
-        row.appendChild(detail);
-        history.appendChild(row);
+        const debitCell = document.createElement("span");
+        debitCell.className = "training-chip-ledger-cell training-chip-ledger-amount";
+        debitCell.textContent = entry.delta < 0 ? chipsLabel(Math.abs(entry.delta)) : "-";
+
+        const creditCell = document.createElement("span");
+        creditCell.className = "training-chip-ledger-cell training-chip-ledger-amount";
+        creditCell.textContent = entry.delta > 0 ? chipsLabel(entry.delta) : "-";
+
+        const balanceCell = document.createElement("span");
+        balanceCell.className = "training-chip-ledger-cell training-chip-ledger-balance";
+        balanceCell.textContent = chipsLabel(entry.after);
+
+        row.appendChild(txnCell);
+        row.appendChild(reasonCell);
+        row.appendChild(debitCell);
+        row.appendChild(creditCell);
+        row.appendChild(balanceCell);
+        ledgerTable.appendChild(row);
       });
 
-    playerBlock.appendChild(heading);
-    playerBlock.appendChild(history);
-    el.chipLogBody.appendChild(playerBlock);
+    playerLedger.appendChild(ledgerTable);
+    el.chipLogBody.appendChild(playerLedger);
   });
 }
 
@@ -1872,8 +1910,8 @@ async function getUserAction(hand, player, toCall, recommendation, equity, recom
 
     const equityPct = `${(equity * 100).toFixed(1)}%`;
     const promptText = toCall > 0
-      ? `Your turn (${streetLabel(hand.street)}): to call ${toCall}. Equity ${equityPct}. Recommended ${recommendation}.`
-      : `Checked to you (${streetLabel(hand.street)}). Equity ${equityPct}. Recommended ${recommendation}.`;
+      ? `Your turn (${streetLabel(hand.street)}): call ${toCall}. Equity ${equityPct}.`
+      : `Checked to you (${streetLabel(hand.street)}). Equity ${equityPct}.`;
     setPromptMessage(promptText, recommendation);
   });
 }
@@ -2756,6 +2794,16 @@ async function initTraining() {
   renderDealButtonIcon();
   renderSelectors();
   resetTrainingStateVisuals();
+
+  if (el.handInfoSection) {
+    el.handInfoSection.open = false;
+  }
+  if (el.sessionInfoSection) {
+    el.sessionInfoSection.open = false;
+  }
+  if (el.chipInfoSection) {
+    el.chipInfoSection.open = false;
+  }
 
   if (el.settingsOpenButton && el.settingsPanel) {
     el.settingsOpenButton.addEventListener("click", () => {
