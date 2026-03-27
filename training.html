@@ -90,15 +90,6 @@
               <span id="training-pot" class="value training-status-value">-</span>
             </section>
             <section class="training-action-section">
-              <h3 class="training-action-heading">Recommendation</h3>
-              <span id="training-reco" class="value training-status-value training-reco-value">-</span>
-              <p id="training-prompt" class="training-prompt">Start a hand to begin training.</p>
-              <div id="training-auto-deal-controls" class="training-auto-deal-controls" hidden>
-                <span id="training-auto-deal-status" class="training-auto-deal-status">Next hand in 10s</span>
-                <button id="training-auto-deal-pause-btn" class="select-btn training-small-btn" type="button">Pause</button>
-              </div>
-            </section>
-            <section class="training-action-section">
               <h3 class="training-action-heading">Analysis</h3>
               <span id="training-reco-analysis" class="value training-status-value training-reco-analysis-value">-</span>
             </section>
@@ -155,6 +146,20 @@
                 <button id="training-start-btn" class="select-btn training-small-btn training-deal-btn" type="button" aria-label="Deal" title="Deal">DEAL</button>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section class="field-group">
+          <h2>Recommendation</h2>
+          <div class="training-action-status training-recommendation-panel">
+            <section class="training-action-section">
+              <span id="training-reco" class="value training-status-value training-reco-value">-</span>
+              <p id="training-prompt" class="training-prompt">Start a hand to begin training.</p>
+              <div id="training-auto-deal-controls" class="training-auto-deal-controls" hidden>
+                <span id="training-auto-deal-status" class="training-auto-deal-status">Next hand in 10s</span>
+                <button id="training-auto-deal-pause-btn" class="select-btn training-small-btn" type="button">Pause</button>
+              </div>
+            </section>
           </div>
         </section>
 
