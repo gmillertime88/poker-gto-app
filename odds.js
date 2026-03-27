@@ -13,8 +13,8 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "10.4";
-const BUILD_TIMESTAMP = "2026-03-27 08:28";
+const BUILD_VERSION = "10.5";
+const BUILD_TIMESTAMP = "2026-03-27 08:43";
 const WHEEL_REPEAT_COUNT = 3;
 const WHEEL_SCROLL_DEBOUNCE_MS = 90;
 

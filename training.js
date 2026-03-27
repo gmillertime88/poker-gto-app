@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "10.4";
-const BUILD_TIMESTAMP = "2026-03-27 08:28";
+const BUILD_VERSION = "10.5";
+const BUILD_TIMESTAMP = "2026-03-27 08:43";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -1812,6 +1812,10 @@ async function getUserAction(hand, player, toCall, recommendation, equity, recom
     trainingState.betSelectionActive = false;
     trainingState.pendingAggressiveAction = null;
     updateActionButtons(false, toCall, raiseTo, minTarget, maxTarget, player);
+    // Hide auto-deal controls (Pause button) when user action is required
+    if (typeof updateAutoDealCountdownUi === "function") {
+      updateAutoDealCountdownUi();
+    }
 
     trainingState.pendingRecommendationAction = () => {
       if (!trainingState.pendingUserDecision) {
