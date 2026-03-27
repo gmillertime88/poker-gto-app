@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "9.9";
-const BUILD_TIMESTAMP = "2026-03-26 14:33";
+const BUILD_VERSION = "10.0";
+const BUILD_TIMESTAMP = "2026-03-27 07:48";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -42,7 +42,6 @@ const NPC_ACTION_DELAY_RANGE_MS = {
 };
 const STREETS = ["preflop", "flop", "turn", "river"];
 const CARD_BACK_IMAGE_PATH = "images/Card.png";
-const DEAL_BUTTON_IMAGE_PATH = "images/deal.png";
 const DEFAULT_RANGE_FILE = "ranges.json";
 const CASH_RANGE_FILE = "Supporting Materials/cash_ranges_app_compatible.json";
 const TOURNAMENT_RANGE_FILE = "Supporting Materials/tournament_ranges_app_compatible.json";
@@ -121,6 +120,9 @@ const trainingState = {
   pendingAggressiveAction: null,
   autoDealEnabled: true,
   autoDealTimerId: null,
+  autoDealCountdownIntervalId: null,
+  autoDealCountdownSeconds: 0,
+  autoDealPaused: false,
   sessionReviewEntries: [],
   chipLogBySeat: new Map(),
 };
@@ -166,15 +168,84 @@ const el = {
   sessionLogBody: document.getElementById("training-session-log-body"),
   buildTag: document.getElementById("training-build-tag"),
   autoDealToggle: document.getElementById("training-auto-deal-toggle"),
+  autoDealControls: document.getElementById("training-auto-deal-controls"),
+  autoDealStatus: document.getElementById("training-auto-deal-status"),
+  autoDealPauseButton: document.getElementById("training-auto-deal-pause-btn"),
 };
 
 function clearAutoDealTimer() {
   if (!trainingState.autoDealTimerId) {
+    if (trainingState.autoDealCountdownIntervalId) {
+      window.clearInterval(trainingState.autoDealCountdownIntervalId);
+      trainingState.autoDealCountdownIntervalId = null;
+    }
+    trainingState.autoDealCountdownSeconds = 0;
+    trainingState.autoDealPaused = false;
+    if (el.autoDealControls) {
+      el.autoDealControls.hidden = true;
+    }
     return;
   }
 
   window.clearTimeout(trainingState.autoDealTimerId);
   trainingState.autoDealTimerId = null;
+  if (trainingState.autoDealCountdownIntervalId) {
+    window.clearInterval(trainingState.autoDealCountdownIntervalId);
+    trainingState.autoDealCountdownIntervalId = null;
+  }
+  trainingState.autoDealCountdownSeconds = 0;
+  trainingState.autoDealPaused = false;
+  if (el.autoDealControls) {
+    el.autoDealControls.hidden = true;
+  }
+}
+
+function updateAutoDealCountdownUi() {
+  if (!el.autoDealControls || !el.autoDealStatus || !el.autoDealPauseButton) {
+    return;
+  }
+
+  const active = Boolean(trainingState.autoDealTimerId || trainingState.autoDealCountdownIntervalId);
+  if (!active) {
+    el.autoDealControls.hidden = true;
+    return;
+  }
+
+  el.autoDealControls.hidden = false;
+  el.autoDealStatus.textContent = trainingState.autoDealPaused
+    ? `Next hand paused at ${trainingState.autoDealCountdownSeconds}s.`
+    : `Next hand in ${trainingState.autoDealCountdownSeconds}s.`;
+  el.autoDealPauseButton.textContent = trainingState.autoDealPaused ? "Resume" : "Pause";
+}
+
+function startAutoDealCountdown(delaySeconds = 10) {
+  clearAutoDealTimer();
+
+  trainingState.autoDealCountdownSeconds = Math.max(1, Math.round(delaySeconds));
+  trainingState.autoDealPaused = false;
+  trainingState.autoDealTimerId = window.setTimeout(() => {
+    trainingState.autoDealTimerId = null;
+  }, trainingState.autoDealCountdownSeconds * 1000);
+
+  updateAutoDealCountdownUi();
+
+  trainingState.autoDealCountdownIntervalId = window.setInterval(() => {
+    if (trainingState.autoDealPaused) {
+      return;
+    }
+
+    trainingState.autoDealCountdownSeconds -= 1;
+    updateAutoDealCountdownUi();
+
+    if (trainingState.autoDealCountdownSeconds > 0) {
+      return;
+    }
+
+    clearAutoDealTimer();
+    if (!trainingState.tournamentFinished && !trainingState.waitingForUser) {
+      startHand();
+    }
+  }, 1000);
 }
 
 function setPromptMessage(message, recommendation = null) {
@@ -216,7 +287,7 @@ function renderDealButtonIcon() {
     return;
   }
 
-  el.startButton.innerHTML = `<img src="${DEAL_BUTTON_IMAGE_PATH}" alt="Deal" class="training-deal-icon" />`;
+  el.startButton.textContent = "DEAL";
   el.startButton.setAttribute("aria-label", "Deal");
   el.startButton.setAttribute("title", "Deal");
 }
@@ -1775,7 +1846,10 @@ async function getUserAction(hand, player, toCall, recommendation, equity, recom
     };
 
     const equityPct = `${(equity * 100).toFixed(1)}%`;
-    setPromptMessage(`Your turn (${streetLabel(hand.street)}): to call ${toCall}. Equity ${equityPct}. Recommended ${recommendation}.`, recommendation);
+    const promptText = toCall > 0
+      ? `Your turn (${streetLabel(hand.street)}): to call ${toCall}. Equity ${equityPct}. Recommended ${recommendation}.`
+      : `Checked to you (${streetLabel(hand.street)}). Equity ${equityPct}. Recommended ${recommendation}.`;
+    setPromptMessage(promptText, recommendation);
   });
 }
 
@@ -2378,13 +2452,8 @@ async function playHand(handId) {
     } else {
       clearAutoDealTimer();
       if (trainingState.autoDealEnabled) {
-        setPromptMessage("Hand complete. Auto-deal is on. Next hand starts in 10 seconds.");
-        trainingState.autoDealTimerId = window.setTimeout(() => {
-          trainingState.autoDealTimerId = null;
-          if (!trainingState.tournamentFinished && !trainingState.waitingForUser) {
-            startHand();
-          }
-        }, 10000);
+        setPromptMessage("Hand complete. Auto-deal is on.");
+        startAutoDealCountdown(10);
       } else {
         setPromptMessage("Hand complete. Click Deal to continue the session with current chip stacks.");
       }
@@ -2693,6 +2762,16 @@ async function initTraining() {
       if (!trainingState.autoDealEnabled) {
         clearAutoDealTimer();
       }
+    });
+  }
+
+  if (el.autoDealPauseButton) {
+    el.autoDealPauseButton.addEventListener("click", () => {
+      if (!trainingState.autoDealEnabled || trainingState.autoDealCountdownSeconds <= 0) {
+        return;
+      }
+      trainingState.autoDealPaused = !trainingState.autoDealPaused;
+      updateAutoDealCountdownUi();
     });
   }
 

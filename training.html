@@ -83,41 +83,29 @@
         </details>
 
         <section class="field-group">
-          <div class="training-board-heading">
-            <h2 class="training-board-title">Community Cards</h2>
-          </div>
-          <div class="training-board-row">
-            <div id="training-board" class="board-display"></div>
-            <div class="training-top-controls">
-              <div class="training-deal-control">
-                <button id="training-start-btn" class="select-btn training-small-btn training-deal-btn" type="button" aria-label="Deal" title="Deal">
-                  <img src="images/deal.png" alt="Deal" class="training-deal-icon" />
-                </button>
-                <span class="training-deal-label">Deal</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="field-group">
           <h2>Action</h2>
           <div class="training-action-status" aria-live="polite">
-            <div class="result-row odds-summary-row">
-              <span class="label summary-label training-status-label-text">Pot:</span>
+            <section class="training-action-section">
+              <h3 class="training-action-heading">Pot</h3>
               <span id="training-pot" class="value training-status-value">-</span>
-            </div>
-            <div class="result-row odds-summary-row">
-              <span class="label summary-label training-status-label-text">Recommendation:</span>
+            </section>
+            <section class="training-action-section">
+              <h3 class="training-action-heading">Recommendation</h3>
               <span id="training-reco" class="value training-status-value training-reco-value">-</span>
-            </div>
-            <div class="result-row odds-summary-row">
-              <span class="label summary-label training-status-label-text">Analysis:</span>
+              <p id="training-prompt" class="training-prompt">Start a hand to begin training.</p>
+              <div id="training-auto-deal-controls" class="training-auto-deal-controls" hidden>
+                <span id="training-auto-deal-status" class="training-auto-deal-status">Next hand in 10s</span>
+                <button id="training-auto-deal-pause-btn" class="select-btn training-small-btn" type="button">Pause</button>
+              </div>
+            </section>
+            <section class="training-action-section">
+              <h3 class="training-action-heading">Analysis</h3>
               <span id="training-reco-analysis" class="value training-status-value training-reco-analysis-value">-</span>
-            </div>
-            <div class="result-row odds-summary-row">
-              <span class="label summary-label training-status-label-text">Hand Result:</span>
+            </section>
+            <section class="training-action-section">
+              <h3 class="training-action-heading">Hand Result</h3>
               <span id="training-hand-result" class="value training-status-value training-hand-result-value">-</span>
-            </div>
+            </section>
             <div class="training-status-hidden" aria-hidden="true">
               <span id="training-session">-</span>
               <span id="training-street">-</span>
@@ -154,7 +142,20 @@
               <span id="training-bet-size-current" class="training-bet-size-current">Selected: -</span>
             </div>
           </div>
-          <p id="training-prompt" class="training-prompt">Start a hand to begin training.</p>
+        </section>
+
+        <section class="field-group">
+          <div class="training-board-heading">
+            <h2 class="training-board-title">Community Cards</h2>
+          </div>
+          <div class="training-board-row">
+            <div id="training-board" class="board-display"></div>
+            <div class="training-top-controls">
+              <div class="training-deal-control">
+                <button id="training-start-btn" class="select-btn training-small-btn training-deal-btn" type="button" aria-label="Deal" title="Deal">DEAL</button>
+              </div>
+            </div>
+          </div>
         </section>
 
         <section class="field-group">

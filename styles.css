@@ -1052,7 +1052,7 @@ h1 {
 
 /* Training card and board tokens at 150% scale for readability. */
 #training-board.board-display {
-  gap: 12px;
+  gap: 8px;
 }
 
 .training-table .results-hand-cell {
@@ -1060,9 +1060,9 @@ h1 {
 }
 
 #training-board .card-token {
-  gap: 3px;
-  padding: 4px 11px;
-  font-size: 1.54rem;
+  gap: 2px;
+  padding: 3px 8px;
+  font-size: 1.15rem;
 }
 
 .training-table .card-token {
@@ -1241,13 +1241,21 @@ h1 {
 }
 
 .training-deal-btn {
-  width: 54px;
-  height: 54px;
-  min-height: 54px;
+  width: 1.8rem;
+  height: 1.8rem;
+  min-height: 1.8rem;
   padding: 0;
   border-radius: 999px;
   border: 1px solid var(--success);
-  overflow: hidden;
+  background: color-mix(in oklab, var(--surface-soft) 82%, transparent);
+  color: var(--success);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .training-deal-btn:hover,
@@ -1256,11 +1264,7 @@ h1 {
 }
 
 .training-deal-icon {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
+  display: none;
 }
 
 .training-deal-control {
@@ -1271,9 +1275,7 @@ h1 {
 }
 
 .training-deal-label {
-  font-size: 0.68rem;
-  line-height: 1;
-  color: var(--muted);
+  display: none;
 }
 
 .training-table-heading {
@@ -1444,6 +1446,8 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: #ffffff;
+  display: grid;
+  gap: 10px;
 }
 
 [data-theme="light"] .training-action-status {
@@ -1454,15 +1458,16 @@ h1 {
   color: #1f2937;
 }
 
-.training-action-status .odds-summary-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 6px;
+.training-action-section {
+  display: grid;
+  gap: 6px;
 }
 
-.training-action-status .odds-summary-row:last-child {
-  margin-bottom: 0;
+.training-action-heading {
+  margin: 0;
+  font-size: 1.13rem;
+  font-weight: 700;
+  color: #1f2937;
 }
 
 .training-status-label-text {
@@ -1473,7 +1478,7 @@ h1 {
 
 .training-status-value {
   display: block;
-  flex: 1 1 auto;
+  flex: none;
   text-align: left;
   font-size: 1.18rem;
   font-weight: 400;
@@ -1617,10 +1622,22 @@ h1 {
 }
 
 .training-prompt {
-  margin: 10px 0 0;
+  margin: 2px 0 0;
   font-size: 1.02rem;
   font-weight: 400;
   line-height: 1.35;
+}
+
+.training-auto-deal-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.training-auto-deal-status {
+  font-size: 0.88rem;
+  color: #166534;
 }
 
 .training-prompt.reco-fold {
@@ -1880,8 +1897,8 @@ h1 {
 }
 
 #training-board .card-token-hidden {
-  min-width: 3.31em;
-  min-height: 1.81em;
+  min-width: 2.48em;
+  min-height: 1.36em;
 }
 
 #training-board .card-token-back-image,
@@ -1891,8 +1908,8 @@ h1 {
 }
 
 #training-board .card-token-back-image {
-  width: 1.69em;
-  height: 2.44em;
+  width: 1.27em;
+  height: 1.83em;
 }
 
 @media (max-width: 640px) {
@@ -2079,9 +2096,9 @@ h1 {
   }
 
   .training-deal-btn {
-    width: 54px;
-    height: 54px;
-    min-height: 54px;
+    width: 1.8rem;
+    height: 1.8rem;
+    min-height: 1.8rem;
     padding: 0;
   }
 
@@ -2147,7 +2164,7 @@ h1 {
 
   .training-table td.col-action {
     max-width: 180px;
-    overflow-wrap: anywhere;
+    white-space: nowrap;
   }
 
 }
@@ -2155,10 +2172,10 @@ h1 {
 @media (max-width: 640px) {
   #training-board.board-display {
     display: grid;
-    grid-template-columns: repeat(3, max-content);
+    grid-template-columns: repeat(5, max-content);
     justify-content: flex-start;
-    column-gap: 8px;
-    row-gap: 8px;
+    column-gap: 6px;
+    row-gap: 6px;
   }
 
   .training-table {
@@ -2183,7 +2200,7 @@ h1 {
 
   .training-table tbody tr {
     display: grid;
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-columns: minmax(0, calc(50% - 1.5ch)) minmax(0, calc(50% + 1.5ch));
     column-gap: 14px;
     row-gap: 4px;
     box-shadow: none;
@@ -2300,6 +2317,11 @@ h1 {
 
   .training-table td.col-action {
     grid-row: 4;
+    white-space: nowrap;
+  }
+
+  .training-table td.col-action .training-mobile-field-value {
+    white-space: nowrap;
   }
 
   .training-table td.col-stack .training-mobile-field-value,
