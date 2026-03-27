@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "10.2";
-const BUILD_TIMESTAMP = "2026-03-27 08:15";
+const BUILD_VERSION = "10.3";
+const BUILD_TIMESTAMP = "2026-03-27 08:25";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -123,6 +123,7 @@ const trainingState = {
   autoDealCountdownIntervalId: null,
   autoDealCountdownSeconds: 0,
   autoDealPaused: false,
+  autoDealCountdownVisible: false,
   sessionReviewEntries: [],
   chipLogBySeat: new Map(),
 };
@@ -181,6 +182,7 @@ function clearAutoDealTimer() {
     }
     trainingState.autoDealCountdownSeconds = 0;
     trainingState.autoDealPaused = false;
+    trainingState.autoDealCountdownVisible = false;
     if (el.autoDealControls) {
       el.autoDealControls.hidden = true;
     }
@@ -195,6 +197,7 @@ function clearAutoDealTimer() {
   }
   trainingState.autoDealCountdownSeconds = 0;
   trainingState.autoDealPaused = false;
+  trainingState.autoDealCountdownVisible = false;
   if (el.autoDealControls) {
     el.autoDealControls.hidden = true;
   }
@@ -205,7 +208,8 @@ function updateAutoDealCountdownUi() {
     return;
   }
 
-  const active = Boolean(trainingState.autoDealTimerId || trainingState.autoDealCountdownIntervalId);
+  const active = trainingState.autoDealCountdownVisible
+    && Boolean(trainingState.autoDealTimerId || trainingState.autoDealCountdownIntervalId);
   if (!active) {
     el.autoDealControls.hidden = true;
     return;
@@ -223,6 +227,7 @@ function startAutoDealCountdown(delaySeconds = 10) {
 
   trainingState.autoDealCountdownSeconds = Math.max(1, Math.round(delaySeconds));
   trainingState.autoDealPaused = false;
+  trainingState.autoDealCountdownVisible = true;
   trainingState.autoDealTimerId = window.setTimeout(() => {
     trainingState.autoDealTimerId = null;
   }, trainingState.autoDealCountdownSeconds * 1000);
@@ -2605,6 +2610,7 @@ function resetHand() {
 
 function startHand() {
   clearAutoDealTimer();
+  trainingState.autoDealCountdownVisible = false;
 
   if (!trainingState.userPosition) {
     setPromptMessage("Select your position before starting a hand.");
