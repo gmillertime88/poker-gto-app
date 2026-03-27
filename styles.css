@@ -1633,6 +1633,23 @@ h1 {
   line-height: 1.35;
 }
 
+.training-reco-line {
+  margin: 4px 0 0;
+  font-size: 1.02rem;
+  line-height: 1.35;
+}
+
+.training-reco-label {
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.training-reco-line .training-reco-value {
+  display: inline;
+  font-size: inherit;
+  line-height: inherit;
+}
+
 .training-auto-deal-controls {
   display: inline-flex;
   align-items: center;
@@ -1863,6 +1880,12 @@ h1 {
   letter-spacing: 0.02em;
 }
 
+.training-chip-ledger-row-header .training-chip-ledger-cell:nth-child(3),
+.training-chip-ledger-row-header .training-chip-ledger-cell:nth-child(4),
+.training-chip-ledger-row-header .training-chip-ledger-cell:nth-child(5) {
+  text-align: right;
+}
+
 .training-chip-ledger-row.credit {
   border-color: color-mix(in oklab, var(--success) 48%, var(--table-border));
 }
@@ -1877,9 +1900,14 @@ h1 {
 }
 
 .training-chip-ledger-reason {
-  white-space: nowrap;
+  white-space: normal;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
 .training-chip-ledger-amount,

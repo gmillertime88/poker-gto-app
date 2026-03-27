@@ -121,6 +121,23 @@
           </div>
         </section>
 
+        <section class="field-group">
+          <h2>Recommendation</h2>
+          <div class="training-action-status training-recommendation-panel">
+            <section class="training-action-section">
+              <p id="training-prompt" class="training-prompt">Start a hand to begin training.</p>
+              <p class="training-reco-line">
+                <strong class="training-reco-label">Recommendation:</strong>
+                <span id="training-reco" class="value training-status-value training-reco-value">-</span>
+              </p>
+              <div id="training-auto-deal-controls" class="training-auto-deal-controls" hidden>
+                <span id="training-auto-deal-status" class="training-auto-deal-status">Next hand in 10s</span>
+                <button id="training-auto-deal-pause-btn" class="select-btn training-small-btn" type="button">Pause</button>
+              </div>
+            </section>
+          </div>
+        </section>
+
         <section class="field-group training-bet-sizing-section" id="training-bet-sizing" hidden>
           <label for="training-bet-size-input" class="training-bet-sizing-label">Bet Amount</label>
           <div class="training-bet-sizing-controls">
@@ -147,20 +164,6 @@
             <datalist id="training-bet-size-ticks"></datalist>
             <span id="training-bet-size-range" class="training-bet-size-range">Range: -</span>
             <span id="training-bet-size-current" class="training-bet-size-current">Selected: -</span>
-          </div>
-        </section>
-
-        <section class="field-group">
-          <h2>Recommendation</h2>
-          <div class="training-action-status training-recommendation-panel">
-            <section class="training-action-section">
-              <span id="training-reco" class="value training-status-value training-reco-value">-</span>
-              <p id="training-prompt" class="training-prompt">Start a hand to begin training.</p>
-              <div id="training-auto-deal-controls" class="training-auto-deal-controls" hidden>
-                <span id="training-auto-deal-status" class="training-auto-deal-status">Next hand in 10s</span>
-                <button id="training-auto-deal-pause-btn" class="select-btn training-small-btn" type="button">Pause</button>
-              </div>
-            </section>
           </div>
         </section>
 
