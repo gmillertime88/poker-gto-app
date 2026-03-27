@@ -1914,7 +1914,7 @@ h1 {
 .training-chip-ledger-balance {
   text-align: right;
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .training-session-log-entry {
