@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "10.5";
-const BUILD_TIMESTAMP = "2026-03-27 08:43";
+const BUILD_VERSION = "10.6";
+const BUILD_TIMESTAMP = "2026-03-27 08:48";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -174,6 +174,20 @@ const el = {
   autoDealPauseButton: document.getElementById("training-auto-deal-pause-btn"),
 };
 
+function setAutoDealControlsVisible(visible) {
+  if (!el.autoDealControls) {
+    return;
+  }
+
+  el.autoDealControls.hidden = !visible;
+  el.autoDealControls.style.display = visible ? "inline-flex" : "none";
+  if (visible) {
+    el.autoDealControls.removeAttribute("aria-hidden");
+  } else {
+    el.autoDealControls.setAttribute("aria-hidden", "true");
+  }
+}
+
 function clearAutoDealTimer() {
   if (!trainingState.autoDealTimerId) {
     if (trainingState.autoDealCountdownIntervalId) {
@@ -183,9 +197,7 @@ function clearAutoDealTimer() {
     trainingState.autoDealCountdownSeconds = 0;
     trainingState.autoDealPaused = false;
     trainingState.autoDealCountdownVisible = false;
-    if (el.autoDealControls) {
-      el.autoDealControls.hidden = true;
-    }
+    setAutoDealControlsVisible(false);
     return;
   }
 
@@ -198,9 +210,7 @@ function clearAutoDealTimer() {
   trainingState.autoDealCountdownSeconds = 0;
   trainingState.autoDealPaused = false;
   trainingState.autoDealCountdownVisible = false;
-  if (el.autoDealControls) {
-    el.autoDealControls.hidden = true;
-  }
+  setAutoDealControlsVisible(false);
 }
 
 function updateAutoDealCountdownUi() {
@@ -208,20 +218,20 @@ function updateAutoDealCountdownUi() {
     return;
   }
 
-  const handInProgress = Boolean(trainingState.hand) && trainingState.handResultMessage === "Hand in progress";
+  const handInProgress = Boolean(trainingState.hand) && Boolean(el.startButton && el.startButton.disabled);
   if (handInProgress) {
-    el.autoDealControls.hidden = true;
+    setAutoDealControlsVisible(false);
     return;
   }
 
   const active = trainingState.autoDealCountdownVisible
     && Boolean(trainingState.autoDealTimerId || trainingState.autoDealCountdownIntervalId);
   if (!active) {
-    el.autoDealControls.hidden = true;
+    setAutoDealControlsVisible(false);
     return;
   }
 
-  el.autoDealControls.hidden = false;
+  setAutoDealControlsVisible(true);
   el.autoDealStatus.textContent = trainingState.autoDealPaused
     ? `Next hand paused at ${trainingState.autoDealCountdownSeconds}s.`
     : `Next hand in ${trainingState.autoDealCountdownSeconds}s.`;
@@ -2621,9 +2631,7 @@ function resetHand() {
 function startHand() {
   clearAutoDealTimer();
   trainingState.autoDealCountdownVisible = false;
-  if (el.autoDealControls) {
-    el.autoDealControls.hidden = true;
-  }
+  setAutoDealControlsVisible(false);
 
   if (!trainingState.userPosition) {
     setPromptMessage("Select your position before starting a hand.");
