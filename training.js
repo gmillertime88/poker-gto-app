@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "10.3";
-const BUILD_TIMESTAMP = "2026-03-27 08:25";
+const BUILD_VERSION = "10.4";
+const BUILD_TIMESTAMP = "2026-03-27 08:28";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -205,6 +205,12 @@ function clearAutoDealTimer() {
 
 function updateAutoDealCountdownUi() {
   if (!el.autoDealControls || !el.autoDealStatus || !el.autoDealPauseButton) {
+    return;
+  }
+
+  const handInProgress = Boolean(trainingState.hand) && trainingState.handResultMessage === "Hand in progress";
+  if (handInProgress) {
+    el.autoDealControls.hidden = true;
     return;
   }
 
@@ -2611,6 +2617,9 @@ function resetHand() {
 function startHand() {
   clearAutoDealTimer();
   trainingState.autoDealCountdownVisible = false;
+  if (el.autoDealControls) {
+    el.autoDealControls.hidden = true;
+  }
 
   if (!trainingState.userPosition) {
     setPromptMessage("Select your position before starting a hand.");
@@ -2639,6 +2648,7 @@ function startHand() {
     el.settingsPanel.open = false;
   }
   setPromptMessage("Hand dealt. Waiting for action.");
+  updateAutoDealCountdownUi();
   addLog(`Hand ${trainingState.handsPlayed + 1} started.`);
   playHand(trainingState.handId);
 }
