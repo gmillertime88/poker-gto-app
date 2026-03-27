@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "10.9";
-const BUILD_TIMESTAMP = "2026-03-27 09:29";
+const BUILD_VERSION = "11.0";
+const BUILD_TIMESTAMP = "2026-03-27 09:38";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -144,6 +144,7 @@ const el = {
   pot: document.getElementById("training-pot"),
   playersInHand: document.getElementById("training-players-in-hand"),
   odds: document.getElementById("training-odds"),
+  recommendationLabel: document.getElementById("training-reco-label"),
   recommendation: document.getElementById("training-reco"),
   recommendationAnalysis: document.getElementById("training-reco-analysis"),
   actionOn: document.getElementById("training-action-on"),
@@ -1316,6 +1317,7 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
     && recommendation
     && recommendation !== "-"
   );
+  const hasActiveRecommendation = typeof recommendation === "string" && recommendation.trim() !== "" && recommendation !== "-";
 
   if (!hand) {
     if (el.street) {
@@ -1336,6 +1338,9 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
       el.recommendation.removeAttribute("role");
       el.recommendation.removeAttribute("tabindex");
       el.recommendation.removeAttribute("title");
+    }
+    if (el.recommendationLabel) {
+      el.recommendationLabel.hidden = true;
     }
     if (el.recommendationAnalysis) {
       el.recommendationAnalysis.textContent = "-";
@@ -1373,6 +1378,9 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
       el.recommendation.removeAttribute("tabindex");
       el.recommendation.removeAttribute("title");
     }
+  }
+  if (el.recommendationLabel) {
+    el.recommendationLabel.hidden = !hasActiveRecommendation;
   }
   if (el.recommendationAnalysis) {
     el.recommendationAnalysis.textContent = analysis || "-";
