@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "11.7";
-const BUILD_TIMESTAMP = "2026-03-30 15:45";
+const BUILD_VERSION = "11.8";
+const BUILD_TIMESTAMP = "2026-03-30 15:51";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;

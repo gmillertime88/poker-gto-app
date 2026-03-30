@@ -1465,11 +1465,11 @@ h1 {
 }
 
 .training-action-overview {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(120px, auto) minmax(120px, auto);
   grid-template-areas:
-    "analysis analysis"
-    "recommendation recommendation"
-    "handresult pot";
+    "analysis analysis analysis"
+    "recommendation recommendation recommendation"
+    "handresult players pot";
   align-items: end;
 }
 
@@ -1485,6 +1485,12 @@ h1 {
   grid-area: handresult;
 }
 
+.training-action-overview .training-action-players {
+  grid-area: players;
+  justify-items: center;
+  text-align: center;
+}
+
 .training-action-overview .training-action-pot {
   grid-area: pot;
   justify-items: end;
@@ -1498,9 +1504,11 @@ h1 {
       "analysis"
       "recommendation"
       "handresult"
+      "players"
       "pot";
   }
 
+  .training-action-overview .training-action-players,
   .training-action-overview .training-action-pot {
     justify-items: start;
     text-align: left;
