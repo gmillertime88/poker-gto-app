@@ -1464,6 +1464,43 @@ h1 {
   gap: 6px;
 }
 
+.training-action-overview {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    "analysis analysis"
+    "handresult pot";
+  align-items: end;
+}
+
+.training-action-overview .training-action-analysis {
+  grid-area: analysis;
+}
+
+.training-action-overview .training-action-hand-result {
+  grid-area: handresult;
+}
+
+.training-action-overview .training-action-pot {
+  grid-area: pot;
+  justify-items: end;
+  text-align: right;
+}
+
+@media (max-width: 640px) {
+  .training-action-overview {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "analysis"
+      "handresult"
+      "pot";
+  }
+
+  .training-action-overview .training-action-pot {
+    justify-items: start;
+    text-align: left;
+  }
+}
+
 .training-action-heading {
   margin: 0;
   font-size: 1.13rem;
@@ -1515,6 +1552,11 @@ h1 {
   border: 0;
   background: transparent;
   border-radius: 0;
+}
+
+.training-context-adjusted {
+  color: #b91c1c;
+  font-weight: 700;
 }
 
 .training-hand-result-value {

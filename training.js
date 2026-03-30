@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "11.1";
-const BUILD_TIMESTAMP = "2026-03-27 09:52";
+const BUILD_VERSION = "11.2";
+const BUILD_TIMESTAMP = "2026-03-30 11:35";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -1211,7 +1211,17 @@ function renderTable(hand, userEquity = null) {
     return value;
   };
 
-  hand.players.forEach((player) => {
+  const displayPlayers = hand.players.slice().sort((a, b) => {
+    if (a.isUser && !b.isUser) {
+      return -1;
+    }
+    if (!a.isUser && b.isUser) {
+      return 1;
+    }
+    return a.seat - b.seat;
+  });
+
+  displayPlayers.forEach((player) => {
     const row = document.createElement("tr");
     if (player.isUser) {
       row.className = "training-user-row";
@@ -1383,7 +1393,7 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
     el.recommendationLabel.hidden = !hasActiveRecommendation;
   }
   if (el.recommendationAnalysis) {
-    el.recommendationAnalysis.textContent = analysis || "-";
+    el.recommendationAnalysis.innerHTML = analysis || "-";
   }
   if (el.actionOn) {
     el.actionOn.textContent = hand.actionOn || "-";
@@ -1590,6 +1600,7 @@ function recommendationText(hand, player, recommendation, toCall) {
 
 function recommendationReason(hand, player, toCall, equity, recommendation) {
   if (hand.street === "preflop") {
+    const contextAdjustedTag = '<span class="training-context-adjusted">Context Adjusted</span>';
     const modelBase = getPreflopModelValue(player);
     const adjustedBase = getPreflopRecommendation(player, hand);
     const modelValue = String(modelBase || "Fold");
@@ -1600,34 +1611,34 @@ function recommendationReason(hand, player, toCall, equity, recommendation) {
     const contextAdjusted = modelAction !== adjustedAction;
 
     if (contextAdjusted && adjustedAction === recommendedAction) {
-      return `Range Table: ${modelValue}. Adjusted to ${adjustedBase} for current live context (${effectivePlayers} players still active pre-flop at ${trainingState.temperature} temperature).`;
+      return `${contextAdjustedTag} Recommended Action: ${modelValue}. Adjusted to ${adjustedBase} for current live context (${effectivePlayers} players still active pre-flop at ${trainingState.temperature} temperature).`;
     }
 
     if (modelAction !== recommendedAction) {
       if (toCall <= 0 && modelAction === "call" && recommendedAction === "check") {
-        return `Range Table: ${modelValue}. Adjusted to Check because there is no bet to call.`;
+        return `${contextAdjustedTag} Recommended Action: ${modelValue}. Adjusted to Check because there is no bet to call.`;
       }
 
       if (modelAction === "raise" && recommendedAction === "call") {
-        return `Range Table: ${modelValue}. Adjusted to Call due to heavy preflop pressure (${hand.currentBet} chips to continue) where pot control is preferred.`;
+        return `${contextAdjustedTag} Recommended Action: ${modelValue}. Adjusted to Call due to heavy preflop pressure (${hand.currentBet} chips to continue) where pot control is preferred.`;
       }
 
-      return `Range Table: ${modelValue}. Adjusted to ${recommendation} based on current preflop action state (to call ${toCall}, current bet ${hand.currentBet}, ${effectivePlayers} active players).`;
+      return `${contextAdjustedTag} Recommended Action: ${modelValue}. Adjusted to ${recommendation} based on current preflop action state (to call ${toCall}, current bet ${hand.currentBet}, ${effectivePlayers} active players).`;
     }
 
     if (toCall <= 0) {
-      return `Range Table: ${modelValue}. Range-driven preflop plan from ${player.position}.`;
+      return `Recommended Action: ${modelValue}. Range-driven preflop plan from ${player.position}.`;
     }
 
     if (modelValue === "Raise") {
-      return `Range Table: ${modelValue}. Strong range from ${player.position}; continue aggressively unless facing very large pressure.`;
+      return `Recommended Action: ${modelValue}. Strong range from ${player.position}; continue aggressively unless facing very large pressure.`;
     }
 
     if (modelValue === "Call") {
-      return `Range Table: ${modelValue}. Marginal continue hand from ${player.position}; call performs better than raising.`;
+      return `Recommended Action: ${modelValue}. Marginal continue hand from ${player.position}; call performs better than raising.`;
     }
 
-    return `Range Table: ${modelValue}. Out-of-range continue from ${player.position}; folding preserves chips.`;
+    return `Recommended Action: ${modelValue}. Out-of-range continue from ${player.position}; folding preserves chips.`;
   }
 
   const potOdds = toCall / Math.max(1, (hand.pot + toCall));
