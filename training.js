@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "11.3";
-const BUILD_TIMESTAMP = "2026-03-30 11:44";
+const BUILD_VERSION = "11.4";
+const BUILD_TIMESTAMP = "2026-03-30 11:49";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -1669,7 +1669,7 @@ function recommendationReason(hand, player, toCall, equity, recommendation) {
 
   const potOdds = toCall / Math.max(1, (hand.pot + toCall));
   if (toCall <= 0) {
-    return `No call required. Equity ${(equity * 100).toFixed(1)}% supports ${recommendation.toLowerCase()} pressure.`;
+    return `Checked to you. Equity ${(equity * 100).toFixed(1)}% supports ${recommendation.toLowerCase()} pressure.`;
   }
 
   return `Pot odds ${(potOdds * 100).toFixed(1)}% vs equity ${(equity * 100).toFixed(1)}% -> ${recommendation.toLowerCase()}.`;
