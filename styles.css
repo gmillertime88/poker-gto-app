@@ -1446,7 +1446,7 @@ h1 {
   padding: 10px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #ffffff;
+  background: color-mix(in oklab, var(--surface-soft) 75%, var(--panel));
   display: grid;
   gap: 10px;
 }
@@ -1456,7 +1456,7 @@ h1 {
 }
 
 .training-action-status .label {
-  color: #1f2937;
+  color: var(--heading);
 }
 
 .training-action-section {
@@ -1519,7 +1519,7 @@ h1 {
   margin: 0;
   font-size: 1.13rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--heading);
 }
 
 .training-status-label-text {
@@ -1535,7 +1535,7 @@ h1 {
   font-size: 1.18rem;
   font-weight: 400;
   line-height: 1.35;
-  color: #111827;
+  color: var(--text);
   white-space: normal;
   overflow-wrap: anywhere;
 }
@@ -1556,7 +1556,7 @@ h1 {
 
 .training-reco-value.clickable:hover,
 .training-reco-value.clickable:focus-visible {
-  color: #0f172a;
+  color: var(--heading);
   outline: none;
 }
 
@@ -1719,19 +1719,19 @@ h1 {
 
 .training-auto-deal-status {
   font-size: 0.88rem;
-  color: #166534;
+  color: var(--success);
 }
 
 .training-prompt.reco-fold {
-  color: #b91c1c;
+  color: var(--danger);
 }
 
 .training-prompt.reco-raise {
-  color: #166534;
+  color: var(--success);
 }
 
 .training-prompt.reco-other {
-  color: #000000;
+  color: var(--text);
 }
 
 .training-log {
