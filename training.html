@@ -89,6 +89,18 @@
               <h3 class="training-action-heading">Analysis</h3>
               <span id="training-reco-analysis" class="value training-status-value training-reco-analysis-value">-</span>
             </section>
+            <section class="training-action-section training-action-recommendation">
+              <h3 class="training-action-heading">Recommendation</h3>
+              <p id="training-prompt" class="training-prompt">Start a hand to begin training.</p>
+              <p class="training-reco-line">
+                <strong id="training-reco-label" class="training-reco-label" hidden>Recommendation:</strong>
+                <span id="training-reco" class="value training-status-value training-reco-value">-</span>
+              </p>
+              <div id="training-auto-deal-controls" class="training-auto-deal-controls" hidden>
+                <span id="training-auto-deal-status" class="training-auto-deal-status">Next hand in 10s</span>
+                <button id="training-auto-deal-pause-btn" class="select-btn training-small-btn" type="button">Pause</button>
+              </div>
+            </section>
             <section class="training-action-section training-action-hand-result">
               <h3 class="training-action-heading">Hand Result</h3>
               <span id="training-hand-result" class="value training-status-value training-hand-result-value">-</span>
@@ -118,23 +130,6 @@
                 <button id="training-start-btn" class="select-btn training-small-btn training-deal-btn" type="button" aria-label="Deal" title="Deal">DEAL</button>
               </div>
             </div>
-          </div>
-        </section>
-
-        <section class="field-group">
-          <h2>Status and Recommendation</h2>
-          <div class="training-action-status training-recommendation-panel">
-            <section class="training-action-section">
-              <p id="training-prompt" class="training-prompt">Start a hand to begin training.</p>
-              <p class="training-reco-line">
-                <strong id="training-reco-label" class="training-reco-label" hidden>Recommendation:</strong>
-                <span id="training-reco" class="value training-status-value training-reco-value">-</span>
-              </p>
-              <div id="training-auto-deal-controls" class="training-auto-deal-controls" hidden>
-                <span id="training-auto-deal-status" class="training-auto-deal-status">Next hand in 10s</span>
-                <button id="training-auto-deal-pause-btn" class="select-btn training-small-btn" type="button">Pause</button>
-              </div>
-            </section>
           </div>
         </section>
 
@@ -191,7 +186,7 @@
                   <th>Chips</th>
                   <th>Status</th>
                   <th>Bet</th>
-                  <th>Action</th>
+                  <th>Last Action</th>
                 </tr>
               </thead>
               <tbody id="training-table-body"></tbody>

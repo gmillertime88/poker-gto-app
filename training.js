@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "11.5";
-const BUILD_TIMESTAMP = "2026-03-30 14:25";
+const BUILD_VERSION = "11.6";
+const BUILD_TIMESTAMP = "2026-03-30 15:38";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -1301,8 +1301,8 @@ function renderTable(hand, userEquity = null) {
 
     const actionCell = document.createElement("td");
     actionCell.className = "col-action";
-    actionCell.dataset.label = "Action";
-    actionCell.appendChild(buildMobileLabel("Action"));
+    actionCell.dataset.label = "Last Action";
+    actionCell.appendChild(buildMobileLabel("Last Action"));
     actionCell.appendChild(buildMobileValue(player.lastAction || "-"));
 
     row.appendChild(seatCell);
@@ -2742,7 +2742,7 @@ function startHand() {
   trainingState.hand = createHand();
   trainingState.showdownRevealed = false;
   trainingState.decisionLog = [];
-  trainingState.handResultMessage = "Hand in progress";
+  trainingState.handResultMessage = "In Progress";
   trainingState.pinnedRecommendationStreet = null;
   trainingState.pinnedRecommendation = "-";
   trainingState.pinnedAnalysis = "-";

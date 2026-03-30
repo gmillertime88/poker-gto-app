@@ -1468,12 +1468,17 @@ h1 {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   grid-template-areas:
     "analysis analysis"
+    "recommendation recommendation"
     "handresult pot";
   align-items: end;
 }
 
 .training-action-overview .training-action-analysis {
   grid-area: analysis;
+}
+
+.training-action-overview .training-action-recommendation {
+  grid-area: recommendation;
 }
 
 .training-action-overview .training-action-hand-result {
@@ -1491,6 +1496,7 @@ h1 {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       "analysis"
+      "recommendation"
       "handresult"
       "pot";
   }
