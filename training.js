@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "11.2";
-const BUILD_TIMESTAMP = "2026-03-30 11:35";
+const BUILD_VERSION = "11.3";
+const BUILD_TIMESTAMP = "2026-03-30 11:44";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -126,6 +126,9 @@ const trainingState = {
   autoDealCountdownVisible: false,
   sessionReviewEntries: [],
   chipLogBySeat: new Map(),
+  pinnedRecommendationStreet: null,
+  pinnedRecommendation: "-",
+  pinnedAnalysis: "-",
 };
 
 const el = {
@@ -1327,7 +1330,28 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
     && recommendation
     && recommendation !== "-"
   );
-  const hasActiveRecommendation = typeof recommendation === "string" && recommendation.trim() !== "" && recommendation !== "-";
+  const incomingHasRecommendation = typeof recommendation === "string" && recommendation.trim() !== "" && recommendation !== "-";
+  const shouldForceUpdate = recommendation === "Hand complete";
+
+  if (hand && incomingHasRecommendation) {
+    if (shouldForceUpdate || trainingState.pinnedRecommendationStreet !== hand.street || !trainingState.pinnedRecommendation || trainingState.pinnedRecommendation === "-") {
+      trainingState.pinnedRecommendationStreet = hand.street;
+      trainingState.pinnedRecommendation = recommendation;
+      trainingState.pinnedAnalysis = analysis || "-";
+    }
+  }
+
+  const activeRecommendation = hand
+    ? (incomingHasRecommendation
+      ? (shouldForceUpdate ? recommendation : trainingState.pinnedRecommendation)
+      : trainingState.pinnedRecommendation)
+    : "-";
+  const activeAnalysis = hand
+    ? (incomingHasRecommendation
+      ? (shouldForceUpdate ? (analysis || "-") : trainingState.pinnedAnalysis)
+      : trainingState.pinnedAnalysis)
+    : "-";
+  const hasActiveRecommendation = typeof activeRecommendation === "string" && activeRecommendation.trim() !== "" && activeRecommendation !== "-";
 
   if (!hand) {
     if (el.street) {
@@ -1349,11 +1373,14 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
       el.recommendation.removeAttribute("tabindex");
       el.recommendation.removeAttribute("title");
     }
+    trainingState.pinnedRecommendationStreet = null;
+    trainingState.pinnedRecommendation = "-";
+    trainingState.pinnedAnalysis = "-";
     if (el.recommendationLabel) {
       el.recommendationLabel.hidden = true;
     }
     if (el.recommendationAnalysis) {
-      el.recommendationAnalysis.textContent = "-";
+      el.recommendationAnalysis.innerHTML = "-";
     }
     if (el.actionOn) {
       el.actionOn.textContent = "-";
@@ -1377,8 +1404,8 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
     el.odds.textContent = equity === null ? "-" : `${(equity * 100).toFixed(1)}%`;
   }
   if (el.recommendation) {
-    el.recommendation.textContent = recommendation;
-    el.recommendation.className = `value training-status-value training-reco-value ${normalizedAction(recommendation)}${canQuickApplyRecommendation ? " clickable" : ""}`;
+    el.recommendation.textContent = activeRecommendation;
+    el.recommendation.className = `value training-status-value training-reco-value ${normalizedAction(activeRecommendation)}${canQuickApplyRecommendation ? " clickable" : ""}`;
     if (canQuickApplyRecommendation) {
       el.recommendation.setAttribute("role", "button");
       el.recommendation.setAttribute("tabindex", "0");
@@ -1393,7 +1420,7 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
     el.recommendationLabel.hidden = !hasActiveRecommendation;
   }
   if (el.recommendationAnalysis) {
-    el.recommendationAnalysis.innerHTML = analysis || "-";
+    el.recommendationAnalysis.innerHTML = activeAnalysis || "-";
   }
   if (el.actionOn) {
     el.actionOn.textContent = hand.actionOn || "-";
@@ -1600,7 +1627,6 @@ function recommendationText(hand, player, recommendation, toCall) {
 
 function recommendationReason(hand, player, toCall, equity, recommendation) {
   if (hand.street === "preflop") {
-    const contextAdjustedTag = '<span class="training-context-adjusted">Context Adjusted</span>';
     const modelBase = getPreflopModelValue(player);
     const adjustedBase = getPreflopRecommendation(player, hand);
     const modelValue = String(modelBase || "Fold");
@@ -1611,19 +1637,19 @@ function recommendationReason(hand, player, toCall, equity, recommendation) {
     const contextAdjusted = modelAction !== adjustedAction;
 
     if (contextAdjusted && adjustedAction === recommendedAction) {
-      return `${contextAdjustedTag} Recommended Action: ${modelValue}. Adjusted to ${adjustedBase} for current live context (${effectivePlayers} players still active pre-flop at ${trainingState.temperature} temperature).`;
+      return `Recommended Action: ${modelValue}. Adjusted to ${adjustedBase} for current live context (${effectivePlayers} players still active pre-flop at ${trainingState.temperature} temperature).`;
     }
 
     if (modelAction !== recommendedAction) {
       if (toCall <= 0 && modelAction === "call" && recommendedAction === "check") {
-        return `${contextAdjustedTag} Recommended Action: ${modelValue}. Adjusted to Check because there is no bet to call.`;
+        return `Recommended Action: ${modelValue}. Adjusted to Check because there is no bet to call.`;
       }
 
       if (modelAction === "raise" && recommendedAction === "call") {
-        return `${contextAdjustedTag} Recommended Action: ${modelValue}. Adjusted to Call due to heavy preflop pressure (${hand.currentBet} chips to continue) where pot control is preferred.`;
+        return `Recommended Action: ${modelValue}. Adjusted to Call due to heavy preflop pressure (${hand.currentBet} chips to continue) where pot control is preferred.`;
       }
 
-      return `${contextAdjustedTag} Recommended Action: ${modelValue}. Adjusted to ${recommendation} based on current preflop action state (to call ${toCall}, current bet ${hand.currentBet}, ${effectivePlayers} active players).`;
+      return `Recommended Action: ${modelValue}. Adjusted to ${recommendation} based on current preflop action state (to call ${toCall}, current bet ${hand.currentBet}, ${effectivePlayers} active players).`;
     }
 
     if (toCall <= 0) {
@@ -2622,6 +2648,9 @@ function applySettingsChange() {
   trainingState.pendingRecommendationAction = null;
   trainingState.betSelectionActive = false;
   trainingState.pendingAggressiveAction = null;
+  trainingState.pinnedRecommendationStreet = null;
+  trainingState.pinnedRecommendation = "-";
+  trainingState.pinnedAnalysis = "-";
   clearTournamentProgress();
   initializeChipTrackingSession();
   el.startButton.disabled = false;
@@ -2680,6 +2709,9 @@ function resetHand() {
   trainingState.pendingRecommendationAction = null;
   trainingState.betSelectionActive = false;
   trainingState.pendingAggressiveAction = null;
+  trainingState.pinnedRecommendationStreet = null;
+  trainingState.pinnedRecommendation = "-";
+  trainingState.pinnedAnalysis = "-";
   renderDealButtonIcon();
   el.startButton.disabled = false;
   resetTrainingStateVisuals();
@@ -2711,6 +2743,9 @@ function startHand() {
   trainingState.showdownRevealed = false;
   trainingState.decisionLog = [];
   trainingState.handResultMessage = "Hand in progress";
+  trainingState.pinnedRecommendationStreet = null;
+  trainingState.pinnedRecommendation = "-";
+  trainingState.pinnedAnalysis = "-";
   el.startButton.disabled = true;
   renderDealButtonIcon();
   if (el.settingsPanel) {
