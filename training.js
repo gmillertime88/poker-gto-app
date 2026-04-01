@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "12.7";
-const BUILD_TIMESTAMP = "2026-04-01 09:48";
+const BUILD_VERSION = "12.8";
+const BUILD_TIMESTAMP = "2026-04-01 09:58";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -207,13 +207,34 @@ function getRangeContextRecommendation(hand) {
   return baseline ? String(baseline) : "Fold";
 }
 
-function formatRecommendationPanelText(hand, adjustedRecommendation) {
+function getAdjustmentReasonText(analysisText = "") {
+  const safe = String(analysisText || "").trim();
+  if (!safe || safe === "-") {
+    return "";
+  }
+
+  const marker = "Adjusted to ";
+  const idx = safe.indexOf(marker);
+  if (idx >= 0) {
+    return safe.slice(idx + marker.length).trim();
+  }
+
+  return safe;
+}
+
+function formatRecommendationPanelText(hand, adjustedRecommendation, analysisText = "-") {
   const rangeContext = getRangeContextRecommendation(hand);
   const adjusted = adjustedRecommendation && adjustedRecommendation !== "-"
     ? adjustedRecommendation
     : "-";
+  const isAdjusted = normalizedAction(rangeContext) !== normalizedAction(adjusted);
+  const reason = isAdjusted ? getAdjustmentReasonText(analysisText) : "";
 
-  return `Range Context: ${rangeContext}<br><span class="training-context-adjusted">Adjusted Recommendation: ${adjusted}</span>`;
+  if (!reason) {
+    return `Range Context: ${rangeContext}<br><span class="training-context-adjusted">Adjusted Recommendation: ${adjusted}</span>`;
+  }
+
+  return `Range Context: ${rangeContext}<br><span class="training-context-adjusted">Adjusted Recommendation: ${adjusted}</span><br><span class="training-reco-reason">Reason: ${reason}</span>`;
 }
 
 function setAutoDealControlsVisible(visible) {
@@ -1173,11 +1194,12 @@ function syncBetSizeControlsFromSource(value) {
 function updateActionButtons(disabled = true, toCall = 0, raiseTo = 0, minTarget = 0, maxTarget = 0, player = null) {
   const actor = player || (trainingState.hand ? getUserPlayer(trainingState.hand) : null);
   const canAggressive = !disabled && Boolean(actor) && actor.chips > 0;
+  const aggressiveType = toCall > 0 ? "raise" : "bet";
   const showFold = !disabled && toCall > 0;
   const showCheck = !disabled && toCall <= 0;
   const showCall = !disabled && toCall > 0;
-  const showRaise = canAggressive && toCall > 0;
-  const showBet = canAggressive && toCall <= 0;
+  const showRaise = canAggressive;
+  const showBet = false;
   const canShowSlider = canAggressive && trainingState.betSelectionActive
     && (trainingState.pendingAggressiveAction === "raise" || trainingState.pendingAggressiveAction === "bet");
   const suggestedAmount = actor ? Math.max(0, raiseTo - actor.streetBet) : 0;
@@ -1195,9 +1217,9 @@ function updateActionButtons(disabled = true, toCall = 0, raiseTo = 0, minTarget
   el.betBtn.disabled = !showBet;
 
   el.callBtn.textContent = `Call ${toCall}`;
-  el.raiseBtn.textContent = trainingState.betSelectionActive && trainingState.pendingAggressiveAction === "raise"
-    ? "Confirm Raise"
-    : "Raise";
+  el.raiseBtn.textContent = trainingState.betSelectionActive && trainingState.pendingAggressiveAction === aggressiveType
+    ? `Confirm ${toCall > 0 ? "Raise" : "Bet"}`
+    : `${toCall > 0 ? "Raise" : "Bet"}`;
   el.betBtn.textContent = trainingState.betSelectionActive && trainingState.pendingAggressiveAction === "bet"
     ? "Confirm Bet"
     : "Bet";
@@ -1390,6 +1412,11 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
       ? (shouldForceUpdate ? recommendation : trainingState.pinnedRecommendation)
       : trainingState.pinnedRecommendation)
     : "-";
+  const activeAnalysis = hand
+    ? (incomingHasRecommendation
+      ? (shouldForceUpdate ? (analysis || "-") : trainingState.pinnedAnalysis)
+      : trainingState.pinnedAnalysis)
+    : "-";
   const hasActiveRecommendation = typeof activeRecommendation === "string" && activeRecommendation.trim() !== "" && activeRecommendation !== "-";
 
   if (!hand) {
@@ -1459,7 +1486,7 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
     el.recommendationLabel.hidden = !hasActiveRecommendation;
   }
   if (el.recommendationAnalysis) {
-    el.recommendationAnalysis.innerHTML = formatRecommendationPanelText(hand, activeRecommendation);
+    el.recommendationAnalysis.innerHTML = formatRecommendationPanelText(hand, activeRecommendation, activeAnalysis);
   }
   if (el.actionOn) {
     el.actionOn.textContent = hand.actionOn || "-";
@@ -2950,7 +2977,14 @@ function hookActionButtons() {
     });
   };
 
-  el.raiseBtn.addEventListener("click", () => handleAggressiveButton("raise"));
+  el.raiseBtn.addEventListener("click", () => {
+    if (!trainingState.hand) {
+      return;
+    }
+    const user = getUserPlayer(trainingState.hand);
+    const toCall = Math.max(0, trainingState.hand.currentBet - user.streetBet);
+    handleAggressiveButton(toCall > 0 ? "raise" : "bet");
+  });
   el.betBtn.addEventListener("click", () => handleAggressiveButton("bet"));
 }
 
