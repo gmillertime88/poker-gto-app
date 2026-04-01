@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "12.2";
-const BUILD_TIMESTAMP = "2026-04-01 08:43";
+const BUILD_VERSION = "12.3";
+const BUILD_TIMESTAMP = "2026-04-01 09:01";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -147,7 +147,8 @@ const el = {
   pot: document.getElementById("training-pot"),
   playersInHand: document.getElementById("training-players-in-hand"),
   odds: document.getElementById("training-odds"),
-  outsOdds: document.getElementById("training-outs-odds"),
+  outsCount: document.getElementById("training-outs-count"),
+  outsPct: document.getElementById("training-outs-pct"),
   recommendationLabel: document.getElementById("training-reco-label"),
   recommendation: document.getElementById("training-reco"),
   recommendationAnalysis: document.getElementById("training-reco-analysis"),
@@ -192,6 +193,23 @@ function setSimOddsInfoOpen(isOpen) {
 
   el.simOddsInfoPopover.hidden = !isOpen;
   el.simOddsInfoButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+}
+
+function formatRecommendationAnalysis(text) {
+  const safeText = typeof text === "string" && text.trim() ? text.trim() : "-";
+  if (safeText === "-" || !safeText.includes("Adjusted to")) {
+    return safeText;
+  }
+
+  const splitToken = ". Adjusted to";
+  if (!safeText.includes(splitToken)) {
+    return safeText;
+  }
+
+  const parts = safeText.split(splitToken);
+  const rangeLine = `${parts.shift()}.`;
+  const adjustmentBody = parts.join(splitToken).trim();
+  return `${rangeLine}<br><span class="training-context-adjusted">Adjusted to ${adjustmentBody}</span>`;
 }
 
 function setAutoDealControlsVisible(visible) {
@@ -1387,8 +1405,11 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
     if (el.odds) {
       el.odds.textContent = "-";
     }
-    if (el.outsOdds) {
-      el.outsOdds.textContent = "-";
+    if (el.outsCount) {
+      el.outsCount.textContent = "-";
+    }
+    if (el.outsPct) {
+      el.outsPct.textContent = "-";
     }
     if (el.recommendation) {
       el.recommendation.textContent = "-";
@@ -1427,10 +1448,14 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
   if (el.odds) {
     el.odds.textContent = equity === null ? "-" : `${(equity * 100).toFixed(1)}%`;
   }
-  if (el.outsOdds) {
-    const user = getUserPlayer(hand);
-    const outsOdds = user && !user.folded ? estimateSeatOutsOdds(hand, user.seat) : null;
-    el.outsOdds.textContent = formatOutsOdds(outsOdds);
+  const user = getUserPlayer(hand);
+  const showOutsValues = hand.board.length >= 3 && hand.board.length < 5;
+  const outsOdds = showOutsValues && user && !user.folded ? estimateSeatOutsOdds(hand, user.seat) : null;
+  if (el.outsCount) {
+    el.outsCount.textContent = outsOdds ? String(outsOdds.outs) : "-";
+  }
+  if (el.outsPct) {
+    el.outsPct.textContent = outsOdds ? `${(outsOdds.nextCardOdds * 100).toFixed(1)}%` : "-";
   }
   if (el.recommendation) {
     el.recommendation.textContent = activeRecommendation;
@@ -1449,7 +1474,7 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
     el.recommendationLabel.hidden = !hasActiveRecommendation;
   }
   if (el.recommendationAnalysis) {
-    el.recommendationAnalysis.innerHTML = activeAnalysis || "-";
+    el.recommendationAnalysis.innerHTML = formatRecommendationAnalysis(activeAnalysis || "-");
   }
   if (el.actionOn) {
     el.actionOn.textContent = hand.actionOn || "-";
@@ -2041,10 +2066,9 @@ async function getUserAction(hand, player, toCall, recommendation, equity, recom
       resolve(action);
     };
 
-    const equityPct = `${(equity * 100).toFixed(1)}%`;
     const promptText = toCall > 0
-      ? `Your turn (${streetLabel(hand.street)}). Equity ${equityPct}.`
-      : `Your turn (${streetLabel(hand.street)}). Checked to you. Equity ${equityPct}.`;
+      ? `Your turn (${streetLabel(hand.street)}).`
+      : `Your turn (${streetLabel(hand.street)}). Checked to you.`;
     setPromptMessage(promptText, recommendation);
   });
 }

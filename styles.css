@@ -1465,11 +1465,11 @@ h1 {
 }
 
 .training-action-overview {
-  grid-template-columns: minmax(0, 1fr) repeat(4, minmax(120px, auto));
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    "analysis analysis analysis analysis analysis"
-    "recommendation recommendation recommendation recommendation recommendation"
-    "handresult players pot simodds outsodds";
+    "analysis"
+    "recommendation"
+    "handresult";
   align-items: end;
 }
 
@@ -1485,28 +1485,34 @@ h1 {
   grid-area: handresult;
 }
 
-.training-action-overview .training-action-players {
-  grid-area: players;
+.training-analysis-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.training-analysis-metric {
+  display: grid;
+  gap: 4px;
   justify-items: center;
   text-align: center;
 }
 
-.training-action-overview .training-action-pot {
-  grid-area: pot;
-  justify-items: end;
-  text-align: right;
+.training-analysis-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--heading);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-.training-action-overview .training-action-sim-odds {
-  grid-area: simodds;
-  justify-items: end;
-  text-align: right;
-}
-
-.training-action-overview .training-action-outs-odds {
-  grid-area: outsodds;
-  justify-items: end;
-  text-align: right;
+.training-analysis-value {
+  font-size: 1.04rem;
+  font-weight: 600;
+  text-align: center;
 }
 
 @media (max-width: 640px) {
@@ -1515,18 +1521,19 @@ h1 {
     grid-template-areas:
       "analysis"
       "recommendation"
-      "handresult"
-      "players"
-      "pot"
-      "simodds"
-      "outsodds";
+      "handresult";
   }
 
-  .training-action-overview .training-action-players,
-  .training-action-overview .training-action-pot,
-  .training-action-overview .training-action-sim-odds,
-  .training-action-overview .training-action-outs-odds {
+  .training-analysis-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .training-analysis-metric {
     justify-items: start;
+    text-align: left;
+  }
+
+  .training-analysis-value {
     text-align: left;
   }
 }
