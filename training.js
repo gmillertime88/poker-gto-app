@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "12.0";
-const BUILD_TIMESTAMP = "2026-03-30 16:04";
+const BUILD_VERSION = "12.1";
+const BUILD_TIMESTAMP = "2026-04-01 08:31";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -147,6 +147,7 @@ const el = {
   pot: document.getElementById("training-pot"),
   playersInHand: document.getElementById("training-players-in-hand"),
   odds: document.getElementById("training-odds"),
+  outsOdds: document.getElementById("training-outs-odds"),
   recommendationLabel: document.getElementById("training-reco-label"),
   recommendation: document.getElementById("training-reco"),
   recommendationAnalysis: document.getElementById("training-reco-analysis"),
@@ -1190,14 +1191,14 @@ function renderTable(hand, userEquity = null) {
 
   if (!hand) {
     if (el.oddsResultsHeader) {
-      el.oddsResultsHeader.textContent = "Odds";
+      el.oddsResultsHeader.textContent = "Sim Odds";
     }
     return;
   }
 
   const showResults = Boolean(trainingState.showdownRevealed && hand.board.length === 5);
   if (el.oddsResultsHeader) {
-    el.oddsResultsHeader.textContent = showResults ? "Results" : "Odds";
+    el.oddsResultsHeader.textContent = showResults ? "Results" : "Sim Odds";
   }
 
   const buildMobileLabel = (labelText) => {
@@ -1263,8 +1264,8 @@ function renderTable(hand, userEquity = null) {
 
     const oddsCell = document.createElement("td");
     oddsCell.className = "col-odds";
-    oddsCell.dataset.label = showResults ? "Results" : "Odds";
-    oddsCell.appendChild(buildMobileLabel(showResults ? "Results" : "Odds"));
+    oddsCell.dataset.label = showResults ? "Results" : "Sim Odds";
+    oddsCell.appendChild(buildMobileLabel(showResults ? "Results" : "Sim Odds"));
     let oddsOrResultValue = "-";
 
     if (showResults) {
@@ -1374,6 +1375,9 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
     if (el.odds) {
       el.odds.textContent = "-";
     }
+    if (el.outsOdds) {
+      el.outsOdds.textContent = "-";
+    }
     if (el.recommendation) {
       el.recommendation.textContent = "-";
       el.recommendation.className = "value training-status-value training-reco-value";
@@ -1410,6 +1414,11 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
   }
   if (el.odds) {
     el.odds.textContent = equity === null ? "-" : `${(equity * 100).toFixed(1)}%`;
+  }
+  if (el.outsOdds) {
+    const user = getUserPlayer(hand);
+    const outsOdds = user && !user.folded ? estimateSeatOutsOdds(hand, user.seat) : null;
+    el.outsOdds.textContent = formatOutsOdds(outsOdds);
   }
   if (el.recommendation) {
     el.recommendation.textContent = activeRecommendation;
@@ -1528,6 +1537,65 @@ function estimateSeatEquity(hand, seat, trials = 900) {
   }
 
   return userEquity / trials;
+}
+
+function estimateSeatOutsOdds(hand, seat) {
+  const actor = hand.players.find((player) => player.seat === seat && !player.folded);
+  if (!actor) {
+    return null;
+  }
+
+  const boardCount = hand.board.length;
+  if (boardCount < 3 || boardCount >= 5) {
+    return null;
+  }
+
+  const currentRank = evaluateSevenCards([actor.cards[0], actor.cards[1]].concat(hand.board));
+  const knownCards = new Set([actor.cards[0], actor.cards[1]].concat(hand.board));
+  const availableDeck = [];
+
+  for (let cardInt = 0; cardInt < 52; cardInt += 1) {
+    if (!knownCards.has(cardInt)) {
+      availableDeck.push(cardInt);
+    }
+  }
+
+  let outs = 0;
+  availableDeck.forEach((cardInt) => {
+    const nextBoard = hand.board.concat(cardInt);
+    const nextRank = evaluateSevenCards([actor.cards[0], actor.cards[1]].concat(nextBoard));
+    if (compareRankVectors(nextRank, currentRank) > 0) {
+      outs += 1;
+    }
+  });
+
+  const unseen = availableDeck.length;
+  const nextCardOdds = unseen > 0 ? (outs / unseen) : 0;
+  const byRiverOdds = boardCount === 3 && unseen > 1
+    ? 1 - (((unseen - outs) / unseen) * ((unseen - outs - 1) / (unseen - 1)))
+    : null;
+
+  return {
+    outs,
+    nextCardOdds,
+    byRiverOdds,
+    boardCount,
+  };
+}
+
+function formatOutsOdds(outsOdds) {
+  if (!outsOdds) {
+    return "-";
+  }
+
+  const nextLabel = outsOdds.boardCount === 3 ? "Turn" : "River";
+  const nextPct = `${(outsOdds.nextCardOdds * 100).toFixed(1)}%`;
+
+  if (outsOdds.byRiverOdds !== null) {
+    return `${outsOdds.outs} outs | ${nextLabel} ${nextPct} | By river ${(outsOdds.byRiverOdds * 100).toFixed(1)}%`;
+  }
+
+  return `${outsOdds.outs} outs | ${nextLabel} ${nextPct}`;
 }
 
 function recommendationForSituation(hand, player, toCall, equity) {

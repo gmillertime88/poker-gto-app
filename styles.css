@@ -1465,11 +1465,11 @@ h1 {
 }
 
 .training-action-overview {
-  grid-template-columns: minmax(0, 1fr) minmax(120px, auto) minmax(120px, auto);
+  grid-template-columns: minmax(0, 1fr) repeat(4, minmax(120px, auto));
   grid-template-areas:
-    "analysis analysis analysis"
-    "recommendation recommendation recommendation"
-    "handresult players pot";
+    "analysis analysis analysis analysis analysis"
+    "recommendation recommendation recommendation recommendation recommendation"
+    "handresult players pot simodds outsodds";
   align-items: end;
 }
 
@@ -1497,6 +1497,18 @@ h1 {
   text-align: right;
 }
 
+.training-action-overview .training-action-sim-odds {
+  grid-area: simodds;
+  justify-items: end;
+  text-align: right;
+}
+
+.training-action-overview .training-action-outs-odds {
+  grid-area: outsodds;
+  justify-items: end;
+  text-align: right;
+}
+
 @media (max-width: 640px) {
   .training-action-overview {
     grid-template-columns: minmax(0, 1fr);
@@ -1505,11 +1517,15 @@ h1 {
       "recommendation"
       "handresult"
       "players"
-      "pot";
+      "pot"
+      "simodds"
+      "outsodds";
   }
 
   .training-action-overview .training-action-players,
-  .training-action-overview .training-action-pot {
+  .training-action-overview .training-action-pot,
+  .training-action-overview .training-action-sim-odds,
+  .training-action-overview .training-action-outs-odds {
     justify-items: start;
     text-align: left;
   }
