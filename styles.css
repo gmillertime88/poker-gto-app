@@ -1465,10 +1465,12 @@ h1 {
 }
 
 .training-action-overview {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   grid-template-areas:
-    "analysis recommendation"
-    "currentaction handresult";
+    "analysis"
+    "currentaction"
+    "recommendation"
+    "handresult";
   align-items: stretch;
 }
 
