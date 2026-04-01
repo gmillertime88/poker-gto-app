@@ -1658,6 +1658,11 @@ h1 {
   font-weight: 400;
 }
 
+.training-reco-reason {
+  color: var(--text);
+  font-weight: 400;
+}
+
 .training-current-action-value {
   color: var(--text);
   font-weight: 400;
@@ -1777,12 +1782,14 @@ h1 {
   font-size: 1.02rem;
   font-weight: 400;
   line-height: 1.35;
+  display: none;
 }
 
 .training-reco-line {
   margin: 4px 0 0;
   font-size: 1.02rem;
   line-height: 1.35;
+  display: none;
 }
 
 .training-reco-label {
