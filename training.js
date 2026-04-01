@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "12.9";
-const BUILD_TIMESTAMP = "2026-04-01 09:59";
+const BUILD_VERSION = "13.0";
+const BUILD_TIMESTAMP = "2026-04-01 10:36";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -1975,6 +1975,20 @@ function getEligibleSeats(hand, order) {
     .map((player) => player.seat);
 }
 
+function shouldAutoCloseBettingRound(hand, eligiblePlayers) {
+  if (!eligiblePlayers || eligiblePlayers.length === 0) {
+    return true;
+  }
+
+  if (eligiblePlayers.length > 1) {
+    return false;
+  }
+
+  const lonePlayer = eligiblePlayers[0];
+  const toCall = Math.max(0, hand.currentBet - lonePlayer.streetBet);
+  return toCall === 0;
+}
+
 function decisionActionLabel(action) {
   const actionType = normalizedAction(action);
 
@@ -2104,6 +2118,12 @@ async function runBettingRound(hand, handId) {
   let pointer = 0;
 
   while (pending.size > 0 && canContinueHand(hand)) {
+    const eligiblePlayers = hand.players.filter((player) => !player.folded && !isAllIn(player));
+    if (shouldAutoCloseBettingRound(hand, eligiblePlayers)) {
+      hand.actionOn = "No further action (all-in/fold runout)";
+      break;
+    }
+
     const player = hand.players[order[pointer]];
     pointer = (pointer + 1) % order.length;
 

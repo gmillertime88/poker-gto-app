@@ -1490,6 +1490,11 @@ h1 {
   grid-area: handresult;
 }
 
+.training-action-hand-result {
+  align-content: space-between;
+  min-height: 100%;
+}
+
 .training-analysis-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1541,6 +1546,11 @@ h1 {
 
   .training-analysis-value {
     text-align: left;
+  }
+
+  .training-auto-deal-controls {
+    justify-self: start;
+    align-self: start;
   }
 }
 
@@ -1808,6 +1818,8 @@ h1 {
   align-items: center;
   gap: 8px;
   margin-top: 4px;
+  justify-self: end;
+  align-self: end;
 }
 
 .training-auto-deal-controls[hidden] {
