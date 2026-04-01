@@ -1465,12 +1465,11 @@ h1 {
 }
 
 .training-action-overview {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   grid-template-areas:
-    "analysis"
-    "recommendation"
-    "handresult";
-  align-items: end;
+    "analysis currentaction"
+    "recommendation handresult";
+  align-items: stretch;
 }
 
 .training-action-overview .training-action-analysis {
@@ -1481,13 +1480,17 @@ h1 {
   grid-area: recommendation;
 }
 
+.training-action-overview .training-action-current-action {
+  grid-area: currentaction;
+}
+
 .training-action-overview .training-action-hand-result {
   grid-area: handresult;
 }
 
 .training-analysis-metrics {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -1520,12 +1523,13 @@ h1 {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas:
       "analysis"
+      "currentaction"
       "recommendation"
       "handresult";
   }
 
   .training-analysis-metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .training-analysis-metric {
@@ -1620,6 +1624,8 @@ h1 {
   border: 0;
   background: transparent;
   border-radius: 0;
+  color: var(--text);
+  font-weight: 400;
 }
 
 .training-reco-value.clickable {
@@ -1640,11 +1646,19 @@ h1 {
   border: 0;
   background: transparent;
   border-radius: 0;
+  color: var(--text);
+  font-weight: 400;
+  line-height: 1.45;
 }
 
 .training-context-adjusted {
-  color: #b91c1c;
-  font-weight: 700;
+  color: var(--text);
+  font-weight: 400;
+}
+
+.training-current-action-value {
+  color: var(--text);
+  font-weight: 400;
 }
 
 .training-hand-result-value {

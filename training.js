@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "12.3";
-const BUILD_TIMESTAMP = "2026-04-01 09:01";
+const BUILD_VERSION = "12.4";
+const BUILD_TIMESTAMP = "2026-04-01 09:18";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -147,8 +147,6 @@ const el = {
   pot: document.getElementById("training-pot"),
   playersInHand: document.getElementById("training-players-in-hand"),
   odds: document.getElementById("training-odds"),
-  outsCount: document.getElementById("training-outs-count"),
-  outsPct: document.getElementById("training-outs-pct"),
   recommendationLabel: document.getElementById("training-reco-label"),
   recommendation: document.getElementById("training-reco"),
   recommendationAnalysis: document.getElementById("training-reco-analysis"),
@@ -195,21 +193,27 @@ function setSimOddsInfoOpen(isOpen) {
   el.simOddsInfoButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
 }
 
-function formatRecommendationAnalysis(text) {
-  const safeText = typeof text === "string" && text.trim() ? text.trim() : "-";
-  if (safeText === "-" || !safeText.includes("Adjusted to")) {
-    return safeText;
+function getRangeContextRecommendation(hand) {
+  if (!hand) {
+    return "-";
   }
 
-  const splitToken = ". Adjusted to";
-  if (!safeText.includes(splitToken)) {
-    return safeText;
+  const user = getUserPlayer(hand);
+  if (!user) {
+    return "-";
   }
 
-  const parts = safeText.split(splitToken);
-  const rangeLine = `${parts.shift()}.`;
-  const adjustmentBody = parts.join(splitToken).trim();
-  return `${rangeLine}<br><span class="training-context-adjusted">Adjusted to ${adjustmentBody}</span>`;
+  const baseline = getPreflopModelValue(user);
+  return baseline ? String(baseline) : "Fold";
+}
+
+function formatRecommendationPanelText(hand, adjustedRecommendation) {
+  const rangeContext = getRangeContextRecommendation(hand);
+  const adjusted = adjustedRecommendation && adjustedRecommendation !== "-"
+    ? adjustedRecommendation
+    : "-";
+
+  return `Range Context: ${rangeContext}<br><span class="training-context-adjusted">Adjusted Recommendation: ${adjusted}</span>`;
 }
 
 function setAutoDealControlsVisible(visible) {
@@ -1385,11 +1389,6 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
       ? (shouldForceUpdate ? recommendation : trainingState.pinnedRecommendation)
       : trainingState.pinnedRecommendation)
     : "-";
-  const activeAnalysis = hand
-    ? (incomingHasRecommendation
-      ? (shouldForceUpdate ? (analysis || "-") : trainingState.pinnedAnalysis)
-      : trainingState.pinnedAnalysis)
-    : "-";
   const hasActiveRecommendation = typeof activeRecommendation === "string" && activeRecommendation.trim() !== "" && activeRecommendation !== "-";
 
   if (!hand) {
@@ -1404,12 +1403,6 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
     }
     if (el.odds) {
       el.odds.textContent = "-";
-    }
-    if (el.outsCount) {
-      el.outsCount.textContent = "-";
-    }
-    if (el.outsPct) {
-      el.outsPct.textContent = "-";
     }
     if (el.recommendation) {
       el.recommendation.textContent = "-";
@@ -1448,18 +1441,9 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
   if (el.odds) {
     el.odds.textContent = equity === null ? "-" : `${(equity * 100).toFixed(1)}%`;
   }
-  const user = getUserPlayer(hand);
-  const showOutsValues = hand.board.length >= 3 && hand.board.length < 5;
-  const outsOdds = showOutsValues && user && !user.folded ? estimateSeatOutsOdds(hand, user.seat) : null;
-  if (el.outsCount) {
-    el.outsCount.textContent = outsOdds ? String(outsOdds.outs) : "-";
-  }
-  if (el.outsPct) {
-    el.outsPct.textContent = outsOdds ? `${(outsOdds.nextCardOdds * 100).toFixed(1)}%` : "-";
-  }
   if (el.recommendation) {
     el.recommendation.textContent = activeRecommendation;
-    el.recommendation.className = `value training-status-value training-reco-value ${normalizedAction(activeRecommendation)}${canQuickApplyRecommendation ? " clickable" : ""}`;
+    el.recommendation.className = `value training-status-value training-reco-value${canQuickApplyRecommendation ? " clickable" : ""}`;
     if (canQuickApplyRecommendation) {
       el.recommendation.setAttribute("role", "button");
       el.recommendation.setAttribute("tabindex", "0");
@@ -1474,7 +1458,7 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
     el.recommendationLabel.hidden = !hasActiveRecommendation;
   }
   if (el.recommendationAnalysis) {
-    el.recommendationAnalysis.innerHTML = formatRecommendationAnalysis(activeAnalysis || "-");
+    el.recommendationAnalysis.innerHTML = formatRecommendationPanelText(hand, activeRecommendation);
   }
   if (el.actionOn) {
     el.actionOn.textContent = hand.actionOn || "-";
