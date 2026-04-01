@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "12.6";
-const BUILD_TIMESTAMP = "2026-04-01 09:27";
+const BUILD_VERSION = "12.7";
+const BUILD_TIMESTAMP = "2026-04-01 09:48";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -1356,12 +1356,13 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
   if (el.session) {
     el.session.textContent = getSessionStatusText();
   }
+  const userSeat = hand ? (getUserPlayer(hand)?.seat ?? null) : null;
+  const isUserTurn = Boolean(hand && userSeat !== null && hand.pendingSeat === userSeat);
   const handResultText = trainingState.handResultMessage || "-";
   const canQuickApplyRecommendation = Boolean(
     trainingState.waitingForUser
     && trainingState.pendingRecommendationAction
-    && hand
-    && hand.actionOn === "You"
+    && isUserTurn
     && recommendation
     && recommendation !== "-"
   );
@@ -1376,7 +1377,7 @@ function renderStatus(hand, equity = null, recommendation = "-", analysis = "-")
       || trainingState.pinnedRecommendationStreet !== hand.street
       || !trainingState.pinnedRecommendation
       || trainingState.pinnedRecommendation === "-"
-      || (hand.actionOn === "You" && (recommendationChanged || analysisChanged))
+      || (isUserTurn && (recommendationChanged || analysisChanged))
     ) {
       trainingState.pinnedRecommendationStreet = hand.street;
       trainingState.pinnedRecommendation = recommendation;
@@ -1978,6 +1979,18 @@ function decisionActionLabel(action) {
   return String(action || "-");
 }
 
+function actionActorLabel(player) {
+  if (!player) {
+    return "-";
+  }
+
+  if (player.isUser) {
+    return "You";
+  }
+
+  return player.position || `Seat ${player.seat}`;
+}
+
 function buildDecisionRecord(hand, player, recommendationAction, recommendationTextValue, action, toCall, equity, reason) {
   if (!player.isUser) {
     return;
@@ -2084,7 +2097,8 @@ async function runBettingRound(hand, handId) {
     const recommendationTextValue = recommendationText(hand, player, recommendation, toCall);
     const reason = recommendationReason(hand, player, toCall, actorEquity, recommendation);
 
-    hand.actionOn = player.isUser ? "You" : `Seat ${player.seat}`;
+    const actorLabel = actionActorLabel(player);
+    hand.actionOn = `${actorLabel}: To act`;
     hand.thinkingSeat = player.isUser ? null : player.seat;
     hand.pendingSeat = player.seat;
     renderAll(hand, userEquity, player.isUser ? recommendationTextValue : "-", player.isUser ? reason : "-");
@@ -2102,6 +2116,7 @@ async function runBettingRound(hand, handId) {
     hand.thinkingSeat = null;
     hand.pendingSeat = null;
     const result = applyAction(hand, player, action);
+    hand.actionOn = `${actorLabel}: ${player.lastAction || "-"}`;
     addLog(`${player.isUser ? "You" : `Seat ${player.seat}`} ${player.lastAction.toLowerCase()}.`, result.aggressive ? "raise" : "info");
 
     const updatedUser = getUserPlayer(hand);
