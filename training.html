@@ -112,7 +112,26 @@
               <span id="training-pot" class="value training-status-value">-</span>
             </section>
             <section class="training-action-section training-action-sim-odds">
-              <h3 class="training-action-heading">Sim Odds</h3>
+              <h3 class="training-action-heading">
+                <span class="training-heading-with-info">
+                  Sim Odds
+                  <span id="training-sim-odds-info-anchor" class="training-info-anchor">
+                    <button
+                      id="training-sim-odds-info-btn"
+                      class="training-info-icon-btn"
+                      type="button"
+                      aria-label="How Sim Odds works"
+                      aria-expanded="false"
+                      aria-controls="training-sim-odds-info-popover"
+                    >
+                      i
+                    </button>
+                    <span id="training-sim-odds-info-popover" class="training-info-popover" role="tooltip" hidden>
+                      Sim Odds is estimated with Monte Carlo simulation. The app runs many random runouts versus active opponents and averages win/tie outcomes.
+                    </span>
+                  </span>
+                </span>
+              </h3>
               <span id="training-odds" class="value training-status-value">-</span>
             </section>
             <section class="training-action-section training-action-outs-odds">

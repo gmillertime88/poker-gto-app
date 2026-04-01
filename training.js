@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "12.1";
-const BUILD_TIMESTAMP = "2026-04-01 08:31";
+const BUILD_VERSION = "12.2";
+const BUILD_TIMESTAMP = "2026-04-01 08:43";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -176,11 +176,23 @@ const el = {
   chipInfoSection: document.getElementById("training-chip-log-section"),
   sessionLogBody: document.getElementById("training-session-log-body"),
   buildTag: document.getElementById("training-build-tag"),
+  simOddsInfoAnchor: document.getElementById("training-sim-odds-info-anchor"),
+  simOddsInfoButton: document.getElementById("training-sim-odds-info-btn"),
+  simOddsInfoPopover: document.getElementById("training-sim-odds-info-popover"),
   autoDealToggle: document.getElementById("training-auto-deal-toggle"),
   autoDealControls: document.getElementById("training-auto-deal-controls"),
   autoDealStatus: document.getElementById("training-auto-deal-status"),
   autoDealPauseButton: document.getElementById("training-auto-deal-pause-btn"),
 };
+
+function setSimOddsInfoOpen(isOpen) {
+  if (!el.simOddsInfoButton || !el.simOddsInfoPopover) {
+    return;
+  }
+
+  el.simOddsInfoPopover.hidden = !isOpen;
+  el.simOddsInfoButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+}
 
 function setAutoDealControlsVisible(visible) {
   if (!el.autoDealControls) {
@@ -2957,6 +2969,34 @@ async function initTraining() {
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && el.settingsPanel.open) {
         el.settingsPanel.open = false;
+      }
+    });
+  }
+
+  if (el.simOddsInfoButton && el.simOddsInfoPopover && el.simOddsInfoAnchor) {
+    setSimOddsInfoOpen(false);
+
+    el.simOddsInfoButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const isOpen = !el.simOddsInfoPopover.hidden;
+      setSimOddsInfoOpen(!isOpen);
+    });
+
+    el.simOddsInfoPopover.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!el.simOddsInfoAnchor.contains(event.target)) {
+        setSimOddsInfoOpen(false);
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !el.simOddsInfoPopover.hidden) {
+        setSimOddsInfoOpen(false);
+        el.simOddsInfoButton.focus();
       }
     });
   }
