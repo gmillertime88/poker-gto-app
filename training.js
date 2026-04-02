@@ -34,8 +34,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "13.4";
-const BUILD_TIMESTAMP = "2026-04-02 09:28";
+const BUILD_VERSION = "13.5";
+const BUILD_TIMESTAMP = "2026-04-02 09:31";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -2284,6 +2284,69 @@ function payoutShowdown(hand) {
     return ordered.length > 0 ? ordered : winners;
   };
 
+  const showdownContenders = hand.players.filter((player) => !player.folded && player.handContribution > 0);
+  const maxContenderContribution = showdownContenders.length > 0
+    ? Math.max(...showdownContenders.map((player) => player.handContribution))
+    : 0;
+  const hasContributionCaps = showdownContenders.some((player) => player.handContribution < maxContenderContribution);
+
+  // If no active contender is capped below another, this is a single main pot.
+  if (!hasContributionCaps) {
+    const totalPot = hand.players.reduce((sum, player) => sum + (player.handContribution || 0), 0);
+    let bestRank = null;
+    let winners = [];
+
+    showdownContenders.forEach((player) => {
+      const rankVector = rankBySeat.get(player.seat);
+      if (!bestRank || compareRankVectors(rankVector, bestRank) > 0) {
+        bestRank = rankVector;
+        winners = [player];
+        return;
+      }
+
+      if (compareRankVectors(rankVector, bestRank) === 0) {
+        winners.push(player);
+      }
+    });
+
+    if (winners.length > 0 && totalPot > 0) {
+      const share = Math.floor(totalPot / winners.length);
+      const remainder = totalPot - (share * winners.length);
+      const awardsBySeat = new Map();
+
+      winners.forEach((winner) => {
+        const current = payoutsBySeat.get(winner.seat) || 0;
+        payoutsBySeat.set(winner.seat, current + share);
+
+        const currentAward = awardsBySeat.get(winner.seat) || 0;
+        awardsBySeat.set(winner.seat, currentAward + share);
+      });
+
+      if (remainder > 0) {
+        const orderedWinners = oddChipWinnerOrder(winners);
+        for (let i = 0; i < remainder; i += 1) {
+          const winner = orderedWinners[i % orderedWinners.length];
+          const current = payoutsBySeat.get(winner.seat) || 0;
+          payoutsBySeat.set(winner.seat, current + 1);
+
+          const currentAward = awardsBySeat.get(winner.seat) || 0;
+          awardsBySeat.set(winner.seat, currentAward + 1);
+        }
+      }
+
+      sidePotResults.push({
+        amount: totalPot,
+        winnerSeats: winners.map((winner) => winner.seat),
+        winnerPayouts: winners
+          .map((winner) => ({
+            seat: winner.seat,
+            amount: awardsBySeat.get(winner.seat) || 0,
+          }))
+          .sort((a, b) => b.amount - a.amount || a.seat - b.seat),
+      });
+    }
+  } else {
+
   let previousLevel = 0;
 
   uniqueLevels.forEach((level) => {
@@ -2351,6 +2414,7 @@ function payoutShowdown(hand) {
         .sort((a, b) => b.amount - a.amount || a.seat - b.seat),
     });
   });
+  }
 
   const paidWinners = hand.players.filter((player) => (payoutsBySeat.get(player.seat) || 0) > 0);
   paidWinners.forEach((winner) => {
