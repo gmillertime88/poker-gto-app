@@ -34,8 +34,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "13.3";
-const BUILD_TIMESTAMP = "2026-04-02 09:09";
+const BUILD_VERSION = "13.4";
+const BUILD_TIMESTAMP = "2026-04-02 09:28";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -2318,10 +2318,14 @@ function payoutShowdown(hand) {
 
     const share = Math.floor(sidePot / winners.length);
     const remainder = sidePot - (share * winners.length);
+    const awardsBySeat = new Map();
 
     winners.forEach((winner) => {
       const current = payoutsBySeat.get(winner.seat) || 0;
       payoutsBySeat.set(winner.seat, current + share);
+
+      const currentAward = awardsBySeat.get(winner.seat) || 0;
+      awardsBySeat.set(winner.seat, currentAward + share);
     });
 
     if (remainder > 0) {
@@ -2330,12 +2334,21 @@ function payoutShowdown(hand) {
         const winner = orderedWinners[i % orderedWinners.length];
         const current = payoutsBySeat.get(winner.seat) || 0;
         payoutsBySeat.set(winner.seat, current + 1);
+
+        const currentAward = awardsBySeat.get(winner.seat) || 0;
+        awardsBySeat.set(winner.seat, currentAward + 1);
       }
     }
 
     sidePotResults.push({
       amount: sidePot,
       winnerSeats: winners.map((winner) => winner.seat),
+      winnerPayouts: winners
+        .map((winner) => ({
+          seat: winner.seat,
+          amount: awardsBySeat.get(winner.seat) || 0,
+        }))
+        .sort((a, b) => b.amount - a.amount || a.seat - b.seat),
     });
   });
 
@@ -2382,10 +2395,14 @@ function renderSummary(hand, winners) {
   const total = trainingState.decisionLog.length;
   const missed = total - followed;
 
-  const winnerText = resolvedWinners.length > 0
-    ? resolvedWinners.map((winner) => (winner.isUser ? "You" : `Seat ${winner.seat}`)).join(", ")
-    : "No winner";
-  el.summaryHeadline.textContent = `${winnerText} won the hand.`;
+  if (typeof hand.handResultMessage === "string" && hand.handResultMessage.length > 0) {
+    el.summaryHeadline.textContent = hand.handResultMessage;
+  } else {
+    const winnerText = resolvedWinners.length > 0
+      ? resolvedWinners.map((winner) => (winner.isUser ? "You" : `Seat ${winner.seat}`)).join(", ")
+      : "No winner";
+    el.summaryHeadline.textContent = `${winnerText} won the hand.`;
+  }
 
   el.summaryDetails.innerHTML = "";
 
@@ -2430,13 +2447,18 @@ function renderSummary(hand, winners) {
     const sidePotResults = Array.isArray(hand.showdownSidePotResults) ? hand.showdownSidePotResults : [];
     if (sidePotResults.length > 0) {
       sidePotResults.forEach((pot, idx) => {
-        const winnerText = (pot.winnerSeats || [])
-          .map((seat) => (seat === trainingState.userSeat ? "You" : `Seat ${seat}`))
-          .join(", ");
+        const winnerPayouts = Array.isArray(pot.winnerPayouts) ? pot.winnerPayouts : [];
+        const breakdownText = winnerPayouts.length > 0
+          ? winnerPayouts
+            .map((entry) => `${entry.seat === trainingState.userSeat ? "You" : `Seat ${entry.seat}`} +${entry.amount}`)
+            .join(", ")
+          : (pot.winnerSeats || [])
+            .map((seat) => (seat === trainingState.userSeat ? "You" : `Seat ${seat}`))
+            .join(", ");
 
         const line = document.createElement("p");
         line.className = "summary-breakdown-line";
-        line.textContent = `Pot ${idx + 1}: ${pot.amount} chips -> ${winnerText || "No winner"}`;
+        line.textContent = `Pot ${idx + 1}: ${pot.amount} chips -> ${breakdownText || "No winner"}`;
         el.summaryDetails.appendChild(line);
       });
     } else {
