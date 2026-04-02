@@ -16,8 +16,8 @@ const CASH_RANGE_FILE = "Supporting Materials/cash_ranges_app_compatible.json";
 const TOURNAMENT_RANGE_FILE = "Supporting Materials/tournament_ranges_app_compatible.json";
 const RANGE_SCREENSHOT_BASE_DIR = "assets/range-screenshots";
 
-const BUILD_VERSION = "14.2";
-const BUILD_TIMESTAMP = "2026-04-02 15:34";
+const BUILD_VERSION = "14.3";
+const BUILD_TIMESTAMP = "2026-04-02 15:38";
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 

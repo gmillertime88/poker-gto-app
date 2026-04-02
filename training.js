@@ -34,8 +34,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "14.2";
-const BUILD_TIMESTAMP = "2026-04-02 15:34";
+const BUILD_VERSION = "14.3";
+const BUILD_TIMESTAMP = "2026-04-02 15:38";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -1813,19 +1813,19 @@ function recommendationReason(hand, player, toCall, equity, recommendation) {
     const contextAdjusted = modelAction !== adjustedAction;
 
     if (contextAdjusted && adjustedAction === recommendedAction) {
-      return `Range context: baseline ${modelValue}. Adjusted to ${adjustedBase} for current live context (${effectivePlayers} players still active pre-flop at ${trainingState.temperature} temperature).`;
+      return `Range context: baseline ${modelValue}. Adjusted to ${adjustedBase} because ${effectivePlayers}-handed, ${trainingState.temperature} table dynamics shift preflop opening frequencies.`;
     }
 
     if (modelAction !== recommendedAction) {
       if (toCall <= 0 && modelAction === "call" && recommendedAction === "check") {
-        return `Range context: baseline ${modelValue}. Adjusted to Check because there is no bet to call.`;
+        return `Range context: baseline ${modelValue}. Adjusted to Check because this spot is checked to you preflop with no price to call.`;
       }
 
       if (modelAction === "raise" && recommendedAction === "call") {
-        return `Range context: baseline ${modelValue}. Adjusted to Call due to heavy preflop pressure (${hand.currentBet} chips to continue) where pot control is preferred.`;
+        return `Range context: baseline ${modelValue}. Adjusted to Call because preflop pressure is high (${hand.currentBet} chips to continue), so flatting controls pot growth and keeps dominated hands in.`;
       }
 
-      return `Range context: baseline ${modelValue}. Adjusted to ${recommendation} based on current preflop action state (to call ${toCall}, current bet ${hand.currentBet}, ${effectivePlayers} active players).`;
+      return `Range context: baseline ${modelValue}. Adjusted to ${recommendation} due to live preflop dynamics: ${toCall} to call, current bet ${hand.currentBet}, and ${effectivePlayers} active players changing fold equity and multiway risk.`;
     }
 
     if (toCall <= 0) {
