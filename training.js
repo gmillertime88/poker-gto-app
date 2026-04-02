@@ -34,8 +34,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "13.7";
-const BUILD_TIMESTAMP = "2026-04-02 09:47";
+const BUILD_VERSION = "13.8";
+const BUILD_TIMESTAMP = "2026-04-02 09:52";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -2483,24 +2483,41 @@ function renderSummary(hand, winners) {
   board.textContent = `Board texture: ${texture}`;
   el.summaryDetails.appendChild(board);
 
-  const cardIntToLabel = (cardInt) => {
+  const buildCardFragment = (cardInt) => {
+    const fragment = document.createDocumentFragment();
     if (cardInt === null || cardInt === undefined) {
-      return "--";
+      fragment.appendChild(document.createTextNode("--"));
+      return fragment;
     }
+
     const { rank, suit } = cardFromInt(cardInt);
     const suitMeta = SUITS[suit] || null;
-    return `${rankNumToText(rank)}${suitMeta ? suitMeta.symbol : "?"}`;
+    fragment.appendChild(document.createTextNode(rankNumToText(rank)));
+
+    const suitNode = document.createElement("span");
+    suitNode.className = `card-suit ${suitMeta ? suitMeta.colorClass : ""}`;
+    suitNode.textContent = suitMeta ? suitMeta.symbol : "?";
+    fragment.appendChild(suitNode);
+    return fragment;
   };
 
-  const cardsToLabel = (cards) => {
+  const appendCardsToLine = (lineEl, cards) => {
     if (!Array.isArray(cards) || cards.length === 0) {
-      return "--";
+      lineEl.appendChild(document.createTextNode("--"));
+      return;
     }
-    return cards.map((cardInt) => cardIntToLabel(cardInt)).join(" ");
+
+    cards.forEach((cardInt, idx) => {
+      if (idx > 0) {
+        lineEl.appendChild(document.createTextNode(" "));
+      }
+      lineEl.appendChild(buildCardFragment(cardInt));
+    });
   };
 
   const boardCardsLine = document.createElement("p");
-  boardCardsLine.textContent = `Board cards: ${cardsToLabel(hand.board)}`;
+  boardCardsLine.appendChild(document.createTextNode("Board cards: "));
+  appendCardsToLine(boardCardsLine, hand.board);
   el.summaryDetails.appendChild(boardCardsLine);
 
   const playerCardsHeading = document.createElement("p");
@@ -2516,7 +2533,11 @@ function renderSummary(hand, winners) {
       cardsLine.className = "summary-breakdown-line";
       const playerLabel = player.isUser ? "You" : `Seat ${player.seat}`;
       const foldLabel = player.folded ? " (folded)" : "";
-      cardsLine.textContent = `${playerLabel}: ${cardsToLabel(player.cards)}${foldLabel}`;
+      cardsLine.appendChild(document.createTextNode(`${playerLabel}: `));
+      appendCardsToLine(cardsLine, player.cards);
+      if (foldLabel) {
+        cardsLine.appendChild(document.createTextNode(foldLabel));
+      }
       el.summaryDetails.appendChild(cardsLine);
     });
 
