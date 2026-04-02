@@ -1,3 +1,8 @@
+// Training simulator core:
+// - session/game configuration
+// - rendering and UX flow
+// - recommendation + equity helpers
+// - betting round + showdown engine
 const PLAYER_COUNTS = [5, 6, 7, 8, 9];
 const TABLE_TEMPERATURES = [
   { key: "conservative", label: "Conservative" },
@@ -29,8 +34,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "13.1";
-const BUILD_TIMESTAMP = "2026-04-02 08:53";
+const BUILD_VERSION = "13.2";
+const BUILD_TIMESTAMP = "2026-04-02 09:06";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -131,6 +136,7 @@ const trainingState = {
   pinnedAnalysis: "-",
 };
 
+// Cached DOM references for the entire training surface.
 const el = {
   playersGrid: document.getElementById("training-players-grid"),
   temperatureGrid: document.getElementById("training-temperature-grid"),
@@ -184,6 +190,7 @@ const el = {
   autoDealPauseButton: document.getElementById("training-auto-deal-pause-btn"),
 };
 
+// Recommendation and auto-deal UI helpers -----------------------------------
 function setSimOddsInfoOpen(isOpen) {
   if (!el.simOddsInfoButton || !el.simOddsInfoPopover) {
     return;
@@ -376,6 +383,7 @@ function renderDealButtonIcon() {
   el.startButton.setAttribute("title", "Deal");
 }
 
+// Range/recommendation modeling helpers -------------------------------------
 function tableKey(card1, card2, suited) {
   return `${card1}-${card2}-${suited ? 1 : 0}`;
 }
@@ -521,6 +529,7 @@ function getActivePositions() {
   });
 }
 
+// Card + board primitives ----------------------------------------------------
 function cardToInt(card) {
   const rank = "23456789TJQKA".indexOf(card.rank) + 2;
   const suit = SUITS.findIndex((s) => s.key === card.suit);
@@ -570,6 +579,7 @@ function makeCardToken(cardInt, hidden = false) {
   return token;
 }
 
+// Hand ranking engine --------------------------------------------------------
 function createDeck() {
   const deck = [];
   for (let cardInt = 0; cardInt < 52; cardInt += 1) {
@@ -779,6 +789,7 @@ function handCategoryLabel(rankVector) {
   return labels[rankVector[0]] || "Hand";
 }
 
+// Table order and seat traversal utilities ----------------------------------
 function describeBoardTexture(boardCards) {
   if (!boardCards || boardCards.length < 3) {
     return "Board texture unavailable.";
@@ -849,6 +860,7 @@ function findStartIndexForStreet(hand) {
   return hand.players.length > 0 ? (buttonIndex + 1) % hand.players.length : 0;
 }
 
+// Chip accounting and session log helpers -----------------------------------
 function activePlayers(hand) {
   return hand.players.filter((player) => !player.folded);
 }
@@ -1014,6 +1026,7 @@ function trackChipCredit(player, amount, reason) {
   player.chips = after;
 }
 
+// Bet sizing and action controls --------------------------------------------
 function addLog(text, type = "info") {
   const row = document.createElement("div");
   row.className = `training-log-entry ${type}`;
@@ -1227,6 +1240,7 @@ function updateActionButtons(disabled = true, toCall = 0, raiseTo = 0, minTarget
   updateBetSizingControls(!canShowSlider, actor ? actor.chips : 0, suggestedAmount);
 }
 
+// Main render pipeline -------------------------------------------------------
 function renderBoard(hand) {
   el.board.innerHTML = "";
 
@@ -1518,6 +1532,7 @@ function renderAll(hand, equity = null, recommendation = "-", analysis = "-") {
   renderTable(hand, equity);
 }
 
+// Equity and recommendation logic -------------------------------------------
 function postChips(hand, player, amount, reason = "Committed chips") {
   const paid = trackChipDebit(player, amount, reason);
   player.chips -= paid;
@@ -1861,6 +1876,7 @@ function getNpcAction(hand, player, toCall, recommendation, equity) {
   return "check";
 }
 
+// Betting round engine and action application -------------------------------
 function canContinueHand(hand) {
   return activePlayers(hand).length > 1;
 }
@@ -2127,6 +2143,7 @@ async function getUserAction(hand, player, toCall, recommendation, equity, recom
   });
 }
 
+// Round execution and showdown settlement -----------------------------------
 async function runBettingRound(hand, handId) {
   const startIndex = findStartIndexForStreet(hand);
   const order = getOrderFromStart(hand.players, startIndex);
@@ -2316,6 +2333,7 @@ function payoutShowdown(hand) {
   };
 }
 
+// Post-hand summary rendering ------------------------------------------------
 function buildAdviceLine(item) {
   const recommended = normalizedAction(item.recommendation);
   const taken = normalizedAction(item.action);
@@ -2458,6 +2476,7 @@ function renderSummary(hand, winners) {
   appendSessionReviewEntry(hand, resolvedWinners);
 }
 
+// Session lifecycle and tournament progression -------------------------------
 function setInitialPrompt() {
   setPromptMessage("Start a hand to begin training. Chip stacks persist across hands until the session ends.");
 }
@@ -2759,6 +2778,7 @@ async function playHand(handId) {
   }
 }
 
+// Settings controls and application bootstrap -------------------------------
 function renderSelectionButton(grid, label, active, onClick) {
   const button = document.createElement("button");
   button.type = "button";

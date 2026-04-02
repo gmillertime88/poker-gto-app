@@ -15,8 +15,8 @@ const DEFAULT_RANGE_FILE = "ranges.json";
 const CASH_RANGE_FILE = "Supporting Materials/cash_ranges_app_compatible.json";
 const TOURNAMENT_RANGE_FILE = "Supporting Materials/tournament_ranges_app_compatible.json";
 
-const BUILD_VERSION = "13.1";
-const BUILD_TIMESTAMP = "2026-04-02 08:53";
+const BUILD_VERSION = "13.2";
+const BUILD_TIMESTAMP = "2026-04-02 09:06";
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
@@ -435,6 +435,7 @@ function hideActionButton() {
   elements.actionButton.textContent = "";
 }
 
+// Applies action-specific styling/text to the primary recommendation button.
 function showActionButton(actionText) {
   const className = (actionText || "").toLowerCase();
   elements.actionButton.hidden = false;
@@ -541,6 +542,7 @@ async function loadRangeTable() {
   state.rangeMapsByContext.clear();
 }
 
+// Modal settings interactions (open/close, backdrop click, Escape key).
 /**
  * Application bootstrap: loads data, paints controls, and renders the first
  * recommendation. Falls back to a user-visible error state on failure.

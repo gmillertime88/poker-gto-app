@@ -10,6 +10,7 @@
   <body>
     <main class="app-shell">
       <section class="card">
+        <!-- Top navigation: home access, page identity, and app menu/theme controls. -->
         <div class="top-nav">
           <div class="home-brand">
             <a class="home-logo-link" href="index.html" aria-label="Go to Main Menu">
@@ -39,6 +40,7 @@
           </details>
         </div>
 
+        <!-- Player count selection and hard reset controls. -->
         <div class="field-group">
           <h2>Players <span class="required-asterisk" aria-hidden="true">*</span></h2>
           <div class="players-start-row">
@@ -47,16 +49,19 @@
           </div>
         </div>
 
+        <!-- Per-player card selection rows. -->
         <div class="field-group">
           <h2>Player Hands</h2>
           <div id="player-rows" class="player-rows"></div>
         </div>
 
+        <!-- Community card selectors and randomization controls. -->
         <div class="field-group">
           <h2>Community Cards</h2>
           <div id="board-grid" class="board-grid"></div>
         </div>
 
+        <!-- Computation controls and odds output panel. -->
         <section class="result" aria-live="polite">
           <button id="calculate-odds-btn" class="calculate-odds-panel result-calc-btn" type="button">Calculate</button>
           <div class="result-row odds-summary-row">

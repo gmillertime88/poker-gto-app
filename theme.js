@@ -1,6 +1,8 @@
+// Shared application chrome helpers (theme + mobile menu behavior) used by all pages.
 const THEME_STORAGE_KEY = "millerTimePokerTheme";
 const ALLOWED_THEMES = new Set(["dark", "light"]);
 
+// Reads the persisted theme, with a safe dark fallback if storage is unavailable.
 function getStoredTheme() {
   try {
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
@@ -13,6 +15,7 @@ function getStoredTheme() {
   return "dark";
 }
 
+// Applies theme to the root node, persists the choice, and syncs toggle controls.
 function applyTheme(theme) {
   const safeTheme = ALLOWED_THEMES.has(theme) ? theme : "dark";
   document.documentElement.setAttribute("data-theme", safeTheme);
@@ -32,6 +35,7 @@ function applyTheme(theme) {
   });
 }
 
+// Wires all theme toggles on the page to the same source of truth.
 function initThemeSelector() {
   const initialTheme = getStoredTheme();
   applyTheme(initialTheme);
@@ -44,6 +48,7 @@ function initThemeSelector() {
   });
 }
 
+// Closes open hamburger menus on navigation and outside clicks.
 function initHamburgerMenus() {
   const menus = document.querySelectorAll(".hamburger-menu");
   menus.forEach((menu) => {
@@ -68,11 +73,13 @@ function initHamburgerMenus() {
   });
 }
 
+// App-level entrypoint for shared non-page-specific UI behavior.
 function initAppChrome() {
   initThemeSelector();
   initHamburgerMenus();
 }
 
+// Boot immediately when possible, otherwise wait for DOM content.
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initAppChrome);
 } else {

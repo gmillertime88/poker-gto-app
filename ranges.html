@@ -10,6 +10,7 @@
   <body>
     <main class="app-shell">
       <section class="card">
+        <!-- Top navigation: branding, page title, settings shortcut, and menu. -->
         <div class="top-nav">
           <div class="home-brand">
             <a class="home-logo-link" href="index.html" aria-label="Go to Main Menu">
@@ -42,8 +43,10 @@
           </div>
         </div>
 
+        <!-- Main page guidance text for the recommendation flow. -->
         <p class="subtitle">Select your position and hand to get the recommended first-in action.</p>
 
+        <!-- Overlay settings panel for game type, player count, and table profile. -->
         <details id="ranges-settings-panel" class="training-settings training-settings-overlay">
           <summary class="training-settings-summary">Range Settings</summary>
 
@@ -70,6 +73,7 @@
           </div>
         </details>
 
+        <!-- Primary hand input selectors. -->
         <div class="field-group">
           <h2>Position <span class="required-asterisk" aria-hidden="true">*</span></h2>
           <div id="position-grid" class="button-grid"></div>
@@ -90,6 +94,7 @@
           <div id="suited-grid" class="button-grid suiting-grid"></div>
         </div>
 
+        <!-- Recommendation output panel. -->
         <section class="result range-result" id="result-box" aria-live="polite">
           <div class="result-row odds-summary-row">
             <span class="label summary-label">Hand: <span id="hand-value" class="value">-</span></span>

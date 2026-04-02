@@ -1,3 +1,5 @@
+// Odds calculator engine: UI state, card selection widgets, hand evaluation,
+// and exact combinatoric equity computation.
 const ODDS_PLAYER_COUNTS = [2, 3, 4];
 const ODDS_STAGES = [
   { key: "preflop", label: "Pre-Flop", boardCount: 0, streetIndex: 0 },
@@ -13,8 +15,8 @@ const SUITS = [
   { key: "C", symbol: "♣", label: "Clubs", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "13.1";
-const BUILD_TIMESTAMP = "2026-04-02 08:53";
+const BUILD_VERSION = "13.2";
+const BUILD_TIMESTAMP = "2026-04-02 09:06";
 const WHEEL_REPEAT_COUNT = 3;
 const WHEEL_SCROLL_DEBOUNCE_MS = 90;
 
@@ -36,6 +38,7 @@ const oddsElements = {
   buildTag: document.getElementById("build-tag"),
 };
 
+// Build metadata shown on-page for quick version verification.
 function renderBuildTag() {
   if (!oddsElements.buildTag) {
     return;
@@ -44,6 +47,7 @@ function renderBuildTag() {
   oddsElements.buildTag.textContent = `v${BUILD_VERSION} • ${BUILD_TIMESTAMP}`;
 }
 
+// Initializes player seats and clears player hole cards.
 function initializePlayers() {
   oddsState.players = Array.from({ length: oddsState.playersAtStart }, (_, i) => ({
     seat: i + 1,
@@ -51,6 +55,7 @@ function initializePlayers() {
   }));
 }
 
+// Shared lightweight button renderer for static selectors.
 function renderSelectButton(grid, label, isActive, onClick) {
   const button = document.createElement("button");
   button.type = "button";
@@ -60,6 +65,7 @@ function renderSelectButton(grid, label, isActive, onClick) {
   grid.appendChild(button);
 }
 
+// Status helpers used throughout the calculate flow.
 function setStatus(message, statusClass = "pending") {
   oddsElements.status.className = `value odds-status-value ${statusClass}`;
   oddsElements.status.textContent = message;
@@ -83,6 +89,7 @@ function makeCardKey(rank, suit) {
   return `${rank}-${suit}`;
 }
 
+// Card selection helpers -----------------------------------------------------
 const RANK_WHEEL_OPTIONS = RANKS.map((rank) => ({ value: rank }));
 
 function collectUsedCards(excludeOwnerKey = null) {
@@ -144,6 +151,7 @@ function findClosestEnabledIndex(options, startIndex, isDisabled) {
   return -1;
 }
 
+// Creates the reusable infinite-style wheel used for rank selection.
 function buildVerticalWheel({
   options,
   selectedValue,
@@ -265,6 +273,7 @@ function buildVerticalWheel({
   return viewport;
 }
 
+// Composite card picker control (rank wheel + suit buttons).
 function buildCardWheelSelect(selectedCard, ownerKey, onChange) {
   const usedCards = collectUsedCards(ownerKey);
   const selectedValue = selectedCard?.rank && selectedCard?.suit ? makeCardKey(selectedCard.rank, selectedCard.suit) : null;
@@ -343,6 +352,7 @@ function buildCardWheelSelect(selectedCard, ownerKey, onChange) {
   return wrap;
 }
 
+// Card rendering and conversion utilities -----------------------------------
 function suitMetaByKey(suitKey) {
   return SUITS.find((suit) => suit.key === suitKey) || null;
 }
@@ -394,6 +404,7 @@ function createDuplicateCardError(card) {
   return error;
 }
 
+// Top-level UI renderers and randomizers ------------------------------------
 function setPlayersAtStart(count) {
   oddsState.playersAtStart = count;
   initializePlayers();
@@ -607,6 +618,7 @@ function renderAll() {
   setStatus("-", "pending");
 }
 
+// Poker hand evaluator -------------------------------------------------------
 function cardToInt(card) {
   const rank = "23456789TJQKA".indexOf(card.rank) + 2;
   const suit = SUITS.findIndex((s) => s.key === card.suit);
@@ -774,6 +786,7 @@ function handCategoryLabel(rankVector) {
   return labels[rankVector[0]] || "Hand";
 }
 
+// Scenario validation + exact probability engine ----------------------------
 function validateAndBuildScenario() {
   const boardState = oddsState.board.map((card) => {
     if (!card) {
@@ -901,6 +914,7 @@ function enumerateCombinations(source, choose, onCombination) {
   walk(0, 0);
 }
 
+// Evaluates winner indices for a specific board realization.
 function evaluateWinnersOnBoard(activePlayers, boardCards) {
   let bestRank = null;
   const winners = [];
@@ -923,6 +937,7 @@ function evaluateWinnersOnBoard(activePlayers, boardCards) {
   return { winners };
 }
 
+// Turn-only helper: identifies river outs that convert losing/tied states.
 function calculateTurnOuts(scenario) {
   if (scenario.knownBoardCards.length !== 4) {
     return [];
@@ -968,6 +983,7 @@ function calculateTurnOuts(scenario) {
   }));
 }
 
+// Exact equity calculator by exhaustive board enumeration.
 function calculateExactOdds(scenario) {
   const unknownBoardCount = 5 - scenario.knownBoardCards.length;
   const totals = {
@@ -1016,6 +1032,7 @@ function calculateExactOdds(scenario) {
   return totals;
 }
 
+// Result table renderer (including current best hand labels and outs display).
 function renderOddsResults(scenario, totals) {
   oddsElements.boardsEvaluated.textContent = totals.boards.toLocaleString();
   oddsElements.results.innerHTML = "";
@@ -1194,6 +1211,7 @@ function renderOddsResults(scenario, totals) {
   oddsElements.results.appendChild(table);
 }
 
+// Primary user action pipeline: validate input, compute exact odds, render.
 async function handleCalculateOdds() {
   try {
     oddsElements.calculateButton.disabled = true;
@@ -1233,6 +1251,7 @@ async function handleCalculateOdds() {
   }
 }
 
+// Odds page bootstrap.
 function initOddsPage() {
   renderBuildTag();
   initializePlayers();

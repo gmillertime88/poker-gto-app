@@ -10,6 +10,7 @@
   <body>
     <main class="app-shell">
       <section class="card">
+        <!-- Top navigation and global controls for the training page. -->
         <div class="top-nav">
           <div class="home-brand">
             <a class="home-logo-link" href="index.html" aria-label="Go to Main Menu">
@@ -42,6 +43,7 @@
             </details>
           </div>
         </div>
+        <!-- Session-level configuration overlay (table setup + automation options). -->
         <details id="training-settings-panel" class="training-settings training-settings-overlay">
           <summary class="training-settings-summary">Session Settings</summary>
 
@@ -82,6 +84,7 @@
           </div>
         </details>
 
+        <!-- Live analysis and recommendation dashboard. -->
         <section class="field-group">
           <div class="training-action-status training-action-overview" aria-live="polite">
             <section class="training-action-section training-action-analysis">
@@ -147,6 +150,7 @@
           </div>
         </section>
 
+        <!-- Community board and primary deal action. -->
         <section class="field-group">
           <div class="training-board-heading">
             <h2 class="training-board-title">Community Cards</h2>
@@ -161,6 +165,7 @@
           </div>
         </section>
 
+        <!-- User bet sizing controls (shown only when aggressive actions are available). -->
         <section class="field-group training-bet-sizing-section" id="training-bet-sizing" hidden>
           <label for="training-bet-size-input" class="training-bet-sizing-label">Bet Amount</label>
           <div class="training-bet-sizing-controls">
@@ -190,6 +195,7 @@
           </div>
         </section>
 
+        <!-- Per-seat table state and action controls. -->
         <section class="field-group">
           <div class="training-table-heading">
             <h2 class="training-table-title">Table</h2>
@@ -223,6 +229,7 @@
           </div>
         </section>
 
+        <!-- Hand-level event feed and post-hand analysis. -->
         <details id="training-hand-info-section" class="field-group training-info-panel">
           <summary class="training-info-summary">Hand Information</summary>
           <div class="training-info-content">
@@ -237,6 +244,7 @@
           </div>
         </details>
 
+        <!-- Session-level summary and history logs. -->
         <details id="training-session-log-section" class="field-group training-info-panel">
           <summary class="training-info-summary">Session Information</summary>
           <div class="training-info-content">
@@ -244,6 +252,7 @@
           </div>
         </details>
 
+        <!-- Chip movement/audit trail for the current session. -->
         <details id="training-chip-log-section" class="field-group training-info-panel training-chip-log-section">
           <summary class="training-info-summary">Chip Information</summary>
           <div class="training-info-content">
