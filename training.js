@@ -34,8 +34,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "13.6";
-const BUILD_TIMESTAMP = "2026-04-02 09:38";
+const BUILD_VERSION = "13.7";
+const BUILD_TIMESTAMP = "2026-04-02 09:47";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -2482,6 +2482,43 @@ function renderSummary(hand, winners) {
   const board = document.createElement("p");
   board.textContent = `Board texture: ${texture}`;
   el.summaryDetails.appendChild(board);
+
+  const cardIntToLabel = (cardInt) => {
+    if (cardInt === null || cardInt === undefined) {
+      return "--";
+    }
+    const { rank, suit } = cardFromInt(cardInt);
+    const suitMeta = SUITS[suit] || null;
+    return `${rankNumToText(rank)}${suitMeta ? suitMeta.symbol : "?"}`;
+  };
+
+  const cardsToLabel = (cards) => {
+    if (!Array.isArray(cards) || cards.length === 0) {
+      return "--";
+    }
+    return cards.map((cardInt) => cardIntToLabel(cardInt)).join(" ");
+  };
+
+  const boardCardsLine = document.createElement("p");
+  boardCardsLine.textContent = `Board cards: ${cardsToLabel(hand.board)}`;
+  el.summaryDetails.appendChild(boardCardsLine);
+
+  const playerCardsHeading = document.createElement("p");
+  playerCardsHeading.className = "summary-breakdown-title";
+  playerCardsHeading.textContent = "Player Cards:";
+  el.summaryDetails.appendChild(playerCardsHeading);
+
+  hand.players
+    .slice()
+    .sort((a, b) => a.seat - b.seat)
+    .forEach((player) => {
+      const cardsLine = document.createElement("p");
+      cardsLine.className = "summary-breakdown-line";
+      const playerLabel = player.isUser ? "You" : `Seat ${player.seat}`;
+      const foldLabel = player.folded ? " (folded)" : "";
+      cardsLine.textContent = `${playerLabel}: ${cardsToLabel(player.cards)}${foldLabel}`;
+      el.summaryDetails.appendChild(cardsLine);
+    });
 
   if (hand.finishedByFold) {
     const foldOutcome = document.createElement("p");
