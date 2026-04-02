@@ -16,8 +16,8 @@ const CASH_RANGE_FILE = "Supporting Materials/cash_ranges_app_compatible.json";
 const TOURNAMENT_RANGE_FILE = "Supporting Materials/tournament_ranges_app_compatible.json";
 const RANGE_SCREENSHOT_BASE_DIR = "assets/range-screenshots";
 
-const BUILD_VERSION = "14.1";
-const BUILD_TIMESTAMP = "2026-04-02 15:29";
+const BUILD_VERSION = "14.2";
+const BUILD_TIMESTAMP = "2026-04-02 15:34";
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
@@ -123,8 +123,11 @@ const elements = {
   card2Grid: document.getElementById("card2-grid"),
   suitedGrid: document.getElementById("suited-grid"),
   handValue: document.getElementById("hand-value"),
+  baselineRecommendation: document.getElementById("baseline-recommendation"),
+  derivedRecommendation: document.getElementById("derived-recommendation"),
   baselineActionButton: document.getElementById("baseline-action-button"),
   derivedActionButton: document.getElementById("derived-action-button"),
+  derivedReason: document.getElementById("derived-reason"),
   rangeSourceButton: document.getElementById("range-source-button"),
   baselineSizeValue: document.getElementById("baseline-size-value"),
   derivedSizeValue: document.getElementById("derived-size-value"),
@@ -466,6 +469,56 @@ function hideRangeSourceButton() {
   elements.rangeSourceButton.hidden = true;
 }
 
+function hideDerivedRecommendation() {
+  if (elements.derivedRecommendation) {
+    elements.derivedRecommendation.hidden = true;
+  }
+
+  hideRecommendationButton(elements.derivedActionButton);
+
+  if (elements.derivedSizeValue) {
+    elements.derivedSizeValue.textContent = "-";
+  }
+
+  if (elements.derivedReason) {
+    elements.derivedReason.hidden = true;
+    elements.derivedReason.textContent = "";
+  }
+}
+
+function getDerivedDifferenceReason(baselineRecommendation, derivedRecommendation) {
+  const playerDelta = WIDEN_DELTA_BY_PLAYERS[state.players] ?? 0;
+  const temperatureDelta = TEMPERATURE_RANGE_ADJUST[state.temperature] ?? 0;
+  const adjustmentParts = [];
+
+  if (playerDelta !== 0) {
+    adjustmentParts.push(`short-handed play (${state.players} players) widens opening ranges`);
+  }
+
+  if (temperatureDelta !== 0) {
+    const temperatureLabel = TABLE_TEMPERATURES.find((entry) => entry.key === state.temperature)?.label || state.temperature;
+    if (temperatureDelta < 0) {
+      adjustmentParts.push(`${temperatureLabel} table dynamics encourage looser opens`);
+    } else {
+      adjustmentParts.push(`${temperatureLabel} table dynamics encourage tighter opens`);
+    }
+  }
+
+  const adjustmentText = adjustmentParts.length > 0 ? adjustmentParts.join("; ") : "table dynamics";
+  const baselineAction = baselineRecommendation.action;
+  const derivedAction = derivedRecommendation.action;
+
+  if (baselineAction !== derivedAction) {
+    return `${adjustmentText}. This hand shifts from ${baselineAction} to ${derivedAction}.`;
+  }
+
+  if (baselineRecommendation.sizeText !== derivedRecommendation.sizeText) {
+    return `${adjustmentText}. Action stays ${derivedAction}, but the open size is adjusted.`;
+  }
+
+  return `${adjustmentText}. Derived output reflects strategic table adjustments.`;
+}
+
 function getRangeScreenshotPath() {
   const gameFolder = String(state.gameType || "tournament").toLowerCase();
   const position = String(state.position || "").toUpperCase();
@@ -591,10 +644,9 @@ function updateResult() {
   if (!state.position || !state.card1 || !state.card2 || (state.suited === null && state.card1 !== state.card2)) {
     elements.handValue.textContent = "-";
     hideRecommendationButton(elements.baselineActionButton);
-    hideRecommendationButton(elements.derivedActionButton);
+    hideDerivedRecommendation();
     hideRangeSourceButton();
     elements.baselineSizeValue.textContent = "-";
-    elements.derivedSizeValue.textContent = "-";
     return;
   }
 
@@ -606,18 +658,33 @@ function updateResult() {
 
   if (!baselineRecommendation || !derivedRecommendation) {
     hideRecommendationButton(elements.baselineActionButton);
-    hideRecommendationButton(elements.derivedActionButton);
+    hideDerivedRecommendation();
     hideRangeSourceButton();
     elements.baselineSizeValue.textContent = "-";
-    elements.derivedSizeValue.textContent = "-";
     return;
   }
 
   showRecommendationButton(elements.baselineActionButton, baselineRecommendation.action);
-  showRecommendationButton(elements.derivedActionButton, derivedRecommendation.action);
-  showRangeSourceButton(normalized.handText);
   elements.baselineSizeValue.textContent = baselineRecommendation.sizeText;
-  elements.derivedSizeValue.textContent = derivedRecommendation.sizeText;
+
+  const hasDerivedDifference = baselineRecommendation.action !== derivedRecommendation.action
+    || baselineRecommendation.sizeText !== derivedRecommendation.sizeText;
+
+  if (hasDerivedDifference) {
+    if (elements.derivedRecommendation) {
+      elements.derivedRecommendation.hidden = false;
+    }
+    showRecommendationButton(elements.derivedActionButton, derivedRecommendation.action);
+    elements.derivedSizeValue.textContent = derivedRecommendation.sizeText;
+    if (elements.derivedReason) {
+      elements.derivedReason.hidden = false;
+      elements.derivedReason.textContent = getDerivedDifferenceReason(baselineRecommendation, derivedRecommendation);
+    }
+  } else {
+    hideDerivedRecommendation();
+  }
+
+  showRangeSourceButton(normalized.handText);
 }
 
 /**
@@ -729,9 +796,8 @@ async function init() {
     renderBuildTag();
     elements.handValue.textContent = "Error";
     hideRecommendationButton(elements.baselineActionButton);
-    hideRecommendationButton(elements.derivedActionButton);
+    hideDerivedRecommendation();
     elements.baselineSizeValue.textContent = "-";
-    elements.derivedSizeValue.textContent = "-";
     console.error(error);
   }
 }

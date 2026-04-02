@@ -644,9 +644,10 @@ h1 {
 }
 
 .range-action-btn {
+  display: block;
   width: 110px;
   min-height: 46px;
-  margin: 6px 0;
+  margin: 6px auto;
   font-size: 0.92rem;
   font-weight: 800;
   cursor: default;
@@ -668,6 +669,13 @@ h1 {
 .range-action-btn.call,
 .range-action-btn.check {
   color: #000000;
+}
+
+.range-derived-reason {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-align: center;
 }
 
 .range-source-btn {
