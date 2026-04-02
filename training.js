@@ -34,8 +34,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "13.8";
-const BUILD_TIMESTAMP = "2026-04-02 09:52";
+const BUILD_VERSION = "13.9";
+const BUILD_TIMESTAMP = "2026-04-02 13:55";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -2230,6 +2230,20 @@ async function runBettingRound(hand, handId) {
     if (result.reopensAction) {
       pending = new Set(getEligibleSeats(hand, order).filter((seat) => seat !== player.seat));
       continue;
+    }
+
+    if (result.aggressive) {
+      const shortOfCurrentBet = getEligibleSeats(hand, order).filter((seat) => {
+        if (seat === player.seat) {
+          return false;
+        }
+        const seatPlayer = hand.players.find((entry) => entry.seat === seat);
+        return Boolean(seatPlayer) && seatPlayer.streetBet < hand.currentBet;
+      });
+
+      if (shortOfCurrentBet.length > 0) {
+        pending = new Set([...pending, ...shortOfCurrentBet]);
+      }
     }
 
     pending.delete(player.seat);
