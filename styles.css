@@ -1687,7 +1687,7 @@ h1 {
 }
 
 .training-table {
-  min-width: 860px;
+  min-width: 980px;
 }
 
 .training-table td.col-seat,
@@ -2417,7 +2417,7 @@ h1 {
   }
 
   .training-table {
-    min-width: 740px;
+    min-width: 860px;
   }
 
   .training-table-wrap::after {

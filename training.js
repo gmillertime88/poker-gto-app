@@ -29,8 +29,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "13.0";
-const BUILD_TIMESTAMP = "2026-04-01 10:36";
+const BUILD_VERSION = "13.1";
+const BUILD_TIMESTAMP = "2026-04-02 08:53";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -1271,15 +1271,10 @@ function renderTable(hand, userEquity = null) {
     return value;
   };
 
-  const displayPlayers = hand.players.slice().sort((a, b) => {
-    if (a.isUser && !b.isUser) {
-      return -1;
-    }
-    if (!a.isUser && b.isUser) {
-      return 1;
-    }
-    return a.seat - b.seat;
-  });
+  const userIndex = hand.players.findIndex((player) => player.isUser);
+  const displayPlayers = userIndex >= 0
+    ? getOrderFromStart(hand.players, userIndex).map((idx) => hand.players[idx])
+    : hand.players.slice();
 
   displayPlayers.forEach((player) => {
     const row = document.createElement("tr");
@@ -1317,6 +1312,26 @@ function renderTable(hand, userEquity = null) {
     cardsValue.appendChild(makeCardToken(player.cards[0], !showRealCards));
     cardsValue.appendChild(makeCardToken(player.cards[1], !showRealCards));
     cardsCell.appendChild(cardsValue);
+
+    const currentHandCell = document.createElement("td");
+    currentHandCell.className = "col-current-hand";
+    currentHandCell.dataset.label = "Current Hand";
+    currentHandCell.appendChild(buildMobileLabel("Current Hand"));
+
+    let currentHandValue = "-";
+    if (player.isUser) {
+      const currentRankVector = evaluateSevenCards([player.cards[0], player.cards[1]].concat(hand.board));
+      currentHandValue = handCategoryLabel(currentRankVector);
+    } else if (showResults) {
+      if (player.folded) {
+        currentHandValue = "Folded";
+      } else {
+        const finalRankVector = evaluateSevenCards([player.cards[0], player.cards[1]].concat(hand.board));
+        currentHandValue = handCategoryLabel(finalRankVector);
+      }
+    }
+
+    currentHandCell.appendChild(buildMobileValue(currentHandValue));
 
     const oddsCell = document.createElement("td");
     oddsCell.className = "col-odds";
@@ -1365,6 +1380,7 @@ function renderTable(hand, userEquity = null) {
     row.appendChild(seatCell);
     row.appendChild(posCell);
     row.appendChild(cardsCell);
+    row.appendChild(currentHandCell);
     row.appendChild(oddsCell);
     row.appendChild(stackCell);
     row.appendChild(statusCell);
