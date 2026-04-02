@@ -16,8 +16,8 @@ const CASH_RANGE_FILE = "Supporting Materials/cash_ranges_app_compatible.json";
 const TOURNAMENT_RANGE_FILE = "Supporting Materials/tournament_ranges_app_compatible.json";
 const RANGE_SCREENSHOT_BASE_DIR = "assets/range-screenshots";
 
-const BUILD_VERSION = "14.0";
-const BUILD_TIMESTAMP = "2026-04-02 14:23";
+const BUILD_VERSION = "14.1";
+const BUILD_TIMESTAMP = "2026-04-02 15:29";
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
@@ -123,9 +123,11 @@ const elements = {
   card2Grid: document.getElementById("card2-grid"),
   suitedGrid: document.getElementById("suited-grid"),
   handValue: document.getElementById("hand-value"),
-  actionButton: document.getElementById("action-button"),
+  baselineActionButton: document.getElementById("baseline-action-button"),
+  derivedActionButton: document.getElementById("derived-action-button"),
   rangeSourceButton: document.getElementById("range-source-button"),
-  sizeValue: document.getElementById("size-value"),
+  baselineSizeValue: document.getElementById("baseline-size-value"),
+  derivedSizeValue: document.getElementById("derived-size-value"),
   buildTag: document.getElementById("build-tag"),
   rangeSourceModal: document.getElementById("range-source-modal"),
   rangeSourceCloseButton: document.getElementById("range-source-close-btn"),
@@ -264,6 +266,11 @@ function buildRangeMapForPlayers(baseRows, players, thresholds) {
   const playerDelta = WIDEN_DELTA_BY_PLAYERS[players] ?? 0;
   const temperatureDelta = TEMPERATURE_RANGE_ADJUST[state.temperature] ?? 0;
   const delta = playerDelta + temperatureDelta;
+
+  // For baseline context (no widening/tightening), preserve source-table actions exactly.
+  if (Math.abs(delta) < 1e-9) {
+    return buildDirectRangeMap(baseRows);
+  }
 
   baseRows.forEach((baseRow) => {
     const row = { ...baseRow };
@@ -442,10 +449,14 @@ function renderSelections() {
   });
 }
 
-function hideActionButton() {
-  elements.actionButton.hidden = true;
-  elements.actionButton.className = "select-btn range-action-btn";
-  elements.actionButton.textContent = "";
+function hideRecommendationButton(button) {
+  if (!button) {
+    return;
+  }
+
+  button.hidden = true;
+  button.className = "select-btn range-action-btn";
+  button.textContent = "";
 }
 
 function hideRangeSourceButton() {
@@ -512,12 +523,16 @@ function openRangeSourceModal() {
   elements.rangeSourceModal.open = true;
 }
 
-// Applies action-specific styling/text to the primary recommendation button.
-function showActionButton(actionText) {
+// Applies action-specific styling/text to a recommendation button.
+function showRecommendationButton(button, actionText) {
+  if (!button) {
+    return;
+  }
+
   const className = (actionText || "").toLowerCase();
-  elements.actionButton.hidden = false;
-  elements.actionButton.className = `select-btn range-action-btn ${className}`;
-  elements.actionButton.textContent = String(actionText || "").toUpperCase();
+  button.hidden = false;
+  button.className = `select-btn range-action-btn ${className}`;
+  button.textContent = String(actionText || "").toUpperCase();
 }
 
 /**
@@ -536,7 +551,23 @@ function getSizeRecommendation(position, action) {
   return `${size} BB`;
 }
 
-function getLocalRecommendation(position, normalizedHand) {
+function getBaselineRecommendation(position, normalizedHand) {
+  const key = tableKey(normalizedHand.card1, normalizedHand.card2, normalizedHand.suited);
+  const baseRangeMap = buildDirectRangeMap(getActiveBaseRows());
+  const row = baseRangeMap.get(key);
+
+  if (!row) {
+    return null;
+  }
+
+  const action = row[position] || "Fold";
+  return {
+    action,
+    sizeText: getSizeRecommendation(position, action),
+  };
+}
+
+function getDerivedRecommendation(position, normalizedHand) {
   const key = tableKey(normalizedHand.card1, normalizedHand.card2, normalizedHand.suited);
   const rangeMap = getRangeMapForSelectedPlayers();
   const row = rangeMap.get(key);
@@ -559,26 +590,34 @@ function getLocalRecommendation(position, normalizedHand) {
 function updateResult() {
   if (!state.position || !state.card1 || !state.card2 || (state.suited === null && state.card1 !== state.card2)) {
     elements.handValue.textContent = "-";
-    hideActionButton();
+    hideRecommendationButton(elements.baselineActionButton);
+    hideRecommendationButton(elements.derivedActionButton);
     hideRangeSourceButton();
-    elements.sizeValue.textContent = "-";
+    elements.baselineSizeValue.textContent = "-";
+    elements.derivedSizeValue.textContent = "-";
     return;
   }
 
   const normalized = normalizeHand(state.card1, state.card2, state.suited === true);
   elements.handValue.textContent = `${normalized.handText} (${state.position})`;
 
-  const localRecommendation = getLocalRecommendation(state.position, normalized);
-  if (!localRecommendation) {
-    hideActionButton();
+  const baselineRecommendation = getBaselineRecommendation(state.position, normalized);
+  const derivedRecommendation = getDerivedRecommendation(state.position, normalized);
+
+  if (!baselineRecommendation || !derivedRecommendation) {
+    hideRecommendationButton(elements.baselineActionButton);
+    hideRecommendationButton(elements.derivedActionButton);
     hideRangeSourceButton();
-    elements.sizeValue.textContent = "-";
+    elements.baselineSizeValue.textContent = "-";
+    elements.derivedSizeValue.textContent = "-";
     return;
   }
 
-  showActionButton(localRecommendation.action);
+  showRecommendationButton(elements.baselineActionButton, baselineRecommendation.action);
+  showRecommendationButton(elements.derivedActionButton, derivedRecommendation.action);
   showRangeSourceButton(normalized.handText);
-  elements.sizeValue.textContent = localRecommendation.sizeText;
+  elements.baselineSizeValue.textContent = baselineRecommendation.sizeText;
+  elements.derivedSizeValue.textContent = derivedRecommendation.sizeText;
 }
 
 /**
@@ -689,8 +728,10 @@ async function init() {
   } catch (error) {
     renderBuildTag();
     elements.handValue.textContent = "Error";
-    hideActionButton();
-    elements.sizeValue.textContent = "-";
+    hideRecommendationButton(elements.baselineActionButton);
+    hideRecommendationButton(elements.derivedActionButton);
+    elements.baselineSizeValue.textContent = "-";
+    elements.derivedSizeValue.textContent = "-";
     console.error(error);
   }
 }

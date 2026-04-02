@@ -99,11 +99,23 @@
           <div class="result-row odds-summary-row">
             <span class="label summary-label">Hand: <span id="hand-value" class="value">-</span></span>
           </div>
-          <button id="action-button" class="select-btn range-action-btn" type="button" hidden></button>
-          <button id="range-source-button" class="select-btn range-source-btn" type="button" hidden>View Source Chart</button>
-          <div class="result-row odds-summary-row">
-            <span class="label summary-label">Size: <span id="size-value" class="value">-</span></span>
+          <div class="range-recommendation-block">
+            <span class="range-recommendation-label">Chart/JSON Baseline</span>
+            <button id="baseline-action-button" class="select-btn range-action-btn" type="button" hidden></button>
+            <div class="result-row odds-summary-row">
+              <span class="label summary-label">Size: <span id="baseline-size-value" class="value">-</span></span>
+            </div>
           </div>
+
+          <div class="range-recommendation-block">
+            <span class="range-recommendation-label">Derived (Players/Temperature)</span>
+            <button id="derived-action-button" class="select-btn range-action-btn" type="button" hidden></button>
+            <div class="result-row odds-summary-row">
+              <span class="label summary-label">Size: <span id="derived-size-value" class="value">-</span></span>
+            </div>
+          </div>
+
+          <button id="range-source-button" class="select-btn range-source-btn" type="button" hidden>View Source Chart</button>
         </section>
 
         <details id="range-source-modal" class="training-settings training-settings-overlay range-source-modal">
