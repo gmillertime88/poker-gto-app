@@ -34,8 +34,8 @@ const SUITS = [
   { key: "C", symbol: "♣", colorClass: "suit-black" },
 ];
 
-const BUILD_VERSION = "13.2";
-const BUILD_TIMESTAMP = "2026-04-02 09:06";
+const BUILD_VERSION = "13.3";
+const BUILD_TIMESTAMP = "2026-04-02 09:09";
 
 const SMALL_BLIND = 10;
 const BIG_BLIND = 20;
@@ -789,6 +789,26 @@ function handCategoryLabel(rankVector) {
   return labels[rankVector[0]] || "Hand";
 }
 
+function handCategoryShortLabel(rankVector) {
+  if (rankVector[0] === 8 && rankVector[1] === 14) {
+    return "Royal";
+  }
+
+  const labels = [
+    "High",
+    "Pair",
+    "2 Pair",
+    "Trips",
+    "Straight",
+    "Flush",
+    "Boat",
+    "Quads",
+    "S Flush",
+  ];
+
+  return labels[rankVector[0]] || "Hand";
+}
+
 // Table order and seat traversal utilities ----------------------------------
 function describeBoardTexture(boardCards) {
   if (!boardCards || boardCards.length < 3) {
@@ -1335,13 +1355,13 @@ function renderTable(hand, userEquity = null) {
     let currentHandValue = "-";
     if (player.isUser) {
       const currentRankVector = evaluateSevenCards([player.cards[0], player.cards[1]].concat(hand.board));
-      currentHandValue = handCategoryLabel(currentRankVector);
+      currentHandValue = handCategoryShortLabel(currentRankVector);
     } else if (showResults) {
       if (player.folded) {
         currentHandValue = "Folded";
       } else {
         const finalRankVector = evaluateSevenCards([player.cards[0], player.cards[1]].concat(hand.board));
-        currentHandValue = handCategoryLabel(finalRankVector);
+        currentHandValue = handCategoryShortLabel(finalRankVector);
       }
     }
 
