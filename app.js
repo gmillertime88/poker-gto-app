@@ -14,9 +14,10 @@ const GAME_TYPES = [
 const DEFAULT_RANGE_FILE = "ranges.json";
 const CASH_RANGE_FILE = "Supporting Materials/cash_ranges_app_compatible.json";
 const TOURNAMENT_RANGE_FILE = "Supporting Materials/tournament_ranges_app_compatible.json";
+const RANGE_SCREENSHOT_BASE_DIR = "assets/range-screenshots";
 
-const BUILD_VERSION = "13.9";
-const BUILD_TIMESTAMP = "2026-04-02 13:55";
+const BUILD_VERSION = "14.0";
+const BUILD_TIMESTAMP = "2026-04-02 14:23";
 
 const POSITION_DISPLAY_ORDER = ["D", "SB", "BB", "UTG", "MP1", "MP2", "MP3", "HJ", "CO"];
 
@@ -123,8 +124,20 @@ const elements = {
   suitedGrid: document.getElementById("suited-grid"),
   handValue: document.getElementById("hand-value"),
   actionButton: document.getElementById("action-button"),
+  rangeSourceButton: document.getElementById("range-source-button"),
   sizeValue: document.getElementById("size-value"),
   buildTag: document.getElementById("build-tag"),
+  rangeSourceModal: document.getElementById("range-source-modal"),
+  rangeSourceCloseButton: document.getElementById("range-source-close-btn"),
+  rangeSourceTitle: document.getElementById("range-source-title"),
+  rangeSourceCaption: document.getElementById("range-source-caption"),
+  rangeSourceImage: document.getElementById("range-source-image"),
+  rangeSourceMissing: document.getElementById("range-source-missing"),
+};
+
+const rangeSourceState = {
+  handText: "",
+  screenshotPath: "",
 };
 
 function renderBuildTag() {
@@ -435,6 +448,70 @@ function hideActionButton() {
   elements.actionButton.textContent = "";
 }
 
+function hideRangeSourceButton() {
+  if (!elements.rangeSourceButton) {
+    return;
+  }
+  elements.rangeSourceButton.hidden = true;
+}
+
+function getRangeScreenshotPath() {
+  const gameFolder = String(state.gameType || "tournament").toLowerCase();
+  const position = String(state.position || "").toUpperCase();
+  if (!position) {
+    return "";
+  }
+  return `${RANGE_SCREENSHOT_BASE_DIR}/${gameFolder}/${position}.png`;
+}
+
+function showRangeSourceButton(handText) {
+  if (!elements.rangeSourceButton) {
+    return;
+  }
+
+  rangeSourceState.handText = handText || "";
+  rangeSourceState.screenshotPath = getRangeScreenshotPath();
+  elements.rangeSourceButton.hidden = false;
+}
+
+function openRangeSourceModal() {
+  if (!elements.rangeSourceModal || !elements.rangeSourceImage || !elements.rangeSourceCaption || !elements.rangeSourceTitle || !elements.rangeSourceMissing) {
+    return;
+  }
+
+  const gameLabel = GAME_TYPES.find((entry) => entry.key === state.gameType)?.label || "Tournament";
+  const positionLabel = state.position || "-";
+  const handLabel = rangeSourceState.handText || "-";
+  const screenshotPath = rangeSourceState.screenshotPath || getRangeScreenshotPath();
+
+  elements.rangeSourceTitle.textContent = `Range Source - ${gameLabel} ${positionLabel}`;
+  elements.rangeSourceCaption.textContent = `${gameLabel} | Position ${positionLabel} | Hand ${handLabel}`;
+  elements.rangeSourceMissing.hidden = true;
+  elements.rangeSourceImage.hidden = true;
+  elements.rangeSourceImage.removeAttribute("src");
+
+  if (!screenshotPath) {
+    elements.rangeSourceMissing.hidden = false;
+    elements.rangeSourceMissing.textContent = "Screenshot path unavailable for the current selection.";
+    elements.rangeSourceModal.open = true;
+    return;
+  }
+
+  elements.rangeSourceImage.onload = () => {
+    elements.rangeSourceImage.hidden = false;
+    elements.rangeSourceMissing.hidden = true;
+  };
+
+  elements.rangeSourceImage.onerror = () => {
+    elements.rangeSourceImage.hidden = true;
+    elements.rangeSourceMissing.hidden = false;
+    elements.rangeSourceMissing.textContent = `Screenshot not found at ${screenshotPath}. Add this file to display the source chart.`;
+  };
+
+  elements.rangeSourceImage.src = encodeURI(screenshotPath);
+  elements.rangeSourceModal.open = true;
+}
+
 // Applies action-specific styling/text to the primary recommendation button.
 function showActionButton(actionText) {
   const className = (actionText || "").toLowerCase();
@@ -483,6 +560,7 @@ function updateResult() {
   if (!state.position || !state.card1 || !state.card2 || (state.suited === null && state.card1 !== state.card2)) {
     elements.handValue.textContent = "-";
     hideActionButton();
+    hideRangeSourceButton();
     elements.sizeValue.textContent = "-";
     return;
   }
@@ -493,11 +571,13 @@ function updateResult() {
   const localRecommendation = getLocalRecommendation(state.position, normalized);
   if (!localRecommendation) {
     hideActionButton();
+    hideRangeSourceButton();
     elements.sizeValue.textContent = "-";
     return;
   }
 
   showActionButton(localRecommendation.action);
+  showRangeSourceButton(normalized.handText);
   elements.sizeValue.textContent = localRecommendation.sizeText;
 }
 
@@ -573,6 +653,32 @@ async function init() {
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape" && elements.settingsPanel.open) {
           elements.settingsPanel.open = false;
+        }
+      });
+    }
+
+    if (elements.rangeSourceButton) {
+      elements.rangeSourceButton.addEventListener("click", () => {
+        openRangeSourceModal();
+      });
+    }
+
+    if (elements.rangeSourceCloseButton && elements.rangeSourceModal) {
+      elements.rangeSourceCloseButton.addEventListener("click", () => {
+        elements.rangeSourceModal.open = false;
+      });
+    }
+
+    if (elements.rangeSourceModal) {
+      elements.rangeSourceModal.addEventListener("click", (event) => {
+        if (event.target === elements.rangeSourceModal) {
+          elements.rangeSourceModal.open = false;
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && elements.rangeSourceModal.open) {
+          elements.rangeSourceModal.open = false;
         }
       });
     }

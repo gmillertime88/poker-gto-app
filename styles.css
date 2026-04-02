@@ -653,6 +653,49 @@ h1 {
   color: #000000;
 }
 
+.range-source-btn {
+  min-height: 38px;
+  margin: 2px 0 6px;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.range-source-btn[hidden] {
+  display: none;
+}
+
+.range-source-modal .training-settings-dialog {
+  width: min(980px, 96vw);
+}
+
+.range-source-caption {
+  margin: 8px 0 10px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.range-source-missing {
+  margin: 0 0 10px;
+  color: color-mix(in oklab, var(--danger) 72%, var(--text));
+  font-size: 0.9rem;
+}
+
+.range-source-image-wrap {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--surface-soft) 80%, transparent);
+  padding: 8px;
+  max-height: min(68vh, 800px);
+  overflow: auto;
+}
+
+.range-source-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
 .build-tag-wrap {
   margin-top: 10px;
   display: flex;
