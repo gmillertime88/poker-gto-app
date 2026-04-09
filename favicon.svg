@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <radialGradient id="felt" cx="30%" cy="30%" r="75%">
+      <stop offset="0" stop-color="#2ecc71" />
+      <stop offset="1" stop-color="#0f6d3f" />
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="#f4f7fa" />
+  <circle cx="32" cy="32" r="24" fill="url(#felt)" />
+  <g fill="#f4f7fa">
+    <rect x="28" y="11" width="8" height="6" rx="2" />
+    <rect x="28" y="47" width="8" height="6" rx="2" />
+    <rect x="47" y="28" width="6" height="8" rx="2" />
+    <rect x="11" y="28" width="6" height="8" rx="2" />
+    <rect x="41.6" y="14.4" width="6" height="8" rx="2" transform="rotate(45 44.6 18.4)" />
+    <rect x="16.4" y="39.6" width="6" height="8" rx="2" transform="rotate(45 19.4 43.6)" />
+    <rect x="39.6" y="41.6" width="8" height="6" rx="2" transform="rotate(45 43.6 44.6)" />
+    <rect x="14.4" y="16.4" width="8" height="6" rx="2" transform="rotate(45 18.4 19.4)" />
+  </g>
+  <path
+    d="M32 19c-4.8 0-8.8 3.9-8.8 8.8 0 4.4 3.2 7.3 6.5 9.6-1.4 1.2-3.2 2.6-4.7 4.2h5.4L32 47l1.6-5.4H39c-1.5-1.6-3.3-3-4.7-4.2 3.3-2.3 6.5-5.2 6.5-9.6 0-4.9-4-8.8-8.8-8.8z"
+    fill="#111111"
+  />
+</svg>
